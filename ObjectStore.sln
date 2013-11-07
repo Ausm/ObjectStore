@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectStore", "ObjectStore.csproj", "{59D9600A-4644-4F73-9465-E7ED7BAAED1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectStore", "ObjectStore\ObjectStore.csproj", "{59D9600A-4644-4F73-9465-E7ED7BAAED1A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
