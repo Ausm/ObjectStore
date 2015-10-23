@@ -1,6 +1,6 @@
 ﻿{
   "version": "1.0.0-alpha-*",
-  "description": "ObjectStore.Abstraction Class Library",
+  "description": "ObjectStore.Interfaces Class Library",
   "authors": [ "MatthiasA" ],
   "tags": [ "" ],
   "projectUrl": "",
