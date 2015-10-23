@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-*",
+  "version": "1.0.0-alpha-*",
   "description": "ObjectStore.Identity Class Library",
   "authors": [ "MatthiasA" ],
   "tags": [ "" ],
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "Microsoft.AspNet.Identity": "3.0.0-beta7",
-    "ObjectStore": "1.0.0-*",
-    "ObjectStore.Interfaces": "1.0.0-*"
+    "ObjectStore": "1.0.0-alpha-*",
+    "ObjectStore.Interfaces": "1.0.0-alpha-*"
   }
 }
