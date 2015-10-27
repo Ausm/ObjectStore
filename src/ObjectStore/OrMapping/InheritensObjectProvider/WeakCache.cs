@@ -97,9 +97,6 @@ namespace ObjectStore.OrMapping
 
                 WeakCache _cache;
                 static Dictionary<string, IEnumerable<IFillAbleObject>> _objectsToCommit = new Dictionary<string, IEnumerable<IFillAbleObject>>();
-#if !DNXCORE50
-                static bool _isWeakCacheExceptionSent = false;
-#endif
 #endregion
 
 #region Construktor

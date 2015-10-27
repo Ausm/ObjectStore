@@ -32,7 +32,7 @@ namespace ObjectStore.Identity
         {
             _users = objectProvider.GetQueryable<TUser>();
             _roles = objectProvider.GetQueryable<TRole>();
-            _options = options.Options;
+            _options = options.Value;
         }
         #endregion
 
