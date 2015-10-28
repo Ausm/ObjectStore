@@ -13,8 +13,8 @@ using System.Transactions;
 
 namespace ObjectStore
 {
-    public static class Extensions
-	{
+    public static class ObjectStoreExtensions
+    {
         public static void AddObjectStore(this IServiceCollection services, string connectionString)
         {
             RelationalObjectStore relationalObjectStore = new RelationalObjectStore(connectionString, true);

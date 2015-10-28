@@ -10,11 +10,10 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
 using System.Transactions;
-using ObjectStore.Interfaces;
 
 namespace ObjectStore.OrMapping
 {
-    public partial class InheritensObjectProvider<T> : IObjectProvider
+    public partial class InheritensObjectProvider<T> : Interfaces.IObjectProvider
     {
         public class QueryProvider : Expressions.IParseAbleQueryProvider
         {

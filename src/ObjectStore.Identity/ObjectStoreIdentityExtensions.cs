@@ -7,7 +7,7 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace ObjectStore.Identity
 {
-    public static class Extensions
+    public static class ObjectStoreIdentityExtensions
     {
         public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole>(this IdentityBuilder builder, Expression<Func<TUser, string>> getUserName, Expression<Func<TRole, string>> getRoleName, Func<TUser, string> getPasswordHash, Func<TUser, TRole, bool> getIsUserInRole)
             where TUser : class
