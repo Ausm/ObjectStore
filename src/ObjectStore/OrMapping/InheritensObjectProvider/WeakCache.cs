@@ -308,10 +308,8 @@ namespace ObjectStore.OrMapping
 
                     List<IFillAbleObject> dropCommitEntries = new List<IFillAbleObject>(_items.Count);
                     List<IFillAbleObject> deattach = new List<IFillAbleObject>(_items.Count);
-#if !DNXCORE50
                     try
                     {
-#endif
                         dbWorker.SaveObjects(_items.Union(_deletedItems).Cast<IFillAbleObject>(),
                                 x =>
                                 {
@@ -361,19 +359,15 @@ namespace ObjectStore.OrMapping
                                             x.SaveChildObjects();
                                             break;
                                     }
-
-                                }
-                                );
-#if !DNXCORE50
+                                });
                         if (System.Transactions.Transaction.Current == null)
                         {
-#endif
                             foreach (IFillAbleObject obj in dropCommitEntries)
                                 obj.Commit(true);
-#if !DNXCORE50
                         }
                         else
                         {
+#if !DNXCORE50
                             string transactionLocalIdentifier = System.Transactions.Transaction.Current.TransactionInformation.LocalIdentifier;
                             if (_objectsToCommit.ContainsKey(transactionLocalIdentifier))
                                 _objectsToCommit[transactionLocalIdentifier] = _objectsToCommit[transactionLocalIdentifier].Union(dropCommitEntries);
@@ -399,6 +393,7 @@ namespace ObjectStore.OrMapping
                                         _objectsToCommit.Remove(e.Transaction.TransactionInformation.LocalIdentifier);
                                     };
                             }
+#endif
                         }
                     }
                     catch (EntitySaveException)
@@ -408,7 +403,6 @@ namespace ObjectStore.OrMapping
 
                         throw;
                     }
-#endif
                 }
 
                 public ICommitContext Fill(IDataReader reader, Func<IDataReader, MappedObjectKeys> getKeyFunction, Func<T> createObject)

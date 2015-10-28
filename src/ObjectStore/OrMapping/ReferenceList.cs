@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Collections.Specialized;
+using ObjectStore.Interfaces;
 
 namespace ObjectStore.OrMapping
 {

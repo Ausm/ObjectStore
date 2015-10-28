@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
+using System.Transactions;
 using ObjectStore.Interfaces;
 
 namespace ObjectStore.OrMapping
@@ -226,8 +227,13 @@ namespace ObjectStore.OrMapping
                         callExpression.Arguments.Count == 1 &&
                         typeof(TResult) == typeof(bool))
                     {
-                        Enumerable.Update(_objectProvider._dbWorker);
-                        return (TResult)(object)true;
+                        using (TransactionScope transactionScope = Transaction.Current == null ? new TransactionScope() : null)
+                        {
+                            Enumerable.Update(_objectProvider._dbWorker);
+                            if (transactionScope != null) transactionScope.Complete();
+                            return (TResult)(object)true;
+                        }
+
                     }
                     #endregion
                     #region Invoke Delete
