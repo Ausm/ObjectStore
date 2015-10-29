@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0-alpha-*",
+  "version": "1.0.0-alpha2-*",
   "description": "ObjectStore.Identity Class Library",
-  "authors": [ "MatthiasA" ],
+  "authors": [ "Matthias Auswoeger" ],
   "tags": [ "" ],
   "projectUrl": "",
   "licenseUrl": "",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "Microsoft.AspNet.Identity": "3.0.0-beta8",
-    "ObjectStore": "1.0.0-alpha-*",
-    "ObjectStore.Interfaces": "1.0.0-alpha-*"
+    "ObjectStore": "1.0.0-alpha2-*",
+    "ObjectStore.Interfaces": "1.0.0-alpha2-*"
   }
 }
