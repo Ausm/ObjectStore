@@ -53,6 +53,14 @@ namespace TestEmpty.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LogOff()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+
 #if DEBUG
         [HttpGet]
         [AllowAnonymous]

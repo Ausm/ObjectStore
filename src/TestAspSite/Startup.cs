@@ -20,7 +20,7 @@ namespace TestEmpty
 
         public void Configure(IApplicationBuilder app)
         {
-            //app.UseStaticFiles();
+            app.UseStaticFiles();
 
 
             app.UseIdentity();
