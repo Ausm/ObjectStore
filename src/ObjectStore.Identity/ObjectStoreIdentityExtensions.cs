@@ -13,11 +13,7 @@ namespace ObjectStore.Identity
             where TUser : class
             where TRole : class
         {
-            ServiceDescriptor objectProviderDescriptor = builder.Services.Where(x => x.ServiceType == typeof(IObjectProvider)).FirstOrDefault();
-            if (objectProviderDescriptor == null)
-                builder.Services.Add(new ServiceDescriptor(typeof(IObjectProvider), x => ObjectStoreManager.DefaultObjectStore, ServiceLifetime.Transient));
-
-            builder.Services.Configure<UserStoreOptions<TUser, TRole, string, string>>(options =>
+            AddObjectStoreUserStores<TUser, TRole, string, string>(builder, options =>
             {
                 options.SetUserNameProperty(getUserName);
                 options.SetRoleNameProperty(getRoleName);
@@ -25,16 +21,39 @@ namespace ObjectStore.Identity
                 options.GetIsUserInRole = getIsUserInRole;
             });
 
-            builder.Services.Add(new ServiceDescriptor(typeof(UserStore<TUser, TRole, string, string>), typeof(UserStore<TUser, TRole, string, string>), ServiceLifetime.Transient));
-            builder.Services.Add(new ServiceDescriptor(typeof(IUserStore<TUser>), typeof(UserStore<TUser, TRole, string, string>), ServiceLifetime.Transient));
-            builder.Services.Add(new ServiceDescriptor(typeof(IRoleStore<TRole>), typeof(UserStore<TUser, TRole, string, string>), ServiceLifetime.Transient));
+            return builder;
+        }
 
+        public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole>(this IdentityBuilder builder, Action<UserStoreOptions<TUser, TRole, string, string>> configure)
+            where TUser : class
+            where TRole : class
+        {
+            AddObjectStoreUserStores<TUser, TRole, string, string>(builder, configure);
             return builder;
         }
 
         public static IdentityBuilder AddObjectStoreUserStores(this IdentityBuilder builder)
         {
             return AddObjectStoreUserStores<User, Role>(builder, x => x.Name, x => x.Name, x => x.Password, (user, role) => true);
+        }
+
+        public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole, TUserKey, TRoleKey>(this IdentityBuilder builder, Action<UserStoreOptions<TUser, TRole, TUserKey, TRoleKey>> configure)
+            where TUser : class
+            where TRole : class
+            where TUserKey : IEquatable<TUserKey>
+            where TRoleKey : IEquatable<TRoleKey>
+        {
+            ServiceDescriptor objectProviderDescriptor = builder.Services.Where(x => x.ServiceType == typeof(IObjectProvider)).FirstOrDefault();
+            if (objectProviderDescriptor == null)
+                builder.Services.Add(new ServiceDescriptor(typeof(IObjectProvider), x => ObjectStoreManager.DefaultObjectStore, ServiceLifetime.Transient));
+
+            builder.Services.Configure<UserStoreOptions<TUser, TRole, TUserKey, TRoleKey>>(configure);
+
+            builder.Services.Add(new ServiceDescriptor(typeof(UserStore<TUser, TRole, TUserKey, TRoleKey>), typeof(UserStore<TUser, TRole, string, string>), ServiceLifetime.Transient));
+            builder.Services.Add(new ServiceDescriptor(typeof(IUserStore<TUser>), typeof(UserStore<TUser, TRole, string, string>), ServiceLifetime.Transient));
+            builder.Services.Add(new ServiceDescriptor(typeof(IRoleStore<TRole>), typeof(UserStore<TUser, TRole, string, string>), ServiceLifetime.Transient));
+
+            return builder;
         }
     }
 }
