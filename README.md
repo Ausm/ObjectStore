@@ -3,9 +3,13 @@ ObjectStore
 
 .Net Or-Mapper working with dynamically implemented abstract Classes
 
-*How to Use?*
-Simply write classes like:
-{"
+##How to Use?
+
+
+**Simply write classes like:**
+
+
+```
 [Table("Entity1")]
 public abstract class Entity1
 {
@@ -21,7 +25,7 @@ public abstract class Entity1
     [ReferenceListMapping(typeof(Entity3), "Entity1PropertyName")]
     public abstract ICollection<Entity3> SubEntities { get; }
 }
-"}
+```
 
 Initialize with:
 ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(new RelationalObjectStore("connectionString", true));
