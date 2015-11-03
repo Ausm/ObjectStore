@@ -27,11 +27,9 @@ public abstract class Entity1
 }
 ```
 
-Initialize with:
-ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(new RelationalObjectStore("connectionString", true));
+**Initialize with:**
+`ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(new RelationalObjectStore("connectionString", true));`
 
-Call:
-ObjectStoreManager.DefaultObjectStore.GetQueryable<Entity1>();
-
+**Call:**
+`ObjectStoreManager.DefaultObjectStore.GetQueryable<Entity1>();`
 to get Entity-Objects derived from the given Class, with INotifyPropertyChanged implemented...
-
