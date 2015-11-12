@@ -8,9 +8,9 @@
     "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-beta8",
     "Microsoft.AspNet.Server.IIS": "1.0.0-beta7",
     "Microsoft.AspNet.Server.WebListener": "1.0.0-beta8",
-    "ObjectStore": "1.0.0-alpha",
-    "ObjectStore.Interfaces": "1.0.0-alpha",
-    "ObjectStore.Identity": "1.0.0-alpha",
+    "ObjectStore": "1.0.0-alpha2",
+    "ObjectStore.Interfaces": "1.0.0-alpha2",
+    "ObjectStore.Identity": "1.0.0-alpha2",
     "Microsoft.AspNet.StaticFiles": "1.0.0-beta8",
     "Microsoft.AspNet.Tooling.Razor": "1.0.0-beta8"
   },

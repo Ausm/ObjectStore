@@ -196,7 +196,7 @@ namespace ObjectStore.Identity
 
         Task<TUser> IUserStore<TUser>.FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            return Task.FromResult(_users.Where(x => _options.GetUserId(x) == userId).FirstOrDefault());
+            return Task.FromResult(_users.ToList().Where(x => _options.GetUserId(x) == userId).FirstOrDefault());
         }
 
         Task<TUser> IUserStore<TUser>.FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
