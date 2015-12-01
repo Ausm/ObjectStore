@@ -3,7 +3,7 @@ using Microsoft.AspNet.Identity;
 using System.Linq;
 using System.Linq.Expressions;
 using ObjectStore.Interfaces;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ObjectStore.Identity
 {

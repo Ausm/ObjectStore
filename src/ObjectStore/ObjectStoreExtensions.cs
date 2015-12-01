@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Linq.Expressions;
-using ObjectStore.OrMapping;
-using Microsoft.Framework.DependencyInjection;
+﻿using ObjectStore.OrMapping;
 using ObjectStore.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
-#if !DNXCORE50
-using System.Transactions;
-#endif
 
 namespace ObjectStore
 {

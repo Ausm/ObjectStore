@@ -3,6 +3,7 @@ using Microsoft.AspNet.Mvc;
 using TestEmpty.ViewModels.Account;
 using Microsoft.AspNet.Identity;
 using ObjectStore.Identity;
+using Microsoft.AspNet.Authorization;
 #if DEBUG
 using ObjectStore;
 #endif

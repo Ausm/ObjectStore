@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.AspNet.Identity;
 using ObjectStore.Interfaces;
-using Microsoft.Framework.OptionsModel;
+using Microsoft.Extensions.OptionsModel;
 
 namespace ObjectStore.Identity
 {

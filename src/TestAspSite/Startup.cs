@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNet.Builder;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using ObjectStore;
 using ObjectStore.Identity;
-using System;
 
 namespace TestEmpty
 {
