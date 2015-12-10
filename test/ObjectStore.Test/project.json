@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0-*",
+  "description": "ObjectStore.Test Class Library",
+  "authors": [ "MatthiasA" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+  "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.runner.dnx": "2.1.0-rc1-build204",
+    "ObjectStore": "1.0.0-alpha2"
+  },
+
+  "commands": {
+    "test": "xunit.runner.dnx"
+  },
+
+  "frameworks": {
+    "dnx451": {
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.Transactions": "4.0.0.0"
+      },
+      "dependencies": {
+        "System.Threading": "4.0.11-rc2-23608"
+      }
+    },
+    "dnxcore50": { }
+  }
+}
