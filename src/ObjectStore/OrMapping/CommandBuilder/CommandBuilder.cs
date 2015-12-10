@@ -12,7 +12,7 @@ namespace ObjectStore.OrMapping
     {
         void AddField(string fieldname, FieldType fieldtype);
 
-        void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer);
+        void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged);
 
         string Tablename { get; set; }
     }

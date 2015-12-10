@@ -29,7 +29,7 @@ namespace ObjectStore.OrMapping
         {
         }
 
-        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer)
+        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged)
         {
             if (fieldtype == FieldType.KeyField)
             {

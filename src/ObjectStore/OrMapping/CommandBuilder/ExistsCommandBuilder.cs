@@ -38,7 +38,7 @@ namespace ObjectStore.OrMapping
         #region Funktionen
         public void AddField(string fieldname, FieldType fieldtype){}
 
-        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer){}
+        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged) {}
 
         protected string AddParameter(object value)
         {

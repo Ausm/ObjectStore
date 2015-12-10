@@ -218,7 +218,17 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Call, typeof(System.Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(System.RuntimeTypeHandle) }));
                 generator.Emit(OpCodes.Call, typeof(KeyInitializer).GetMethod("GetInitializer", new Type[] { typeof(Type) }));
             }
-            generator.Emit(OpCodes.Callvirt, typeof(ICommandBuilder).GetMethod("AddField", new Type[] { typeof(string), typeof(object), typeof(FieldType), typeof(KeyInitializer) }));
+
+            if (IsReadOnly)
+                generator.Emit(OpCodes.Ldc_I4_0);
+            else
+            {
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Ldflda, _internalField);
+                generator.Emit(OpCodes.Call, _internalField.FieldType.GetProperty(nameof(BackingStore<object>.IsChanged)).GetGetMethod());
+            }
+
+            generator.Emit(OpCodes.Callvirt, typeof(ICommandBuilder).GetMethod(nameof(ICommandBuilder.AddField), new Type[] { typeof(string), typeof(object), typeof(FieldType), typeof(KeyInitializer), typeof(bool) }));
         }
 
         public override void AddCommitCode(ILGenerator generator, MethodInfo raisePropertyChanged)

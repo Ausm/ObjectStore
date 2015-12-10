@@ -53,7 +53,7 @@ namespace ObjectStore.OrMapping
                 _selectFields.Add(fieldname);
         }
 
-        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer)
+        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged)
         {
             if (!_selectFields.Contains(fieldname))
                 _selectFields.Add(fieldname);
