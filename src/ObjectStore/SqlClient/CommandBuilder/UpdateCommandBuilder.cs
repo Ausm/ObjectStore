@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Collections.ObjectModel;
-using System.Data;
+using System.Data.Common;
+using ObjectStore.OrMapping;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.SqlClient
 {
-    internal class UpdateCommandBuilder : ISqlCommandBuilder
+    internal class UpdateCommandBuilder : IDbCommandBuilder
     {
         #region Membervariablen
         string _tablename;
@@ -69,7 +66,7 @@ namespace ObjectStore.OrMapping
 
         }
 
-        public SqlCommand GetSqlCommand()
+        public DbCommand GetDbCommand()
         {
             string[] setStrings = new string[_setValues.Count];
             int i = 0;

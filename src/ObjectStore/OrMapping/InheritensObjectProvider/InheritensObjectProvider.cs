@@ -1,6 +1,8 @@
 ﻿using ObjectStore.Interfaces;
+using ObjectStore.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
@@ -14,11 +16,19 @@ namespace ObjectStore.OrMapping
 
     internal class DataBaseWorkerQueue
     {
-        public static DataBaseWorkerQueue GetQueue(string connectionStringName)
+        public static DataBaseWorkerQueue GetQueue(string connectionStringName, IDataBaseProvider dataBaseProvider)
         {
             lock (_instances)
             {
-                return _instances.ContainsKey(connectionStringName) ? _instances[connectionStringName] : _instances[connectionStringName] = new DataBaseWorkerQueue(connectionStringName);
+                DataBaseWorkerQueue returnValue;
+                if (!_instances.ContainsKey(dataBaseProvider))
+                    _instances.Add(dataBaseProvider, new DataBaseWorkerQueue[] { returnValue = new DataBaseWorkerQueue(connectionStringName, dataBaseProvider) }.ToDictionary(x => connectionStringName));
+                else if (!_instances[dataBaseProvider].ContainsKey(connectionStringName))
+                    _instances[dataBaseProvider].Add(connectionStringName, returnValue = new DataBaseWorkerQueue(connectionStringName, dataBaseProvider));
+                else
+                    returnValue = _instances[dataBaseProvider][connectionStringName];
+
+                return returnValue;
             }
         }
 
@@ -69,19 +79,21 @@ namespace ObjectStore.OrMapping
             #endregion
         }
 
-        static Dictionary<string, DataBaseWorkerQueue> _instances = new Dictionary<string, DataBaseWorkerQueue>();
+        static Dictionary<IDataBaseProvider, Dictionary<string, DataBaseWorkerQueue>> _instances = new Dictionary<IDataBaseProvider, Dictionary<string, DataBaseWorkerQueue>>();
         string _connectionStringName;
+        IDataBaseProvider _dataBaseProvider;
         Thread _workerThread;
-        List<Tuple<AsyncResult, SqlCommand, Func<SqlDataReader, IAsyncResult, ICommitContext>>> _queue = new List<Tuple<AsyncResult, SqlCommand, Func<SqlDataReader, IAsyncResult, ICommitContext>>>();
+        List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>> _queue = new List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>>();
 
-        private DataBaseWorkerQueue(string connectionString)
+        private DataBaseWorkerQueue(string connectionString, IDataBaseProvider dataBaseProvider)
         {
             _connectionStringName = connectionString;
+            _dataBaseProvider = dataBaseProvider;
         }
 
-        public IAsyncResult EnqueueCommand(object context, SqlCommand command, Func<SqlDataReader, IAsyncResult, ICommitContext> fillAction)
+        public IAsyncResult EnqueueCommand(object context, DbCommand command, Func<DbDataReader, IAsyncResult, ICommitContext> fillAction)
         {
-            Tuple<AsyncResult, SqlCommand, Func<SqlDataReader, IAsyncResult, ICommitContext>> entry = new Tuple<AsyncResult, SqlCommand, Func<SqlDataReader, IAsyncResult, ICommitContext>>(new AsyncResult(context), command, fillAction);
+            Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>> entry = new Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>(new AsyncResult(context), command, fillAction);
 
             lock (this)
             {
@@ -102,28 +114,28 @@ namespace ObjectStore.OrMapping
 
         private void ThreadFunction()
         {
-            SqlConnection connection = ConnectionProvider.Instance.GetConnection(_connectionStringName);
+            DbConnection connection = _dataBaseProvider.GetConnection(_connectionStringName);
             try
             {
                 if (connection.State == System.Data.ConnectionState.Closed)
                     connection.Open();
                 while (true)
                 {
-                    List<Tuple<AsyncResult, SqlCommand, Func<SqlDataReader, IAsyncResult, ICommitContext>>> queue;
+                    List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>> queue;
                     lock (this)
                     {
                         if (_queue.Count == 0)
                             return;
 
                         queue = _queue;
-                        _queue = new List<Tuple<AsyncResult, SqlCommand, Func<SqlDataReader, IAsyncResult, ICommitContext>>>();
+                        _queue = new List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>>();
                     }
 
-                    SqlCommand command = queue[0].Item2;
+                    DbCommand command = queue[0].Item2;
                     for (int i = 1; i < queue.Count; i++)
                     {
                         command.CommandText += ";" + queue[i].Item2.CommandText;
-                        command.Parameters.AddRange(queue[i].Item2.Parameters.OfType<SqlParameter>().Select(x => new SqlParameter(x.ParameterName, x.Value)).ToArray());
+                        command.Parameters.AddRange(queue[i].Item2.Parameters.OfType<DbParameter>().Select(x => new SqlParameter(x.ParameterName, x.Value)).ToArray());
                     }
 
                     List<ICommitContext> commitContexts = new List<ICommitContext>(queue.Count);
@@ -131,7 +143,7 @@ namespace ObjectStore.OrMapping
                     using (command)
                     {
                         command.Connection = connection;
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        using (DbDataReader reader = command.ExecuteReader())
                         {
                             for (int i = 0; i < queue.Count; i++)
                             {
@@ -155,7 +167,7 @@ namespace ObjectStore.OrMapping
             finally
             {
                 _workerThread = null;
-                ConnectionProvider.Instance.ReleaseConnection(connection);
+                _dataBaseProvider.ReleaseConnection(connection);
             }
         }
     }
@@ -172,12 +184,12 @@ namespace ObjectStore.OrMapping
             public DataBaseWorker(string connectionStringName, InheritensObjectProvider<T> objectProvider)
             {
                 _objectProvider = objectProvider;
-                _queue = DataBaseWorkerQueue.GetQueue(_connectionStringName = connectionStringName);
+                _queue = DataBaseWorkerQueue.GetQueue(_connectionStringName = connectionStringName, objectProvider._databaseProvider);
             }
 
-            private SqlConnection GetConnection()
+            private DbConnection GetConnection()
             {
-                SqlConnection connection = ConnectionProvider.Instance.GetConnection(_connectionStringName);
+                DbConnection connection = _objectProvider._databaseProvider.GetConnection(_connectionStringName);
                 if (connection.State == System.Data.ConnectionState.Closed)
                     connection.Open();
                 return connection;
@@ -189,11 +201,11 @@ namespace ObjectStore.OrMapping
                 if (context.Load)
                     return null;
 
-                SelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(new SelectCommandBuilder());
+                ISelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
                 context.PrepareSelectCommand(commandBuilder);
                 context.SetLoaded();
 
-                return _queue.EnqueueCommand(provider, commandBuilder.GetSqlCommand(), (reader, result) => _objectProvider._cache.Fill(reader, x => _objectProvider._mappingInfoContainer.GetKeyValues(x), () => (T)_objectProvider._mappingInfoContainer.CreateObject(), ((QueryProvider)result.AsyncState).Context.FillCacheContext));
+                return _queue.EnqueueCommand(provider, commandBuilder.GetDbCommand(), (reader, result) => _objectProvider._cache.Fill(reader, x => _objectProvider._mappingInfoContainer.GetKeyValues(x), () => (T)_objectProvider._mappingInfoContainer.CreateObject(), ((QueryProvider)result.AsyncState).Context.FillCacheContext));
             }
 
             public void FillCache(QueryContext context)
@@ -201,16 +213,16 @@ namespace ObjectStore.OrMapping
                 if (!context.Load)
                     return;
 
-                SelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(new SelectCommandBuilder());
+                ISelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
                 context.PrepareSelectCommand(commandBuilder);
 
-                using (SqlCommand command = commandBuilder.GetSqlCommand())
+                using (DbCommand command = commandBuilder.GetDbCommand())
                 {
                     command.Connection = GetConnection();
                     try
                     {
                         ICommitContext commitContext;
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        using (DbDataReader reader = command.ExecuteReader())
                         {
                             MappingInfo mappingInfo = _objectProvider._mappingInfoContainer;
                             commitContext = _objectProvider._cache.Fill(reader, x => mappingInfo.GetKeyValues(x), () => (T)mappingInfo.CreateObject(), context);
@@ -219,7 +231,7 @@ namespace ObjectStore.OrMapping
                     }
                     finally
                     {
-                        ConnectionProvider.Instance.ReleaseConnection(command.Connection);
+                        _objectProvider._databaseProvider.ReleaseConnection(command.Connection);
                     }
                 }
                 context.SetLoaded();
@@ -227,11 +239,11 @@ namespace ObjectStore.OrMapping
 
             public void SaveObjects(
                 IEnumerable<IFillAbleObject> items,
-                Func<IFillAbleObject, ISqlCommandBuilder> getBuilder,
-                Action<IFillAbleObject, SqlDataReader> refill,
+                Func<IFillAbleObject, IDbCommandBuilder> getBuilder,
+                Action<IFillAbleObject, DbDataReader> refill,
                 Action<IFillAbleObject> afterFill)
             {
-                SqlConnection connection = GetConnection();
+                DbConnection connection = GetConnection();
                 try
                 {
                     foreach (IFillAbleObject item in items.ToList())
@@ -239,14 +251,14 @@ namespace ObjectStore.OrMapping
                         try
                         {
 
-                            ISqlCommandBuilder commandBuilder = getBuilder(item);
+                            IDbCommandBuilder commandBuilder = getBuilder(item);
                             if (commandBuilder == null) continue;
 
                             item.FillCommand(commandBuilder);
-                            using (SqlCommand command = commandBuilder.GetSqlCommand())
+                            using (DbCommand command = commandBuilder.GetDbCommand())
                             {
                                 command.Connection = connection;
-                                using (SqlDataReader reader = command.ExecuteReader())
+                                using (DbDataReader reader = command.ExecuteReader())
                                 {
                                     refill(item, reader.Read() ? reader : null);
                                 }
@@ -264,7 +276,7 @@ namespace ObjectStore.OrMapping
                 }
                 finally
                 {
-                    ConnectionProvider.Instance.ReleaseConnection(connection);
+                    _objectProvider._databaseProvider.ReleaseConnection(connection);
                 }
             }
         }
@@ -276,11 +288,13 @@ namespace ObjectStore.OrMapping
         MappingInfo _mappingInfoContainer;
         WeakCache _cache;
         DataBaseWorker _dbWorker;
+        IDataBaseProvider _databaseProvider;
         #endregion
 
         #region Konstruktoren
         public InheritensObjectProvider(string connectionString)
         {
+            _databaseProvider = DataBaseProvider.Instance;
             _connectionString = connectionString;
             InitializeMapping();
         }

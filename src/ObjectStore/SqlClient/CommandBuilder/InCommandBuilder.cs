@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ObjectStore.OrMapping;
+using System;
 using System.Text;
-using System.Data.SqlClient;
-using System.Collections.ObjectModel;
-using System.Data;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.SqlClient
 {
     internal class InCommandBuilder : SubQueryCommandBuilder
     {
-        public InCommandBuilder(string outherAlias)
+        public InCommandBuilder(string outherAlias, DataBaseProvider databaseProvider) : base(databaseProvider)
         {
             _outherAlias = outherAlias;
             _keyFieldName = string.Empty;

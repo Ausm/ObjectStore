@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Data.SqlClient;
-using System.Collections.ObjectModel;
-using System.Data;
+using System.Data.Common;
+using ObjectStore.OrMapping;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.SqlClient
 {
-    internal class SelectCommandBuilder : ISqlCommandBuilder, IModifyableCommandBuilder
+    internal class SelectCommandBuilder : ISelectCommandBuilder
     {
         #region Subklassen
         class Join
@@ -21,32 +20,34 @@ namespace ObjectStore.OrMapping
         #region Membervariablen
         string _tablename;
         string _alias;
-        List<SqlParameter> _parameters;
+        List<DbParameter> _parameters;
         string _whereClausel;
         List<string> _selectFields;
         List<string> _orderbyExpressions;
         List<Join> _joins;
         int _top;
+        DataBaseProvider _databaseProvider;
         #endregion
 
         #region Konstruktor
-        public SelectCommandBuilder()
+        public SelectCommandBuilder(DataBaseProvider databaseProvider)
         {
-            _parameters = new List<SqlParameter>();
+            _databaseProvider = databaseProvider;
+            _parameters = new List<DbParameter>();
             _selectFields = new List<string>();
             _orderbyExpressions = new List<string>();
             _joins = new List<Join>();
             _top = -1;
-            _alias = string.Format("T{0}", ObjectStoreManager.CurrentUniqe());
+            _alias = $"T{_databaseProvider.GetUniqe()}";
         }
 
-        public SelectCommandBuilder(string alias) : this()
+        public SelectCommandBuilder(string alias, DataBaseProvider databaseProvider) : this(databaseProvider)
         {
             _alias = alias;
         }
         #endregion
 
-        #region Funktionen
+        #region Methods
         public void AddField(string fieldname, FieldType fieldtype)
         {
             if (!_selectFields.Contains(fieldname))
@@ -61,9 +62,9 @@ namespace ObjectStore.OrMapping
             if (fieldtype == FieldType.KeyField)
             {
                 if (string.IsNullOrEmpty(_whereClausel))
-                    _whereClausel = string.Format("({0} = {1})", fieldname, AddParameter(value));
+                    _whereClausel = $"({fieldname} = {AddDbParameter(value).ParameterName})";
                 else
-                    _whereClausel = string.Format("{0} AND ({1} = {2})", _whereClausel, fieldname, AddParameter(value));
+                    _whereClausel = $"{_whereClausel} AND ({fieldname} = {AddDbParameter(value).ParameterName})";
             }
 
         }
@@ -71,13 +72,6 @@ namespace ObjectStore.OrMapping
         public void AddJoin(string tablename, string onClausel)
         {
             _joins.Add(new Join() { TableName = tablename, On = onClausel });
-        }
-
-        protected string AddParameter(object value)
-        {
-            SqlParameter param = new SqlParameter(string.Format("@param{0}", ObjectStoreManager.CurrentUniqe()), value);
-            _parameters.Add(param);
-            return param.ParameterName;
         }
 
         public void ResetOrder()
@@ -95,7 +89,14 @@ namespace ObjectStore.OrMapping
             _top = count;
         }
 
-        public SqlCommand GetSqlCommand()
+        public DbParameter AddDbParameter(object value)
+        {
+            DbParameter returnValue = _databaseProvider.GetDbParameter(value);
+            _parameters.Add(returnValue);
+            return returnValue;
+        }
+
+        public DbCommand GetDbCommand()
         {
             if (string.IsNullOrEmpty(_tablename)) throw new InvalidOperationException("Tablename is not set.");
 
@@ -155,16 +156,11 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        public List<SqlParameter> Parameters
+        public IEnumerable<DbParameter> Parameters
         {
             get
             {
                 return _parameters;
-            }
-            set
-            {
-                _parameters.Clear();
-                _parameters.AddRange(value);
             }
         }
         #endregion

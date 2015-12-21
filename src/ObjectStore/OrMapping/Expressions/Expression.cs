@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Linq.Expressions;
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace ObjectStore.OrMapping.Expressions
 {
@@ -27,7 +24,7 @@ namespace ObjectStore.OrMapping.Expressions
         #endregion
 
         #region Statische Create-Funktion
-        public static ParsedExpression ParseExpression(LambdaExpression expression, Func<object, SqlParameter> getParamFunction)
+        public static ParsedExpression ParseExpression(LambdaExpression expression, Func<object, DbParameter> getParamFunction)
         {
             return new ParsedExpression(expression, getParamFunction);
         }

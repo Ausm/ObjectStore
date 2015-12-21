@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Linq.Expressions;
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace ObjectStore.OrMapping.Expressions
 {
@@ -34,13 +33,13 @@ namespace ObjectStore.OrMapping.Expressions
         LambdaExpression _parsedLambdaExpression;
         ParsedExpression _parentParsedExpression;
         Expression _parsedExpression;
-        Func<object ,SqlParameter> _getParamFunction;
+        Func<object ,DbParameter> _getParamFunction;
         Dictionary<ValueComparedExpression<System.Linq.Expressions.ParameterExpression>, string> _aliases;
         Dictionary<System.Reflection.PropertyInfo, Join> _joinAliases;
         #endregion
 
         #region Konstruktoren
-        internal ParsedExpression(LambdaExpression expression, Func<object, SqlParameter> getParamFunction) : base(null)
+        internal ParsedExpression(LambdaExpression expression, Func<object, DbParameter> getParamFunction) : base(null)
         {
             _parsedLambdaExpression = expression;
             _getParamFunction = getParamFunction;
@@ -65,7 +64,7 @@ namespace ObjectStore.OrMapping.Expressions
         #endregion
 
         #region Methoden
-        internal SqlParameter AquireSqlParameter(object value)
+        internal DbParameter AquireSqlParameter(object value)
         {
             return _getParamFunction(value);
         }

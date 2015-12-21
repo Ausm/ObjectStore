@@ -302,7 +302,7 @@ namespace ObjectStore.OrMapping
                     }
                 }
 
-                public void Update(DataBaseWorker dbWorker)
+                public void Update(DataBaseWorker dbWorker, IDataBaseProvider databaseProvider)
                 {
                     Init(false);
 
@@ -313,16 +313,16 @@ namespace ObjectStore.OrMapping
                         dbWorker.SaveObjects(_items.Union(_deletedItems).Cast<IFillAbleObject>(),
                                 x =>
                                 {
-                                    switch (((IFillAbleObject)x).State)
+                                    switch (x.State)
                                     {
                                         case State.Created:
-                                            return new InsertCommandBuilder();
+                                            return databaseProvider.GetInsertCommandBuilder();
                                         case State.Changed:
-                                            return new UpdateCommandBuilder();
+                                            return databaseProvider.GetUpdateCommandBuilder();
                                         case State.Deleted:
                                             x.DeleteChildObjects();
                                             x.SaveChildObjects();
-                                            return new DeleteCommandBuilder();
+                                            return databaseProvider.GetDeleteCommandBuilder();
                                         case State.Original:
                                             x.SaveChildObjects();
                                             return null;

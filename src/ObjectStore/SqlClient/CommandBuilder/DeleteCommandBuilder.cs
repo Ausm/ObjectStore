@@ -1,25 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Collections.ObjectModel;
-using System.Data;
+using System.Data.Common;
+using ObjectStore.OrMapping;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.SqlClient
 {
-    internal class DeleteCommandBuilder : ISqlCommandBuilder
+    internal class DeleteCommandBuilder : IDbCommandBuilder
     {
         #region Membervariablen
         string _tablename;
-        List<SqlParameter> _parameters;
+        List<DbParameter> _parameters;
         List<string> _whereClausel;
         #endregion
 
         #region Konstruktor
         public DeleteCommandBuilder()
         {
-            _parameters = new List<SqlParameter>();
+            _parameters = new List<DbParameter>();
             _whereClausel = new List<string>();
         }
         #endregion
@@ -39,7 +36,7 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        public SqlCommand GetSqlCommand()
+        public DbCommand GetDbCommand()
         {
             SqlCommand command = new SqlCommand();
             command.Parameters.AddRange(_parameters.ToArray());

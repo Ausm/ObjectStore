@@ -58,7 +58,7 @@ namespace ObjectStore.OrMapping.Expressions
 
     public class ValueExpression : ConstantExpression
     {
-        System.Data.SqlClient.SqlParameter _sqlParam = null;
+        System.Data.Common.DbParameter _sqlParam = null;
 
         internal ValueExpression(ParsedExpression parsedExpression, Expression parentExpression, object value)
             : base(parsedExpression, parentExpression, value)
@@ -72,7 +72,7 @@ namespace ObjectStore.OrMapping.Expressions
 
     public class MappedObjectExpression : ConstantExpression
     {
-        System.Data.SqlClient.SqlParameter _sqlParameter = null;
+        System.Data.Common.DbParameter _sqlParameter = null;
 
         internal MappedObjectExpression(ParsedExpression parsedExpression, Expression parentExpression, IFillAbleObject value)
             : base(parsedExpression, parentExpression, value)

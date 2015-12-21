@@ -5,11 +5,11 @@ using ApplicationException = global::System.InvalidOperationException;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Data.SqlClient;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
 using System.Transactions;
+using System.Data.Common;
 
 namespace ObjectStore.OrMapping
 {
@@ -77,12 +77,12 @@ namespace ObjectStore.OrMapping
             {
                 try
                 {
-                    SelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(new SelectCommandBuilder("T"));
+                    ISelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
                     Context.PrepareSelectCommand(commandBuilder);
-                    SqlCommand command = commandBuilder.GetSqlCommand();
+                    DbCommand command = commandBuilder.GetDbCommand();
                     StringBuilder stringBuilder = new StringBuilder();
                     stringBuilder.AppendFormat("{0};", command.CommandText);
-                    foreach (SqlParameter parameter in command.Parameters)
+                    foreach (DbParameter parameter in command.Parameters)
                     {
                         stringBuilder.AppendFormat("{0} = {1},", parameter.ParameterName, parameter.Value);
                     }
@@ -125,7 +125,7 @@ namespace ObjectStore.OrMapping
                         callExpression.Method.DeclaringType == typeof(System.Linq.Queryable) &&
                         callExpression.Method.Name == "Any")
                     {
-                        ExistsCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(new ExistsCommandBuilder());
+                        ISubQueryCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetExistsCommandBuilder());
                         Context.PrepareSelectCommand(commandBuilder, parsedExpression);
                         return commandBuilder.SubQuery;
                     }
@@ -137,7 +137,7 @@ namespace ObjectStore.OrMapping
                         callExpression.Arguments.Count == 2 &&
                         callExpression.Arguments[1] is ParameterExpression)
                     {
-                        InCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(new InCommandBuilder(parsedExpression[(ParameterExpression)callExpression.Arguments[1]]));
+                        ISubQueryCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetInCommandBuilder(parsedExpression[(ParameterExpression)callExpression.Arguments[1]]));
                         Context.PrepareSelectCommand(commandBuilder, parsedExpression);
                         return commandBuilder.SubQuery;
                     }
@@ -228,7 +228,7 @@ namespace ObjectStore.OrMapping
                     {
                         using (TransactionScope transactionScope = Transaction.Current == null ? new TransactionScope() : null)
                         {
-                            Enumerable.Update(_objectProvider._dbWorker);
+                            Enumerable.Update(_objectProvider._dbWorker, _objectProvider._databaseProvider);
                             if (transactionScope != null) transactionScope.Complete();
                             return (TResult)(object)true;
                         }
@@ -765,10 +765,8 @@ namespace ObjectStore.OrMapping
                                         obj = new DateTime(1753, 1, 1);
                                     else if((DateTime) obj > new DateTime(9999,12,31))
                                         obj = new DateTime(9999, 12, 31);
-
-                                SqlParameter parameter = new SqlParameter(string.Format("@param{0}", ObjectStoreManager.CurrentUniqe()), obj);
-                                commandBuilder.Parameters.Add(parameter);
-                                return parameter;
+                               
+                                return commandBuilder.AddDbParameter(obj);
                             });
                         }
                         else
@@ -802,12 +800,7 @@ namespace ObjectStore.OrMapping
                 {
                     foreach (IOrderItem orderItem in _orderExpressions)
                     {
-                        Expressions.ParsedExpression parsedExpression = Expressions.ParsedExpression.ParseExpression(orderItem.Expression, obj =>
-                        {
-                            SqlParameter parameter = new SqlParameter(string.Format("@param{0}", commandBuilder.Parameters.Count), obj);
-                            commandBuilder.Parameters.Add(parameter);
-                            return parameter;
-                        });
+                        Expressions.ParsedExpression parsedExpression = Expressions.ParsedExpression.ParseExpression(orderItem.Expression, obj => commandBuilder.AddDbParameter(obj));
 
                         parsedExpression[orderItem.Expression.Parameters[0]] = commandBuilder.Alias;
 

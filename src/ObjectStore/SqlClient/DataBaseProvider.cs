@@ -1,30 +1,15 @@
-﻿using System;
+﻿using ObjectStore.OrMapping;
+using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
-using ObjectStore.Interfaces;
 
-namespace ObjectStore
+namespace ObjectStore.SqlClient
 {
-    internal class ConnectionProvider : IConnectionProvider
+    public class DataBaseProvider : IDataBaseProvider
     {
-        #region Singleton-Implementierung
-        static ConnectionProvider _instance;
-
-        public static ConnectionProvider Instance
-        {
-            get
-            {
-                return _instance ?? (_instance = new ConnectionProvider());
-            }
-        }
-
-        private ConnectionProvider()
-        {
-        }
-        #endregion
-
         #region Subclasses
         class ReferencedConnection
         {
@@ -110,7 +95,7 @@ namespace ObjectStore
                     }
                     returnValue = _connection;
                 }
-                ConnectionProvider.Instance.OnConnectionOpened(returnValue);
+                DataBaseProvider.Instance.OnConnectionOpened(returnValue);
                 return returnValue;
             }
 
@@ -129,20 +114,74 @@ namespace ObjectStore
                 }
             }
         }
-#endregion
+        #endregion        static DataBaseProvider _instance;
 
-#region Fields
-        Dictionary<string, Dictionary<System.Threading.Thread, ReferencedConnection>> _connections = new Dictionary<string, Dictionary<System.Threading.Thread, ReferencedConnection>>();
+        #region Fields
+        Dictionary<string, Dictionary<Thread, ReferencedConnection>> _connections = new Dictionary<string, Dictionary<Thread, ReferencedConnection>>();
         DateTime _lastCleanUpTime = DateTime.Now;
-#endregion
+        int _currentUniqe = 0;
+        #endregion
 
-#region IConnectionProvider-Member
-        public SqlConnection GetConnection()
+        #region Singleton Implementation
+        public static DataBaseProvider _instance;
+
+        public static DataBaseProvider Instance
+        {
+            get
+            {
+                return _instance ?? (_instance = new DataBaseProvider());
+            }
+        }
+
+        private DataBaseProvider()
+        {
+        }
+        #endregion
+
+        #region CommandBuilders
+        public ISelectCommandBuilder GetSelectCommandBuilder()
+        {
+            return new SelectCommandBuilder(this);
+        }
+
+        public IDbCommandBuilder GetInsertCommandBuilder()
+        {
+            return new InsertCommandBuilder();
+        }
+
+        public IDbCommandBuilder GetUpdateCommandBuilder()
+        {
+            return new UpdateCommandBuilder();
+        }
+
+        public IDbCommandBuilder GetDeleteCommandBuilder()
+        {
+            return new DeleteCommandBuilder();
+        }
+
+        public ISubQueryCommandBuilder GetExistsCommandBuilder()
+        {
+            return new ExistsCommandBuilder(this);
+        }
+
+        public ISubQueryCommandBuilder GetInCommandBuilder(string outherAlias)
+        {
+            return new InCommandBuilder(outherAlias, this);
+        }
+
+        public DbParameter GetDbParameter(object value)
+        {
+            return new SqlParameter($"@param{GetUniqe()}", value);
+        }
+        #endregion
+
+        #region Connections
+        public DbConnection GetConnection()
         {
             return GetConnection("default");
         }
 
-        public SqlConnection GetConnection(string connectionString)
+        public DbConnection GetConnection(string connectionString)
         {
             ReferencedConnection referencedConnection;
             lock (_connections)
@@ -165,7 +204,7 @@ namespace ObjectStore
             }
         }
 
-        public void ReleaseConnection(SqlConnection connection)
+        public void ReleaseConnection(DbConnection connection)
         {
             lock (_connections)
             {
@@ -193,10 +232,22 @@ namespace ObjectStore
         }
 
         public event EventHandler ConnectionOpened;
-#endregion
+        #endregion
 
-#region Methods
-        private void CleanUpClosedThreads()
+        #region Methods
+        public int GetUniqe()
+        {
+            lock (this)
+            {
+                if (_currentUniqe == int.MaxValue)
+                    _currentUniqe = 0;
+
+                return _currentUniqe++;
+            }
+        }
+
+        #region private Methods
+        void CleanUpClosedThreads()
         {
 #if !DNXCORE50 && DEBUG
             System.Diagnostics.Debug.Print("CleanUpConnectionThreads");
@@ -217,6 +268,7 @@ namespace ObjectStore
                     GC.Collect();
             }
         }
-#endregion
+        #endregion
+        #endregion
     }
 }

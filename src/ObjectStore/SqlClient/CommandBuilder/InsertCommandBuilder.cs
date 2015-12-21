@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Data.SqlClient;
-using System.Collections.ObjectModel;
-using System.Data;
+using System.Data.Common;
+using ObjectStore.OrMapping;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.SqlClient
 {
-    internal class InsertCommandBuilder : ISqlCommandBuilder
+    internal class InsertCommandBuilder : IDbCommandBuilder
     {
         #region Membervariablen
         StringBuilder _beforInsert;
@@ -94,7 +93,7 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        public SqlCommand GetSqlCommand()
+        public DbCommand GetDbCommand()
         {
             SqlCommand command = new SqlCommand();
             command.Parameters.AddRange(_parameters.ToArray());

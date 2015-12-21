@@ -1,4 +1,6 @@
-﻿namespace ObjectStore
+﻿using System;
+
+namespace ObjectStore
 {
     public static class ObjectStoreManager
     {
@@ -18,6 +20,7 @@
             }
         }
 
+        [Obsolete]
         internal static int CurrentUniqe()
         {
             if (_currentUniqe == int.MaxValue)

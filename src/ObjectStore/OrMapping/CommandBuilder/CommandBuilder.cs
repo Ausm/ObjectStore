@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.SqlClient;
-using System.Collections.ObjectModel;
-using System.Data;
+﻿using System.Collections.Generic;
+using System.Data.Common;
 
 namespace ObjectStore.OrMapping
 {
@@ -17,16 +12,22 @@ namespace ObjectStore.OrMapping
         string Tablename { get; set; }
     }
 
-    public interface ISqlCommandBuilder : ICommandBuilder
+    public interface IDbCommandBuilder : ICommandBuilder
     {
-        SqlCommand GetSqlCommand();
+        DbCommand GetDbCommand();
+    }
+
+    public interface ISelectCommandBuilder : IDbCommandBuilder, IModifyableCommandBuilder
+    {
     }
 
     public interface IModifyableCommandBuilder : ICommandBuilder
     {
         void AddJoin(string tablename, string onClausel);
 
-        List<SqlParameter> Parameters { get; set; }
+        IEnumerable<DbParameter> Parameters { get; }
+
+        DbParameter AddDbParameter(object value);
 
         string Alias { get; }
 
@@ -37,14 +38,9 @@ namespace ObjectStore.OrMapping
         void SetTop(int count);
     }
 
-    public interface ISubQueryCommandBuilder : ICommandBuilder
+    public interface ISubQueryCommandBuilder : IModifyableCommandBuilder
     {
         string SubQuery { get; }
-    }
-
-    public interface ISubQueryBuilder : IModifyableCommandBuilder
-    {
-        string Query { get; }
     }
 
     public enum FieldType

@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Data.SqlClient;
-using System.Collections.ObjectModel;
-using System.Data;
+using System.Data.Common;
+using ObjectStore.OrMapping;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.SqlClient
 {
-    internal abstract class SubQueryCommandBuilder : ISqlCommandBuilder, IModifyableCommandBuilder, ISubQueryCommandBuilder
+    internal class ExistsCommandBuilder : IDbCommandBuilder, IModifyableCommandBuilder, ISubQueryCommandBuilder
     {
         #region Subklassen
-        protected class Join
+        class Join
         {
             public string TableName { get; set; }
             public string On { get; set; }
@@ -20,25 +19,27 @@ namespace ObjectStore.OrMapping
 
         #region Membervariablen
         string _tablename;
-        List<SqlParameter> _parameters;
+        List<DbParameter> _parameters;
         string _whereClausel;
         string _alias;
         List<Join> _joins;
+        DataBaseProvider _databaseProvider;
         #endregion
 
         #region Konstruktor
-        public SubQueryCommandBuilder()
+        public ExistsCommandBuilder(DataBaseProvider databaseProvider)
         {
-            _parameters = new List<SqlParameter>();
+            _databaseProvider = databaseProvider;
+            _parameters = new List<DbParameter>();
             _joins = new List<Join>();
-            _alias = string.Format("TE{0}", ObjectStoreManager.CurrentUniqe());
+            _alias = $"TE{_databaseProvider.GetUniqe()}";
         }
         #endregion
 
         #region Funktionen
-        public virtual void AddField(string fieldname, FieldType fieldtype){}
+        public void AddField(string fieldname, FieldType fieldtype){}
 
-        public virtual void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged) {}
+        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged) {}
 
         protected string AddParameter(object value)
         {
@@ -47,7 +48,7 @@ namespace ObjectStore.OrMapping
             return param.ParameterName;
         }
 
-        public SqlCommand GetSqlCommand()
+        public DbCommand GetDbCommand()
         {
             if (string.IsNullOrEmpty(_tablename)) throw new InvalidOperationException("Tablename is not set.");
 
@@ -84,14 +85,6 @@ namespace ObjectStore.OrMapping
                 _tablename = value;
             }
         }
-
-        protected IEnumerable<Join> Joins
-        {
-            get
-            {
-                return _joins.AsReadOnly();
-            }
-        }
         #endregion
 
         #region IModifyableCommandBuilder Members
@@ -101,17 +94,19 @@ namespace ObjectStore.OrMapping
             _joins.Add(new Join() { TableName = tablename, On = onClausel });
         }
 
-        public List<SqlParameter> Parameters
+        public IEnumerable<DbParameter> Parameters
         {
             get
             {
                 return _parameters;
             }
-            set
-            {
-                _parameters.Clear();
-                _parameters.AddRange(value);
-            }
+        }
+
+        public DbParameter AddDbParameter(object value)
+        {
+            DbParameter returnValue = _databaseProvider.GetDbParameter(value);
+            _parameters.Add(returnValue);
+            return returnValue;
         }
 
         public string Alias
@@ -141,9 +136,27 @@ namespace ObjectStore.OrMapping
         #endregion
 
         #region ISubQueryCommandBuilder Members
-        public abstract string SubQuery
+        public string SubQuery
         {
-            get;
+            get
+            {
+                if (string.IsNullOrEmpty(_tablename)) throw new InvalidOperationException("Tablename is not set.");
+
+                StringBuilder stringBuilder = new StringBuilder("EXISTS(SELECT * FROM ");
+                stringBuilder.Append(_tablename).Append(" ").Append(_alias);
+
+
+                if (_joins.Count > 0)
+                    foreach (Join join in _joins)
+                        stringBuilder.AppendFormat(" LEFT OUTER JOIN {0} ON {1}", join.TableName, join.On);
+
+                if (string.IsNullOrEmpty(_whereClausel))
+                    stringBuilder.Append(")");
+                else
+                    stringBuilder.AppendFormat(" WHERE {0})", _whereClausel);
+
+                return stringBuilder.ToString();
+            }
         }
         #endregion
     }
