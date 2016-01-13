@@ -1,4 +1,5 @@
-﻿using ObjectStore.OrMapping;
+﻿using ObjectStore.Expressions;
+using ObjectStore.OrMapping;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,7 +9,7 @@ using System.Threading;
 
 namespace ObjectStore.SqlClient
 {
-    public class DataBaseProvider : IDataBaseProvider
+    public partial class DataBaseProvider : IDataBaseProvider
     {
         #region Subclasses
         class ReferencedConnection
@@ -120,6 +121,7 @@ namespace ObjectStore.SqlClient
         Dictionary<string, Dictionary<Thread, ReferencedConnection>> _connections = new Dictionary<string, Dictionary<Thread, ReferencedConnection>>();
         DateTime _lastCleanUpTime = DateTime.Now;
         int _currentUniqe = 0;
+        ExpressionParser _expressionParser; 
         #endregion
 
         #region Singleton Implementation
@@ -135,6 +137,7 @@ namespace ObjectStore.SqlClient
 
         private DataBaseProvider()
         {
+            InitExpressionParser();
         }
         #endregion
 
@@ -247,6 +250,7 @@ namespace ObjectStore.SqlClient
         }
 
         #region private Methods
+        partial void InitExpressionParser();
         void CleanUpClosedThreads()
         {
 #if !DNXCORE50 && DEBUG
