@@ -20,9 +20,6 @@
       "frameworkAssemblies": {
         "System.Data": "4.0.0.0",
         "System.Transactions": "4.0.0.0"
-      },
-      "dependencies": {
-        "System.Threading": "4.0.11-rc2-23608"
       }
     },
     "dnxcore50": { }
