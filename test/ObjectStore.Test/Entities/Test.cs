@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ObjectStore;
+﻿using System.Collections.Generic;
 
 namespace ObjectStore.Test.Entities
 {
@@ -17,5 +13,8 @@ namespace ObjectStore.Test.Entities
 
         [Mapping(FieldName ="[Description]")]
         public abstract string Description { get; set; }
+
+        [ReferenceListMapping(typeof(SubTest), nameof(SubTest.Test))]
+        public abstract ICollection<SubTest> SubTests { get; }
     }
 }

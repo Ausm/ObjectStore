@@ -149,11 +149,11 @@
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "xunit/2.1.0": {
+      "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.assert": "[2.1.0]",
-          "xunit.core": "[2.1.0]"
+          "xunit.assert": "[2.2.0-beta1-build3239]",
+          "xunit.core": "[2.2.0-beta1-build3239]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -165,7 +165,7 @@
           "lib/net35/xunit.abstractions.dll": {}
         }
       },
-      "xunit.assert/2.1.0": {
+      "xunit.assert/2.2.0-beta1-build3239": {
         "type": "package",
         "compile": {
           "lib/dotnet/xunit.assert.dll": {}
@@ -174,14 +174,14 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.core/2.1.0": {
+      "xunit.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]",
+          "xunit.extensibility.execution": "[2.2.0-beta1-build3239]"
         }
       },
-      "xunit.extensibility.core/2.1.0": {
+      "xunit.extensibility.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "xunit.abstractions": "[2.0.0]"
@@ -195,10 +195,10 @@
           "lib/dotnet/xunit.runner.utility.desktop.dll": {}
         }
       },
-      "xunit.extensibility.execution/2.1.0": {
+      "xunit.extensibility.execution/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]"
         },
         "compile": {
           "lib/dnx451/xunit.execution.dotnet.dll": {}
@@ -257,6 +257,9 @@
         "runtime": {
           "lib/dnx451/xunit.runner.utility.dotnet.dll": {}
         }
+      },
+      "xunit.runner.visualstudio/2.2.0-beta1-build1144": {
+        "type": "package"
       }
     },
     "DNXCore,Version=v5.0": {
@@ -1186,11 +1189,11 @@
           "lib/dotnet5.4/System.Xml.XDocument.dll": {}
         }
       },
-      "xunit/2.1.0": {
+      "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.assert": "[2.1.0]",
-          "xunit.core": "[2.1.0]"
+          "xunit.assert": "[2.2.0-beta1-build3239]",
+          "xunit.core": "[2.2.0-beta1-build3239]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -1202,13 +1205,15 @@
           "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll": {}
         }
       },
-      "xunit.assert/2.1.0": {
+      "xunit.assert/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
           "System.Diagnostics.Debug": "4.0.0",
           "System.Globalization": "4.0.0",
           "System.Linq": "4.0.0",
+          "System.Linq.Expressions": "4.0.0",
+          "System.Linq.Queryable": "4.0.0",
           "System.ObjectModel": "4.0.0",
           "System.Reflection": "4.0.0",
           "System.Reflection.Extensions": "4.0.0",
@@ -1224,24 +1229,26 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.core/2.1.0": {
+      "xunit.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
           "System.Diagnostics.Debug": "4.0.0",
           "System.Globalization": "4.0.0",
           "System.Linq": "4.0.0",
+          "System.Linq.Expressions": "4.0.0",
+          "System.Linq.Queryable": "4.0.0",
           "System.Reflection": "4.0.0",
           "System.Reflection.Extensions": "4.0.0",
           "System.Runtime": "4.0.0",
           "System.Runtime.Extensions": "4.0.0",
           "System.Threading.Tasks": "4.0.0",
           "xunit.abstractions": "2.0.0",
-          "xunit.extensibility.core": "[2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]",
+          "xunit.extensibility.execution": "[2.2.0-beta1-build3239]"
         }
       },
-      "xunit.extensibility.core/2.1.0": {
+      "xunit.extensibility.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "xunit.abstractions": "[2.0.0]"
@@ -1255,7 +1262,7 @@
           "lib/dotnet/xunit.runner.utility.desktop.dll": {}
         }
       },
-      "xunit.extensibility.execution/2.1.0": {
+      "xunit.extensibility.execution/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
@@ -1272,7 +1279,7 @@
           "System.Threading": "4.0.0",
           "System.Threading.Tasks": "4.0.0",
           "xunit.abstractions": "2.0.0",
-          "xunit.extensibility.core": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]"
         },
         "compile": {
           "lib/dotnet/xunit.execution.dotnet.dll": {}
@@ -1347,6 +1354,9 @@
         "runtime": {
           "lib/dotnet/xunit.runner.utility.dotnet.dll": {}
         }
+      },
+      "xunit.runner.visualstudio/2.2.0-beta1-build1144": {
+        "type": "package"
       }
     },
     "DNX,Version=v4.5.1/win7-x86": {
@@ -1496,11 +1506,11 @@
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "xunit/2.1.0": {
+      "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.assert": "[2.1.0]",
-          "xunit.core": "[2.1.0]"
+          "xunit.assert": "[2.2.0-beta1-build3239]",
+          "xunit.core": "[2.2.0-beta1-build3239]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -1512,7 +1522,7 @@
           "lib/net35/xunit.abstractions.dll": {}
         }
       },
-      "xunit.assert/2.1.0": {
+      "xunit.assert/2.2.0-beta1-build3239": {
         "type": "package",
         "compile": {
           "lib/dotnet/xunit.assert.dll": {}
@@ -1521,14 +1531,14 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.core/2.1.0": {
+      "xunit.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]",
+          "xunit.extensibility.execution": "[2.2.0-beta1-build3239]"
         }
       },
-      "xunit.extensibility.core/2.1.0": {
+      "xunit.extensibility.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "xunit.abstractions": "[2.0.0]"
@@ -1542,10 +1552,10 @@
           "lib/dotnet/xunit.runner.utility.desktop.dll": {}
         }
       },
-      "xunit.extensibility.execution/2.1.0": {
+      "xunit.extensibility.execution/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]"
         },
         "compile": {
           "lib/dnx451/xunit.execution.dotnet.dll": {}
@@ -1604,6 +1614,9 @@
         "runtime": {
           "lib/dnx451/xunit.runner.utility.dotnet.dll": {}
         }
+      },
+      "xunit.runner.visualstudio/2.2.0-beta1-build1144": {
+        "type": "package"
       }
     },
     "DNX,Version=v4.5.1/win7-x64": {
@@ -1753,11 +1766,11 @@
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "xunit/2.1.0": {
+      "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.assert": "[2.1.0]",
-          "xunit.core": "[2.1.0]"
+          "xunit.assert": "[2.2.0-beta1-build3239]",
+          "xunit.core": "[2.2.0-beta1-build3239]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -1769,7 +1782,7 @@
           "lib/net35/xunit.abstractions.dll": {}
         }
       },
-      "xunit.assert/2.1.0": {
+      "xunit.assert/2.2.0-beta1-build3239": {
         "type": "package",
         "compile": {
           "lib/dotnet/xunit.assert.dll": {}
@@ -1778,14 +1791,14 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.core/2.1.0": {
+      "xunit.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]",
+          "xunit.extensibility.execution": "[2.2.0-beta1-build3239]"
         }
       },
-      "xunit.extensibility.core/2.1.0": {
+      "xunit.extensibility.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "xunit.abstractions": "[2.0.0]"
@@ -1799,10 +1812,10 @@
           "lib/dotnet/xunit.runner.utility.desktop.dll": {}
         }
       },
-      "xunit.extensibility.execution/2.1.0": {
+      "xunit.extensibility.execution/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]"
         },
         "compile": {
           "lib/dnx451/xunit.execution.dotnet.dll": {}
@@ -1861,6 +1874,9 @@
         "runtime": {
           "lib/dnx451/xunit.runner.utility.dotnet.dll": {}
         }
+      },
+      "xunit.runner.visualstudio/2.2.0-beta1-build1144": {
+        "type": "package"
       }
     },
     "DNXCore,Version=v5.0/win7-x86": {
@@ -3256,11 +3272,11 @@
           "lib/dotnet5.4/System.Xml.XDocument.dll": {}
         }
       },
-      "xunit/2.1.0": {
+      "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.assert": "[2.1.0]",
-          "xunit.core": "[2.1.0]"
+          "xunit.assert": "[2.2.0-beta1-build3239]",
+          "xunit.core": "[2.2.0-beta1-build3239]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -3272,13 +3288,15 @@
           "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll": {}
         }
       },
-      "xunit.assert/2.1.0": {
+      "xunit.assert/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
           "System.Diagnostics.Debug": "4.0.0",
           "System.Globalization": "4.0.0",
           "System.Linq": "4.0.0",
+          "System.Linq.Expressions": "4.0.0",
+          "System.Linq.Queryable": "4.0.0",
           "System.ObjectModel": "4.0.0",
           "System.Reflection": "4.0.0",
           "System.Reflection.Extensions": "4.0.0",
@@ -3294,24 +3312,26 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.core/2.1.0": {
+      "xunit.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
           "System.Diagnostics.Debug": "4.0.0",
           "System.Globalization": "4.0.0",
           "System.Linq": "4.0.0",
+          "System.Linq.Expressions": "4.0.0",
+          "System.Linq.Queryable": "4.0.0",
           "System.Reflection": "4.0.0",
           "System.Reflection.Extensions": "4.0.0",
           "System.Runtime": "4.0.0",
           "System.Runtime.Extensions": "4.0.0",
           "System.Threading.Tasks": "4.0.0",
           "xunit.abstractions": "2.0.0",
-          "xunit.extensibility.core": "[2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]",
+          "xunit.extensibility.execution": "[2.2.0-beta1-build3239]"
         }
       },
-      "xunit.extensibility.core/2.1.0": {
+      "xunit.extensibility.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "xunit.abstractions": "[2.0.0]"
@@ -3325,7 +3345,7 @@
           "lib/dotnet/xunit.runner.utility.desktop.dll": {}
         }
       },
-      "xunit.extensibility.execution/2.1.0": {
+      "xunit.extensibility.execution/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
@@ -3342,7 +3362,7 @@
           "System.Threading": "4.0.0",
           "System.Threading.Tasks": "4.0.0",
           "xunit.abstractions": "2.0.0",
-          "xunit.extensibility.core": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]"
         },
         "compile": {
           "lib/dotnet/xunit.execution.dotnet.dll": {}
@@ -3417,6 +3437,9 @@
         "runtime": {
           "lib/dotnet/xunit.runner.utility.dotnet.dll": {}
         }
+      },
+      "xunit.runner.visualstudio/2.2.0-beta1-build1144": {
+        "type": "package"
       }
     },
     "DNXCore,Version=v5.0/win7-x64": {
@@ -4812,11 +4835,11 @@
           "lib/dotnet5.4/System.Xml.XDocument.dll": {}
         }
       },
-      "xunit/2.1.0": {
+      "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
-          "xunit.assert": "[2.1.0]",
-          "xunit.core": "[2.1.0]"
+          "xunit.assert": "[2.2.0-beta1-build3239]",
+          "xunit.core": "[2.2.0-beta1-build3239]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -4828,13 +4851,15 @@
           "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll": {}
         }
       },
-      "xunit.assert/2.1.0": {
+      "xunit.assert/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
           "System.Diagnostics.Debug": "4.0.0",
           "System.Globalization": "4.0.0",
           "System.Linq": "4.0.0",
+          "System.Linq.Expressions": "4.0.0",
+          "System.Linq.Queryable": "4.0.0",
           "System.ObjectModel": "4.0.0",
           "System.Reflection": "4.0.0",
           "System.Reflection.Extensions": "4.0.0",
@@ -4850,24 +4875,26 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.core/2.1.0": {
+      "xunit.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
           "System.Diagnostics.Debug": "4.0.0",
           "System.Globalization": "4.0.0",
           "System.Linq": "4.0.0",
+          "System.Linq.Expressions": "4.0.0",
+          "System.Linq.Queryable": "4.0.0",
           "System.Reflection": "4.0.0",
           "System.Reflection.Extensions": "4.0.0",
           "System.Runtime": "4.0.0",
           "System.Runtime.Extensions": "4.0.0",
           "System.Threading.Tasks": "4.0.0",
           "xunit.abstractions": "2.0.0",
-          "xunit.extensibility.core": "[2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]",
+          "xunit.extensibility.execution": "[2.2.0-beta1-build3239]"
         }
       },
-      "xunit.extensibility.core/2.1.0": {
+      "xunit.extensibility.core/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "xunit.abstractions": "[2.0.0]"
@@ -4881,7 +4908,7 @@
           "lib/dotnet/xunit.runner.utility.desktop.dll": {}
         }
       },
-      "xunit.extensibility.execution/2.1.0": {
+      "xunit.extensibility.execution/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.0",
@@ -4898,7 +4925,7 @@
           "System.Threading": "4.0.0",
           "System.Threading.Tasks": "4.0.0",
           "xunit.abstractions": "2.0.0",
-          "xunit.extensibility.core": "[2.1.0]"
+          "xunit.extensibility.core": "[2.2.0-beta1-build3239]"
         },
         "compile": {
           "lib/dotnet/xunit.execution.dotnet.dll": {}
@@ -4973,6 +5000,9 @@
         "runtime": {
           "lib/dotnet/xunit.runner.utility.dotnet.dll": {}
         }
+      },
+      "xunit.runner.visualstudio/2.2.0-beta1-build1144": {
+        "type": "package"
       }
     }
   },
@@ -7947,12 +7977,12 @@
         "System.Xml.XDocument.nuspec"
       ]
     },
-    "xunit/2.1.0": {
+    "xunit/2.2.0-beta1-build3239": {
       "type": "package",
-      "sha512": "u/7VQSOSXa7kSG4iK6Lcn7RqKZQ3hk7cnyMNVMpXHSP0RI5VQEtc44hvkG3LyWOVsx1dhUDD3rPAHAxyOUDQJw==",
+      "sha512": "j/MqJK2vBsTqdcGQCrMw0pQKbwQF1o9BeFRZ1BNlHe2W1/5ixqJFon/dr55MAnFgQrb4Euabonmn5JNluK4qeQ==",
       "files": [
-        "xunit.2.1.0.nupkg",
-        "xunit.2.1.0.nupkg.sha512",
+        "xunit.2.2.0-beta1-build3239.nupkg",
+        "xunit.2.2.0-beta1-build3239.nupkg.sha512",
         "xunit.nuspec"
       ]
     },
@@ -7969,9 +7999,9 @@
         "xunit.abstractions.nuspec"
       ]
     },
-    "xunit.assert/2.1.0": {
+    "xunit.assert/2.2.0-beta1-build3239": {
       "type": "package",
-      "sha512": "Hhhw+YaTe+BGhbr57dxVE+6VJk8BfThqFFii1XIsSZ4qx+SSCixprJC10JkiLRVSTfWyT8W/4nAf6NQgIrmBxA==",
+      "sha512": "fczO1r6zCqUCAw8DOBIrylzC038gDAxyb98h1S8BQIJTzM1LWlYIAa60z5YMl/himWzAw9NQGoju3QTyH+OsWQ==",
       "files": [
         "lib/dotnet/xunit.assert.dll",
         "lib/dotnet/xunit.assert.pdb",
@@ -7979,14 +8009,14 @@
         "lib/portable-net45+win8+wp8+wpa81/xunit.assert.dll",
         "lib/portable-net45+win8+wp8+wpa81/xunit.assert.pdb",
         "lib/portable-net45+win8+wp8+wpa81/xunit.assert.xml",
-        "xunit.assert.2.1.0.nupkg",
-        "xunit.assert.2.1.0.nupkg.sha512",
+        "xunit.assert.2.2.0-beta1-build3239.nupkg",
+        "xunit.assert.2.2.0-beta1-build3239.nupkg.sha512",
         "xunit.assert.nuspec"
       ]
     },
-    "xunit.core/2.1.0": {
+    "xunit.core/2.2.0-beta1-build3239": {
       "type": "package",
-      "sha512": "jlbYdPbnkPIRwJllcT/tQZCNsSElVDEymdpJfH79uTUrPARkELVYw9o/zhAjKZXmeikGqGK5C2Yny4gTNoEu0Q==",
+      "sha512": "Ejolxzd5yln1UxoL8U6C9d2qyIkdLxJdsTy6igRIyp+5RnSq16BfiCLjyyapBO5hzuqTTUK27buXnKcpR1lqfQ==",
       "files": [
         "build/_desktop/xunit.execution.desktop.dll",
         "build/dnx451/_._",
@@ -7999,14 +8029,14 @@
         "build/wp8/_._",
         "build/wpa81/xunit.core.props",
         "build/xamarinios/_._",
-        "xunit.core.2.1.0.nupkg",
-        "xunit.core.2.1.0.nupkg.sha512",
+        "xunit.core.2.2.0-beta1-build3239.nupkg",
+        "xunit.core.2.2.0-beta1-build3239.nupkg.sha512",
         "xunit.core.nuspec"
       ]
     },
-    "xunit.extensibility.core/2.1.0": {
+    "xunit.extensibility.core/2.2.0-beta1-build3239": {
       "type": "package",
-      "sha512": "ANWM3WxeaeHjACLRlmrv+xOc0WAcr3cvIiJE+gqbdzTv1NCH4p1VDyT+8WmmdCc9db0WFiJLaDy4YTYsL1wWXw==",
+      "sha512": "jdTnfYPo5ArIVnb0Q5Br44ygr3rD9ubfWVC5O+/Fky1i5ORGXueEmrxI/vunR05vhmcorr8N2ZhxtfREVwcSVg==",
       "files": [
         "lib/dotnet/xunit.core.dll",
         "lib/dotnet/xunit.core.dll.tdnet",
@@ -8020,14 +8050,14 @@
         "lib/portable-net45+win8+wp8+wpa81/xunit.core.xml",
         "lib/portable-net45+win8+wp8+wpa81/xunit.runner.tdnet.dll",
         "lib/portable-net45+win8+wp8+wpa81/xunit.runner.utility.desktop.dll",
-        "xunit.extensibility.core.2.1.0.nupkg",
-        "xunit.extensibility.core.2.1.0.nupkg.sha512",
+        "xunit.extensibility.core.2.2.0-beta1-build3239.nupkg",
+        "xunit.extensibility.core.2.2.0-beta1-build3239.nupkg.sha512",
         "xunit.extensibility.core.nuspec"
       ]
     },
-    "xunit.extensibility.execution/2.1.0": {
+    "xunit.extensibility.execution/2.2.0-beta1-build3239": {
       "type": "package",
-      "sha512": "tAoNafoVknKa3sZJPMvtZRnhOSk3gasEGeceSm7w/gyGwsR/OXFxndWJB1xSHeoy33d3Z6jFqn4A3j+pWCF0Ew==",
+      "sha512": "lBMxtY9e3De3H1gG3mVf1esSuQZ8ugQYSekd3FSDzttM9Uml4wcEEjttiy5SJK7rhsFH9X87AoH9yrCOvt0nfg==",
       "files": [
         "lib/dnx451/xunit.execution.dotnet.dll",
         "lib/dnx451/xunit.execution.dotnet.pdb",
@@ -8059,8 +8089,8 @@
         "lib/xamarinios/xunit.execution.dotnet.dll",
         "lib/xamarinios/xunit.execution.dotnet.pdb",
         "lib/xamarinios/xunit.execution.dotnet.xml",
-        "xunit.extensibility.execution.2.1.0.nupkg",
-        "xunit.extensibility.execution.2.1.0.nupkg.sha512",
+        "xunit.extensibility.execution.2.2.0-beta1-build3239.nupkg",
+        "xunit.extensibility.execution.2.2.0-beta1-build3239.nupkg.sha512",
         "xunit.extensibility.execution.nuspec"
       ]
     },
@@ -8109,12 +8139,45 @@
         "xunit.runner.utility.2.1.0.nupkg.sha512",
         "xunit.runner.utility.nuspec"
       ]
+    },
+    "xunit.runner.visualstudio/2.2.0-beta1-build1144": {
+      "type": "package",
+      "sha512": "/rJHwzuQl/2J27t/9+StD/DrSffMpRB3Q5sucIquqrr8TzZ/FKPgijEw0qdMYj3x4Leu9NiJM6oDiJygN2VAQg==",
+      "files": [
+        "build/_common/xunit.abstractions.dll",
+        "build/_common/xunit.runner.utility.desktop.dll",
+        "build/_common/xunit.runner.utility.dotnet.dll",
+        "build/_common/xunit.runner.visualstudio.testadapter.dll",
+        "build/monoandroid/_._",
+        "build/monotouch/_._",
+        "build/net20/xunit.runner.visualstudio.props",
+        "build/portable-net45+win8+wp8+wpa81/xunit.runner.visualstudio.props",
+        "build/uap10.0/xunit.runner.visualstudio.props",
+        "build/uap10.0/xunit.runner.visualstudio.targets",
+        "build/uap10.0/xunit.runner.visualstudio.uwp.dll",
+        "build/uap10.0/xunit.runner.visualstudio.uwp.pri",
+        "build/win8/_._",
+        "build/win81/xunit.runner.visualstudio.props",
+        "build/win81/xunit.runner.visualstudio.targets",
+        "build/win81/xunit.runner.visualstudio.win81.dll",
+        "build/win81/xunit.runner.visualstudio.win81.pri",
+        "build/wp8/_._",
+        "build/wpa81/xunit.runner.visualstudio.props",
+        "build/wpa81/xunit.runner.visualstudio.targets",
+        "build/wpa81/xunit.runner.visualstudio.wpa81.dll",
+        "build/wpa81/xunit.runner.visualstudio.wpa81.pri",
+        "build/xamarinios/_._",
+        "xunit.runner.visualstudio.2.2.0-beta1-build1144.nupkg",
+        "xunit.runner.visualstudio.2.2.0-beta1-build1144.nupkg.sha512",
+        "xunit.runner.visualstudio.nuspec"
+      ]
     }
   },
   "projectFileDependencyGroups": {
     "": [
-      "xunit >= 2.1.0",
+      "xunit >= 2.2.0-beta1-build3239",
       "xunit.runner.dnx >= 2.1.0-rc1-build204",
+      "xunit.runner.visualstudio >= 2.2.0-beta1-build1144",
       "ObjectStore >= 1.0.0-alpha2"
     ],
     "DNX,Version=v4.5.1": [
