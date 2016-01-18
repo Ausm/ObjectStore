@@ -19,5 +19,6 @@ CREATE TABLE dbo.SubTestTable
 	Test INT NOT NULL CONSTRAINT FK_SubTestTable_Test REFERENCES dbo.TestTable(Id),
 	Name NVARCHAR(100) NOT NULL CONSTRAINT DF_SubTestTable_Name DEFAULT(N''),
 	[First] INT NOT NULL CONSTRAINT DF_SubTestTable_First DEFAULT(0),
-	[Second] INT NOT NULL CONSTRAINT DF_SubTestTable_Second DEFAULT(0)
+	[Second] INT NOT NULL CONSTRAINT DF_SubTestTable_Second DEFAULT(0),
+	[Nullable] DATETIME NULL
 )

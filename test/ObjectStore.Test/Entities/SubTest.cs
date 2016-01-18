@@ -1,4 +1,6 @@
-﻿namespace ObjectStore.Test.Entities
+﻿using System;
+
+namespace ObjectStore.Test.Entities
 {
     [Table("dbo.SubTestTable")]
     public abstract class SubTest
@@ -13,9 +15,12 @@
         public abstract string Name { get; set; }
 
         [Mapping(FieldName = "[First]")]
-        public int First { get; set; }
+        public abstract int First { get; set; }
 
         [Mapping(FieldName = "[Second]")]
-        public int Second { get; set; }
+        public abstract int Second { get; set; }
+
+        [Mapping(FieldName = "[Nullable]")]
+        public abstract DateTime? Nullable { get; set; }
     }
 }

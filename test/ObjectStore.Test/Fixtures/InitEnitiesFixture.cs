@@ -28,8 +28,8 @@ namespace ObjectStore.Test.Fixtures
             Entities.Test secondEntity = CreateTestEntity(objectProvider, "Second", Resources.Resource.SecondRandomText);
             for (int i = 0; i < 10; i++)
             {
-                CreatSubTestEntity(objectProvider, firstEntity, $"SubEntity{currentName++}", i, i - 10);
-                CreatSubTestEntity(objectProvider, secondEntity, $"SubEntity{currentName++}", i, i - 10);
+                CreatSubTestEntity(objectProvider, firstEntity, $"SubEntity{currentName++}", i, 10 - i, i != 7 ? default(DateTime?) : DateTime.Now);
+                CreatSubTestEntity(objectProvider, secondEntity, $"SubEntity{currentName++}", i, 10 - i, i != 7 ? default(DateTime?) : DateTime.Now);
             }
             objectProvider.GetQueryable<Entities.Test>().Save();
         }
@@ -42,13 +42,14 @@ namespace ObjectStore.Test.Fixtures
             return entity;
         }
 
-        static Entities.SubTest CreatSubTestEntity(IObjectProvider objectProvider, Entities.Test parent, string name, int first, int second)
+        static Entities.SubTest CreatSubTestEntity(IObjectProvider objectProvider, Entities.Test parent, string name, int first, int second, DateTime? date)
         {
             Entities.SubTest entity = objectProvider.CreateObject<Entities.SubTest>();
             entity.Name = name;
             entity.Test = parent;
             entity.First = first;
             entity.Second = second;
+            entity.Nullable = date;
             return entity;
         }
 

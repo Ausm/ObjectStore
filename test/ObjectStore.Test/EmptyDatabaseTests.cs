@@ -52,17 +52,17 @@ namespace ObjectStore.Test
             _fixture.ObjectProvider.GetQueryable<Entities.Test>().Where(x => x == entity).Save();
             Assert.True(_waithandle.WaitOne(5000));
             Assert.NotEqual(entity.Id, 0);
-            _output.WriteLine($"First entity saved, new Id: {entity.Id}");
+            _output.WriteLine($"First entity saved, new Id: {entity.Id} -> passed");
 
             Entities.Test entity2 = CreateTestEntity($"Testname {DateTime.Now:g}", Resource.SecondRandomText);
             _waithandle.Reset();
             _fixture.ObjectProvider.GetQueryable<Entities.Test>().Where(x => x == entity2).Save();
             Assert.True(_waithandle.WaitOne(5000));
-            _output.WriteLine($"Second entity saved, new Id: {entity2.Id}");
+            _output.WriteLine($"Second entity saved, new Id: {entity2.Id} -> passed");
 
             entity.Description = Resource.SecondRandomText;
             _fixture.ObjectProvider.GetQueryable<Entities.Test>().Where(x => x == entity).Save();
-            _output.WriteLine($"First entity updated and saved, Id: {entity2.Id}");
+            _output.WriteLine($"First entity updated and saved, Id: {entity2.Id} -> passed");
 
             int id = entity.Id;
             IQueryable<Entities.Test> queryable = _fixture.ObjectProvider.GetQueryable<Entities.Test>().Where(x => x == entity);
@@ -70,13 +70,13 @@ namespace ObjectStore.Test
             queryable.Save();
             Assert.Empty(_fixture.ObjectProvider.GetQueryable<Entities.Test>().Where(x => x.Id == id));
             Assert.Equal(1, _fixture.ObjectProvider.GetQueryable<Entities.Test>().Count());
-            _output.WriteLine($"Deleted entity, Id: {entity2.Id}");
+            _output.WriteLine($"Deleted entity, Id: {entity2.Id} -> passed");
 
             queryable = _fixture.ObjectProvider.GetQueryable<Entities.Test>();
             queryable.Delete();
             queryable.Save();
             Assert.Empty(_fixture.ObjectProvider.GetQueryable<Entities.Test>());
-            _output.WriteLine($"Deleted all entities");
+            _output.WriteLine($"Deleted all entities -> passed");
         }
     }
 }
