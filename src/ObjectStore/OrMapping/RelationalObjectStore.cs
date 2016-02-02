@@ -61,7 +61,7 @@ namespace ObjectStore.OrMapping
             if (_autoregisterTypes && !_relationalObjectProvider.ContainsKey(typeof(T)))
             {
                 Register<T>();
-#if DEBUG && !DNXCORE50
+#if DEBUG && !DNXCORE50 && !DOTNET5_4
                 System.Diagnostics.Trace.TraceError("Type '{0}' is not registered in Objectstore.", typeof(T).FullName);
 #endif
             }
@@ -74,7 +74,7 @@ namespace ObjectStore.OrMapping
             if (_autoregisterTypes && !_relationalObjectProvider.ContainsKey(typeof(T)))
             {
                 Register<T>();
-#if DEBUG && !DNXCORE50
+#if DEBUG && !DNXCORE50 && !DOTNET5_4
                 System.Diagnostics.Trace.TraceError("Type '{0}' is not registered in Objectstore.", typeof(T).FullName);
 #endif
             }

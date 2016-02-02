@@ -41,16 +41,16 @@ namespace ObjectStore.SqlClient
                                 {
                                     if (_connection != null)
                                     {
-#if !DNXCORE50
+#if !DNXCORE50 && !DOTNET5_4
                                         try
                                         {
                                             Thread.BeginCriticalRegion();
 #endif
-                                            SqlConnection connection = _connection;
+                                        SqlConnection connection = _connection;
                                             _connection = null;
                                             connection.Dispose();
                                             _disposingThread = null;
-#if !DNXCORE50
+#if !DNXCORE50 && !DOTNET5_4
 
                                         }
                                         finally
@@ -238,7 +238,7 @@ namespace ObjectStore.SqlClient
         partial void InitExpressionParser();
         void CleanUpClosedThreads()
         {
-#if !DNXCORE50 && DEBUG
+#if DEBUG && !DNXCORE50 && !DOTNET5_4
             System.Diagnostics.Debug.Print("CleanUpConnectionThreads");
 #endif
             bool threadsRemoved = false;

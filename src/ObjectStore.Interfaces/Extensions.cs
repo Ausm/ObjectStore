@@ -51,7 +51,7 @@ namespace ObjectStore
 
         #region Queryable Extensions
 
-#if DNXCORE50
+#if DNXCORE50 || DOTNET5_4
         public static bool Save<T>(this IQueryable<T> source)
         {
             if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))

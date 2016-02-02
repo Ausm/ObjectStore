@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-#if DNXCORE50
+#if DNXCORE50 || DOTNET5_4
 using System.Reflection;
 #endif
 

@@ -1,4 +1,4 @@
-﻿#if DNXCORE50
+﻿#if DNXCORE50 || DOTNET5_4
 using IDataReader = global::System.Data.Common.DbDataReader;
 #endif
 
@@ -258,7 +258,7 @@ namespace ObjectStore.OrMapping
                     {
                         match = _context.GetPredicateCompiled()(obj);
                     }
-#if DEBUG && !DNXCORE50
+#if DEBUG && !DNXCORE50 && !DOTNET5_4
                     catch (Exception ex)
                     {
                         if (!_isWeakCacheExceptionSent)
@@ -367,7 +367,7 @@ namespace ObjectStore.OrMapping
                         }
                         else
                         {
-#if !DNXCORE50
+#if !DNXCORE50 && !DOTNET5_4
                             string transactionLocalIdentifier = System.Transactions.Transaction.Current.TransactionInformation.LocalIdentifier;
                             if (_objectsToCommit.ContainsKey(transactionLocalIdentifier))
                                 _objectsToCommit[transactionLocalIdentifier] = _objectsToCommit[transactionLocalIdentifier].Union(dropCommitEntries);
@@ -565,7 +565,7 @@ namespace ObjectStore.OrMapping
                         {
                             CollectionChanged(this, e);
                         }
-#if DEBUG && !DNXCORE50
+#if DEBUG && !DNXCORE50 && !DOTNET5_4
                         catch (Exception ex)
                         {
                             System.Diagnostics.Trace.TraceError("Error in  CollectionChanged-Call.\nException:\n{0}", ex);

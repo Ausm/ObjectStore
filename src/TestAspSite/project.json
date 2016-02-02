@@ -25,7 +25,13 @@
         "Microsoft.AspNet.Authorization": "1.0.0-rc1-final"
       }
     },
-    "dnxcore50": { }
+    "net451": {
+      "dependencies": {
+        "Microsoft.AspNet.Authorization": "1.0.0-rc1-final"
+      }
+    },
+    "dnxcore50": { },
+    "dotnet5.4": { }
   },
 
   "publishExclude": [

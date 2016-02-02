@@ -1,4 +1,4 @@
-﻿#if DNXCORE50
+﻿#if DNXCORE50 || DOTNET5_4
 namespace System.Transactions
 {
     public class Transaction
