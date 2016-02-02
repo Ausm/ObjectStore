@@ -142,39 +142,24 @@ namespace ObjectStore.SqlClient
         #endregion
 
         #region CommandBuilders
-        public ISelectCommandBuilder GetSelectCommandBuilder()
+        public IModifyableCommandBuilder GetSelectCommandBuilder()
         {
             return new SelectCommandBuilder(this);
         }
 
-        public IDbCommandBuilder GetInsertCommandBuilder()
+        public ICommandBuilder GetInsertCommandBuilder()
         {
             return new InsertCommandBuilder();
         }
 
-        public IDbCommandBuilder GetUpdateCommandBuilder()
+        public ICommandBuilder GetUpdateCommandBuilder()
         {
             return new UpdateCommandBuilder();
         }
 
-        public IDbCommandBuilder GetDeleteCommandBuilder()
+        public ICommandBuilder GetDeleteCommandBuilder()
         {
             return new DeleteCommandBuilder();
-        }
-
-        public ISubQueryCommandBuilder GetExistsCommandBuilder()
-        {
-            return new ExistsCommandBuilder(this);
-        }
-
-        public ISubQueryCommandBuilder GetInCommandBuilder(string outherAlias)
-        {
-            return new InCommandBuilder(outherAlias, this);
-        }
-
-        public DbParameter GetDbParameter(object value)
-        {
-            return new SqlParameter($"@param{GetUniqe()}", value);
         }
         #endregion
 

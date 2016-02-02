@@ -71,15 +71,6 @@ namespace ObjectStore.OrMapping
 
         #region CommandFunktionen
         public abstract void FillCommandBuilder(ICommandBuilder updateCommandBuilder);
-
-        public abstract string ParseExpression(Expressions.Expression expression);
-        #endregion
-
-        #region ExpressionParseFunktionen
-        public virtual Expressions.ParsedExpression.Join GetJoinForProperty()
-        {
-            return null;
-        }
         #endregion
         #endregion
 

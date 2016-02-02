@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace ObjectStore.SqlClient
 {
-    internal class SelectCommandBuilder : ISelectCommandBuilder, IParsingContext, IServiceProvider
+    internal class SelectCommandBuilder : IModifyableCommandBuilder, IParsingContext
     {
         #region Subklassen
         class Join
@@ -94,7 +94,7 @@ namespace ObjectStore.SqlClient
         List<DbParameter> _parameters;
         List<LambdaExpression> _whereExpressions;
         List<string> _selectFields;
-        List<string> _orderbyExpressions;
+        List<LambdaExpression> _orderbyExpressions;
         List<Join> _joins;
         int _top;
         DataBaseProvider _databaseProvider;
@@ -106,7 +106,7 @@ namespace ObjectStore.SqlClient
             _databaseProvider = databaseProvider;
             _parameters = new List<DbParameter>();
             _selectFields = new List<string>();
-            _orderbyExpressions = new List<string>();
+            _orderbyExpressions = new List<LambdaExpression>();
             _joins = new List<Join>();
             _top = -1;
             _alias = $"T{_databaseProvider.GetUniqe()}";
@@ -144,10 +144,10 @@ namespace ObjectStore.SqlClient
 
         public void ResetOrder()
         {
-            _orderbyExpressions = new List<string>();
+            _orderbyExpressions = new List<LambdaExpression>();
         }
 
-        public void SetOrderBy(string expression)
+        public void SetOrderBy(LambdaExpression expression)
         {
             _orderbyExpressions.Add(expression);
         }
@@ -159,7 +159,7 @@ namespace ObjectStore.SqlClient
 
         public DbParameter AddDbParameter(object value)
         {
-            DbParameter returnValue = _databaseProvider.GetDbParameter(value);
+            DbParameter returnValue = new SqlParameter($"@param{_databaseProvider.GetUniqe()}", value);
             _parameters.Add(returnValue);
             return returnValue;
         }
@@ -179,7 +179,7 @@ namespace ObjectStore.SqlClient
 
             if (_whereExpressions.Count == 1)
             {
-                whereClause = _databaseProvider.ExpressionParser.ParseExpression(_whereExpressions[0], x => this.AddDbParameter(x).ParameterName, this);
+                whereClause = _databaseProvider.ExpressionParser.ParseExpression(_whereExpressions[0], this);
             }
             else if (_whereExpressions.Count > 1)
             {
@@ -190,7 +190,7 @@ namespace ObjectStore.SqlClient
                     else
                         whereClause += " AND (";
 
-                    whereClause +=  _databaseProvider.ExpressionParser.ParseExpression(expression, x => this.AddDbParameter(x).ParameterName, this) + ")";
+                    whereClause +=  _databaseProvider.ExpressionParser.ParseExpression(expression, this) + ")";
                 }
             }
 
@@ -201,7 +201,9 @@ namespace ObjectStore.SqlClient
                 stringBuilder.Append(" WHERE ").Append(whereClause);
 
             if (_orderbyExpressions.Count != 0)
-                stringBuilder.AppendFormat(" ORDER BY {0}", string.Join(", ", _orderbyExpressions.ToArray()));
+                stringBuilder.Append(" ORDER BY ").Append(string.Join(", ", _orderbyExpressions.Select(
+                        exp => _databaseProvider.ExpressionParser.ParseExpression(exp, this)
+                            ).ToArray()));
 
             SqlCommand command = new SqlCommand();
             command.Parameters.AddRange(_parameters.ToArray());
@@ -214,15 +216,6 @@ namespace ObjectStore.SqlClient
             _whereExpressions.Add(expression);
         }
 
-        #region IServiceProvider
-        object IServiceProvider.GetService(Type serviceType)
-        {
-            if (serviceType == typeof(IParsingContext))
-                return this;
-
-            throw new NotSupportedException($"Service {serviceType.FullName} is not providet.");
-        }
-        #endregion
         #region IParsingContext
         string IParsingContext.GetAlias(ParameterExpression expression)
         {

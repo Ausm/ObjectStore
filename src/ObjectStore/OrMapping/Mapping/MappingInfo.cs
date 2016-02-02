@@ -738,15 +738,6 @@ namespace ObjectStore.OrMapping
         {
             return _getKeyObjectFromReader(reader); 
         }
-
-        public virtual string ParseExpression(Expressions.ParameterExpression parameterExpression)
-        {
-            ReadOnlyCollection<Mapping> keyMappingInfos = this.KeyMappingInfos;
-            if (keyMappingInfos.Count != 1)
-                throw new Expressions.NotParsableException("ParameterExpressions of mapped types witch has no key or a segmented key cannot be parsed.");
-
-            return keyMappingInfos[0].ParseExpression(parameterExpression);
-        }
 #endregion
 
 #region Properties

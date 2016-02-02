@@ -5,7 +5,7 @@ using ObjectStore.OrMapping;
 
 namespace ObjectStore.SqlClient
 {
-    internal class DeleteCommandBuilder : IDbCommandBuilder
+    internal class DeleteCommandBuilder : ICommandBuilder
     {
         #region Membervariablen
         string _tablename;

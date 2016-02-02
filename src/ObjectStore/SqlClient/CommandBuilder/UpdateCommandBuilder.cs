@@ -5,7 +5,7 @@ using ObjectStore.OrMapping;
 
 namespace ObjectStore.SqlClient
 {
-    internal class UpdateCommandBuilder : IDbCommandBuilder
+    internal class UpdateCommandBuilder : ICommandBuilder
     {
         #region Membervariablen
         string _tablename;

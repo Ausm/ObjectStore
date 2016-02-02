@@ -15,7 +15,7 @@ namespace ObjectStore.OrMapping
 {
     public partial class InheritensObjectProvider<T> : Interfaces.IObjectProvider
     {
-        public class QueryProvider : Expressions.IParseAbleQueryProvider
+        public class QueryProvider : IQueryProvider
         {
             #region Membervariablen
             static Dictionary<ValueComparedExpression<Expression>, WeakReference<QueryProvider>> _queryProvider;
@@ -77,7 +77,7 @@ namespace ObjectStore.OrMapping
             {
                 try
                 {
-                    ISelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
+                    IModifyableCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
                     Context.PrepareSelectCommand(commandBuilder);
                     DbCommand command = commandBuilder.GetDbCommand();
                     StringBuilder stringBuilder = new StringBuilder();
@@ -105,47 +105,6 @@ namespace ObjectStore.OrMapping
             {
                 add { Enumerable.CollectionChanged += value; }
                 remove { Enumerable.CollectionChanged -= value; }
-            }
-            #endregion
-
-            #region IParseAbleQueryProvider
-            public string Parse(Expression expression, Expressions.ParsedExpression parsedExpression)
-            {
-                if (expression.NodeType == ExpressionType.Call)
-                {
-                    if (!ValueComparedExpression<Expression>.Equals(_queryexpression, (expression as MethodCallExpression).Arguments[0]))
-                    {
-                        return (Queryable.Create(_objectProvider, (expression as MethodCallExpression).Arguments[0]).Provider as Expressions.IParseAbleQueryProvider).Parse(expression, parsedExpression);
-                    }
-
-                    MethodCallExpression callExpression = expression as MethodCallExpression;
-
-                    #region Any
-                    if (callExpression != null &&
-                        callExpression.Method.DeclaringType == typeof(System.Linq.Queryable) &&
-                        callExpression.Method.Name == "Any")
-                    {
-                        ISubQueryCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetExistsCommandBuilder());
-                        Context.PrepareSelectCommand(commandBuilder, parsedExpression);
-                        return commandBuilder.SubQuery;
-                    }
-                    #endregion
-                    #region Contains
-                    if (callExpression != null &&
-                        callExpression.Method.DeclaringType == typeof(System.Linq.Queryable) &&
-                        callExpression.Method.Name == "Contains" &&
-                        callExpression.Arguments.Count == 2 &&
-                        callExpression.Arguments[1] is ParameterExpression)
-                    {
-                        ISubQueryCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetInCommandBuilder(parsedExpression[(ParameterExpression)callExpression.Arguments[1]]));
-                        Context.PrepareSelectCommand(commandBuilder, parsedExpression);
-                        return commandBuilder.SubQuery;
-                    }
-                    #endregion
-
-                }
-
-                throw new NotSupportedException(string.Format("Expression '{0}' is not Supported", expression));
             }
             #endregion
 
@@ -744,38 +703,15 @@ namespace ObjectStore.OrMapping
 
             public virtual void PrepareSelectCommand(IModifyableCommandBuilder commandBuilder)
             {
-                PrepareSelectCommand(commandBuilder, null);
-            }
-
-            public virtual void PrepareSelectCommand(IModifyableCommandBuilder commandBuilder, Expressions.ParsedExpression parentParsedExpression)
-            {
-                #region WhereExpressions
                 foreach (Expression<Func<T, bool>> predicate in WhereExpressions)
                     commandBuilder.SetWhereClausel(predicate);
-                #endregion
 
-                #region OrderByExpressions
                 if (_orderExpressions != null)
-                {
                     foreach (IOrderItem orderItem in _orderExpressions)
-                    {
-                        Expressions.ParsedExpression parsedExpression = Expressions.ParsedExpression.ParseExpression(orderItem.Expression, obj => commandBuilder.AddDbParameter(obj));
+                        commandBuilder.SetOrderBy(orderItem.Expression);
 
-                        parsedExpression[orderItem.Expression.Parameters[0]] = commandBuilder.Alias;
-
-                        commandBuilder.SetOrderBy(string.Format(orderItem.Direction == System.ComponentModel.ListSortDirection.Ascending ? "{0}" : "{0} DESC", parsedExpression.SqlExpression));
-                        foreach (Expressions.ParsedExpression.Join join in parsedExpression.Joins)
-                            commandBuilder.AddJoin(string.Format("{0} {1}", join.Table, join.Alias), string.Format("{1}.{0} = {2}", join.Field, join.FieldAlias, join.ForeignField));
-                    }
-                }
-                #endregion
-
-                #region TopClausel
                 if (_topCount.HasValue)
-                {
                     commandBuilder.SetTop(_topCount.Value);
-                }
-                #endregion
             }
 
             public virtual void SetLoaded()

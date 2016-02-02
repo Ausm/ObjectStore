@@ -94,15 +94,6 @@ namespace ObjectStore.OrMapping
 
         }
 
-        public override Expressions.ParsedExpression.Join GetJoinForProperty()
-        {
-            Expressions.ParsedExpression.Join join = new Expressions.ParsedExpression.Join();
-            join.Table = MappingInfo.GetMappingInfo(_propertyInfo.PropertyType).TableName;
-            join.Field = FieldName;
-            join.ForeignField = string.Format("{0}.{1}", join.Alias, GetMapping(_foreignProperty).FieldName);
-            return join;
-        }
-
         protected override Type DataBaseValueType
         {
             get

@@ -298,21 +298,6 @@ namespace ObjectStore.OrMapping
             commandBuilder.AddField(FieldName, fieldType);
         }
 
-        public override string ParseExpression(Expressions.Expression expression)
-        {
-            if(expression is Expressions.MemberExpression)
-                return string.Format("{0}.{1}", (expression as Expressions.MemberExpression).Alias, FieldName);
-            if (expression is Expressions.ParameterExpression)
-            {
-                if (IsPrimaryKey)
-                    return string.Format("{0}.{1}", ((Expressions.ParameterExpression)expression).Alias, FieldName);
-                else
-                    throw new Expressions.NotParsableException("Identificationvalue of parameter must be the uniqe primary key.");
-            }
-
-            throw new Expressions.NotParsableException("Cannot parse unknown expression.");
-        }
-
         public override Type FieldType
         {
             get { return _propertyInfo.PropertyType; }

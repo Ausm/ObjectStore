@@ -202,11 +202,6 @@ namespace ObjectStore.OrMapping
 
         public override void FillCommandBuilder(ICommandBuilder updateCommandBuilder) { }
 
-        public override string ParseExpression(Expressions.Expression expression)
-        {
-            throw new NotImplementedException();
-        }
-
         public Dictionary<PropertyInfo, object> GetConditions(Expression expression)
         {
             Dictionary<PropertyInfo, object> returnValue = new Dictionary<PropertyInfo, object>(_conditions);

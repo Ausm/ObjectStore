@@ -5,12 +5,10 @@ namespace ObjectStore.OrMapping
 {
     interface IDataBaseProvider
     {
-        ISelectCommandBuilder GetSelectCommandBuilder();
-        IDbCommandBuilder GetInsertCommandBuilder();
-        IDbCommandBuilder GetUpdateCommandBuilder();
-        IDbCommandBuilder GetDeleteCommandBuilder();
-        ISubQueryCommandBuilder GetExistsCommandBuilder();
-        ISubQueryCommandBuilder GetInCommandBuilder(string outherAlias);
+        IModifyableCommandBuilder GetSelectCommandBuilder();
+        ICommandBuilder GetInsertCommandBuilder();
+        ICommandBuilder GetUpdateCommandBuilder();
+        ICommandBuilder GetDeleteCommandBuilder();
 
         DbConnection GetConnection();
         DbConnection GetConnection(string name);

@@ -13,15 +13,13 @@ namespace ObjectStore.Expressions
         class Execution
         {
             ExpressionParser _parent;
-            Func<object, string> _getParamFunc;
             Stack<Expression> _expressionStack;
             IServiceProvider _services;
 
 
-            public Execution(ExpressionParser parent, Func<object, string> getParamFunc, IServiceProvider services)
+            public Execution(ExpressionParser parent, IServiceProvider services)
             {
                 _parent = parent;
-                _getParamFunc = getParamFunc;
                 _expressionStack = new Stack<Expression>();
                 _services = services;
             }
@@ -69,14 +67,14 @@ namespace ObjectStore.Expressions
             _rules.Add(rule);
         }
 
-        public string ParseExpression(LambdaExpression expression, Func<object, string> getParamFunction, IServiceProvider services)
+        public string ParseExpression(LambdaExpression expression, IServiceProvider services)
         {
-            return new Execution(this, getParamFunction, services).ParseExpression(expression);
+            return new Execution(this, services).ParseExpression(expression);
         }
 
-        public string ParseExpression(LambdaExpression expression, Func<object, string> getParamFunction, params object[] services)
+        public string ParseExpression(LambdaExpression expression, params object[] services)
         {
-            return ParseExpression(expression, getParamFunction, new ServiceProvider(services));
+            return ParseExpression(expression, new ServiceProvider(services));
         }
     }
     public class NotParsableException : Exception

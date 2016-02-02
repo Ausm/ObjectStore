@@ -201,7 +201,7 @@ namespace ObjectStore.OrMapping
                 if (context.Load)
                     return null;
 
-                ISelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
+                IModifyableCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
                 context.PrepareSelectCommand(commandBuilder);
                 context.SetLoaded();
 
@@ -213,7 +213,7 @@ namespace ObjectStore.OrMapping
                 if (!context.Load)
                     return;
 
-                ISelectCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
+                IModifyableCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
                 context.PrepareSelectCommand(commandBuilder);
 
                 using (DbCommand command = commandBuilder.GetDbCommand())
@@ -239,7 +239,7 @@ namespace ObjectStore.OrMapping
 
             public void SaveObjects(
                 IEnumerable<IFillAbleObject> items,
-                Func<IFillAbleObject, IDbCommandBuilder> getBuilder,
+                Func<IFillAbleObject, ICommandBuilder> getBuilder,
                 Action<IFillAbleObject, DbDataReader> refill,
                 Action<IFillAbleObject> afterFill)
             {
@@ -251,7 +251,7 @@ namespace ObjectStore.OrMapping
                         try
                         {
 
-                            IDbCommandBuilder commandBuilder = getBuilder(item);
+                            ICommandBuilder commandBuilder = getBuilder(item);
                             if (commandBuilder == null) continue;
 
                             item.FillCommand(commandBuilder);

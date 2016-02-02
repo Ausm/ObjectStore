@@ -11,37 +11,16 @@ namespace ObjectStore.OrMapping
         void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged);
 
         string Tablename { get; set; }
-    }
-
-    public interface IDbCommandBuilder : ICommandBuilder
-    {
         DbCommand GetDbCommand();
-    }
-
-    public interface ISelectCommandBuilder : IDbCommandBuilder, IModifyableCommandBuilder
-    {
     }
 
     public interface IModifyableCommandBuilder : ICommandBuilder
     {
-        void AddJoin(string tablename, string onClausel);
-
-        IEnumerable<DbParameter> Parameters { get; }
-
-        DbParameter AddDbParameter(object value);
-
-        string Alias { get; }
-
         void SetWhereClausel(LambdaExpression expression);
 
-        void SetOrderBy(string expression);
+        void SetOrderBy(LambdaExpression expression);
 
         void SetTop(int count);
-    }
-
-    public interface ISubQueryCommandBuilder : IModifyableCommandBuilder
-    {
-        string SubQuery { get; }
     }
 
     public enum FieldType

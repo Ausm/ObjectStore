@@ -7,7 +7,7 @@ using ObjectStore.OrMapping;
 
 namespace ObjectStore.SqlClient
 {
-    internal class InsertCommandBuilder : IDbCommandBuilder
+    internal class InsertCommandBuilder : ICommandBuilder
     {
         #region Membervariablen
         StringBuilder _beforInsert;
