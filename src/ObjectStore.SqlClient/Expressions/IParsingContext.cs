@@ -2,7 +2,7 @@
 
 namespace ObjectStore.SqlClient
 {
-    public interface IParsingContext
+    internal interface IParsingContext
     {
         string GetAlias(ParameterExpression expression);
 

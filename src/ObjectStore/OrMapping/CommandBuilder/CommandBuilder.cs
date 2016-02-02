@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Data.Common;
 using System.Linq.Expressions;
 
 namespace ObjectStore.OrMapping
@@ -7,7 +8,7 @@ namespace ObjectStore.OrMapping
     {
         void AddField(string fieldname, FieldType fieldtype);
 
-        void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged);
+        void AddField(string fieldname, object value, FieldType fieldtype, Type keyInitializerType, bool isChanged);
 
         string Tablename { get; set; }
         DbCommand GetDbCommand();

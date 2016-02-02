@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data.Common;
 using ObjectStore.OrMapping;
@@ -25,14 +26,14 @@ namespace ObjectStore.SqlClient
         }
         #endregion
 
-        #region Funktionen
+        #region Methods
         public void AddField(string fieldname, FieldType fieldtype)
         {
             if (!_selectFields.Contains(fieldname))
                 _selectFields.Add(fieldname);
         }
 
-        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged)
+        public void AddField(string fieldname, object value, FieldType fieldtype, Type keyInitializerType, bool isChanged)
         {
             if (!_selectFields.Contains(fieldname))
                 _selectFields.Add(fieldname);

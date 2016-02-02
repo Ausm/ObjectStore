@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.SqlClient
 {
-    public class KeyInitializer
+    internal class KeyInitializer
     {
         #region Multington-Implementierung *g*
         private static Dictionary<Type, KeyInitializer> keyInitializer = new Dictionary<Type, KeyInitializer>();

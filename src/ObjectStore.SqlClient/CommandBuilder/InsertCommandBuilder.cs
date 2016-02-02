@@ -41,7 +41,7 @@ namespace ObjectStore.SqlClient
 
         }
 
-        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged)
+        public void AddField(string fieldname, object value, FieldType fieldtype, Type keyInitializerType, bool isChanged)
         {
             if (!_selectFields.Contains(fieldname))
                 _selectFields.Add(fieldname);
@@ -51,7 +51,7 @@ namespace ObjectStore.SqlClient
 
             if (fieldtype == FieldType.KeyField)
             {
-
+                KeyInitializer keyInitializer = KeyInitializer.GetInitializer(keyInitializerType);
                 if (keyInitializer == null || !keyInitializer.CheckEmpty(value))
                 {
                     SqlParameter param = new SqlParameter(string.Format("@param{0}", _parameters.Count), value);

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data.Common;
 using ObjectStore.OrMapping;
@@ -26,7 +27,7 @@ namespace ObjectStore.SqlClient
         {
         }
 
-        public void AddField(string fieldname, object value, FieldType fieldtype, KeyInitializer keyInitializer, bool isChanged)
+        public void AddField(string fieldname, object value, FieldType fieldtype, Type keyInitializerType, bool isChanged)
         {
             if (fieldtype == FieldType.KeyField)
             {
