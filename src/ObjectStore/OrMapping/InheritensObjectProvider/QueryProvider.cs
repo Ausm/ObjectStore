@@ -173,7 +173,7 @@ namespace ObjectStore.OrMapping
 
 
                     if (typeof(T) != typeof(TElement))
-                        throw new ApplicationException("Querryable and ObjectProviderType does not match.");
+                        throw new ApplicationException("Queryable and ObjectProviderType does not match.");
 
 
                     Expression[] arguments = new Expression[callExpression.Arguments.Count];
@@ -750,49 +750,8 @@ namespace ObjectStore.OrMapping
             public virtual void PrepareSelectCommand(IModifyableCommandBuilder commandBuilder, Expressions.ParsedExpression parentParsedExpression)
             {
                 #region WhereExpressions
-                if (WhereExpressions.Any())
-                {
-                    bool first = true;
-                    foreach (Expression<Func<T, bool>> predicate in WhereExpressions)
-                    {
-                        Expressions.ParsedExpression parsedExpression;
-                        if (parentParsedExpression == null)
-                        {
-                            parsedExpression = Expressions.ParsedExpression.ParseExpression(predicate, obj =>
-                            {
-                                if (obj is DateTime)
-                                    if ((DateTime)obj < new DateTime(1753, 1, 1))
-                                        obj = new DateTime(1753, 1, 1);
-                                    else if((DateTime) obj > new DateTime(9999,12,31))
-                                        obj = new DateTime(9999, 12, 31);
-                               
-                                return commandBuilder.AddDbParameter(obj);
-                            });
-                        }
-                        else
-                        {
-                            parsedExpression = Expressions.ParsedExpression.ParseExpression(predicate, null, parentParsedExpression) as Expressions.ParsedExpression;
-                        }
-
-                        parsedExpression[predicate.Parameters[0]] = commandBuilder.Alias;
-
-                        if (first)
-                        {
-                            if (_whereExpressions.Count > 1)
-                                commandBuilder.WhereClausel = "(" + parsedExpression.SqlExpression + ")";
-                            else
-                                commandBuilder.WhereClausel = parsedExpression.SqlExpression;
-
-                            first = false;
-                        }
-                        else
-                        {
-                            commandBuilder.WhereClausel = string.Format(" {0} AND ({1}) ", commandBuilder.WhereClausel, parsedExpression.SqlExpression);
-                        }
-                        foreach (Expressions.ParsedExpression.Join join in parsedExpression.Joins)
-                            commandBuilder.AddJoin(string.Format("{0} {1}", join.Table, join.Alias), string.Format("{1}.{0} = {2}", join.Field, join.FieldAlias, join.ForeignField));
-                    }
-                }
+                foreach (Expression<Func<T, bool>> predicate in WhereExpressions)
+                    commandBuilder.SetWhereClausel(predicate);
                 #endregion
 
                 #region OrderByExpressions

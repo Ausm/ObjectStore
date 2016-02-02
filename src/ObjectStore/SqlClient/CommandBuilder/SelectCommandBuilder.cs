@@ -4,24 +4,95 @@ using System.Text;
 using System.Data.SqlClient;
 using System.Data.Common;
 using ObjectStore.OrMapping;
+using System.Linq.Expressions;
+using System.Linq;
+using System.Reflection;
 
 namespace ObjectStore.SqlClient
 {
-    internal class SelectCommandBuilder : ISelectCommandBuilder
+    internal class SelectCommandBuilder : ISelectCommandBuilder, IParsingContext, IServiceProvider
     {
         #region Subklassen
         class Join
         {
-            public string TableName { get; set; }
-            public string On { get; set; }
+            string _alias;
+            SelectCommandBuilder _parent;
+            MemberExpression _expression;
+
+            public Join(SelectCommandBuilder parent, MemberExpression expression)
+            {
+                _parent = parent;
+                _expression = expression;
+                _alias = $"T{parent._databaseProvider.GetUniqe()}";
+            }
+
+            public override string ToString()
+            {
+                return $"JOIN {TableName} {_alias} ON {_alias}.{KeyName} = {ForeignAlias}.{ForeignKeyName}";
+            }
+
+
+            public string Alias
+            {
+                get
+                {
+                    return _alias;
+                }
+            }
+
+            public MemberExpression Expression
+            {
+                get
+                {
+                    return _expression;
+                }
+            }
+
+            string TableName
+            {
+                get
+                {
+                    return MappingInfo.GetMappingInfo(_expression.Type, true).TableName;
+                }
+            }
+
+            string KeyName
+            {
+                get
+                {
+                    return MappingInfo.GetMappingInfo(_expression.Type, true).KeyMappingInfos.First().FieldName;
+                }
+            }
+
+            string ForeignAlias
+            {
+                get
+                {
+                    if (_expression.Expression is ParameterExpression)
+                        return _parent._alias;
+
+                    if (_expression.Expression is MemberExpression)
+                        return _parent._joins.Where(x => x._expression == _expression.Expression).First()._alias;
+
+                    throw new InvalidOperationException();
+                }
+            }
+
+            string ForeignKeyName
+            {
+                get
+                {
+                    return Mapping.GetMapping((PropertyInfo)_expression.Member).FieldName;
+                }
+            }
         }
         #endregion
 
-        #region Membervariablen
+        #region Fields
         string _tablename;
         string _alias;
         List<DbParameter> _parameters;
-        string _whereClausel;
+        List<LambdaExpression> _whereExpressions;
         List<string> _selectFields;
         List<string> _orderbyExpressions;
         List<Join> _joins;
@@ -39,11 +110,7 @@ namespace ObjectStore.SqlClient
             _joins = new List<Join>();
             _top = -1;
             _alias = $"T{_databaseProvider.GetUniqe()}";
-        }
-
-        public SelectCommandBuilder(string alias, DataBaseProvider databaseProvider) : this(databaseProvider)
-        {
-            _alias = alias;
+            _whereExpressions = new List<LambdaExpression>();
         }
         #endregion
 
@@ -61,17 +128,18 @@ namespace ObjectStore.SqlClient
 
             if (fieldtype == FieldType.KeyField)
             {
-                if (string.IsNullOrEmpty(_whereClausel))
-                    _whereClausel = $"({fieldname} = {AddDbParameter(value).ParameterName})";
-                else
-                    _whereClausel = $"{_whereClausel} AND ({fieldname} = {AddDbParameter(value).ParameterName})";
+                throw new NotImplementedException("TODO");
+                //if (string.IsNullOrEmpty(_whereClausel))
+                //    _whereClausel = $"({fieldname} = {AddDbParameter(value).ParameterName})";
+                //else
+                //    _whereClausel = $"{_whereClausel} AND ({fieldname} = {AddDbParameter(value).ParameterName})";
             }
 
         }
 
         public void AddJoin(string tablename, string onClausel)
         {
-            _joins.Add(new Join() { TableName = tablename, On = onClausel });
+            //_joins.Add(new Join() { TableName = tablename, On = onClausel });
         }
 
         public void ResetOrder()
@@ -107,11 +175,30 @@ namespace ObjectStore.SqlClient
             stringBuilder.AppendFormat(" {2}.{0} FROM {1} {2}", 
                 string.Join(string.Format(", {0}.", _alias), _selectFields.ToArray()), _tablename, _alias);
 
-            foreach (Join join in _joins)
-                stringBuilder.AppendFormat(" LEFT OUTER JOIN {0} ON {1}", join.TableName, join.On);
+            string whereClause = null;
 
-            if(!string.IsNullOrEmpty(_whereClausel))
-                stringBuilder.AppendFormat(" WHERE {0}", _whereClausel);
+            if (_whereExpressions.Count == 1)
+            {
+                whereClause = _databaseProvider.ExpressionParser.ParseExpression(_whereExpressions[0], x => this.AddDbParameter(x).ParameterName, this);
+            }
+            else if (_whereExpressions.Count > 1)
+            {
+                foreach (LambdaExpression expression in _whereExpressions)
+                {
+                    if (whereClause == null)
+                        whereClause = "(";
+                    else
+                        whereClause += " AND (";
+
+                    whereClause +=  _databaseProvider.ExpressionParser.ParseExpression(expression, x => this.AddDbParameter(x).ParameterName, this) + ")";
+                }
+            }
+
+            foreach (Join join in _joins)
+                stringBuilder.Append(" LEFT OUTER ").Append(join);
+
+            if (!string.IsNullOrWhiteSpace(whereClause))
+                stringBuilder.Append(" WHERE ").Append(whereClause);
 
             if (_orderbyExpressions.Count != 0)
                 stringBuilder.AppendFormat(" ORDER BY {0}", string.Join(", ", _orderbyExpressions.ToArray()));
@@ -121,6 +208,51 @@ namespace ObjectStore.SqlClient
             command.CommandText = stringBuilder.ToString();
             return command;
         }
+
+        public void SetWhereClausel(LambdaExpression expression)
+        {
+            _whereExpressions.Add(expression);
+        }
+
+        #region IServiceProvider
+        object IServiceProvider.GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IParsingContext))
+                return this;
+
+            throw new NotSupportedException($"Service {serviceType.FullName} is not providet.");
+        }
+        #endregion
+        #region IParsingContext
+        string IParsingContext.GetAlias(ParameterExpression expression)
+        {
+            if (_whereExpressions.Any(x => x.Parameters[0] == expression))
+                return _alias;
+
+            throw new ArgumentException("There is no Alias for this expression.", nameof(expression));
+        }
+
+        string IParsingContext.GetJoin(MemberExpression expression)
+        {
+            Join join = _joins.Where(x => x.Expression == expression).FirstOrDefault();
+
+            if (join == null)
+            {
+                //MemberExpression
+                _joins.Add(join = new Join(this, expression));
+                if (expression.Expression is MemberExpression)
+                    ((IParsingContext)this).GetJoin((MemberExpression)expression.Expression);
+            }
+
+            return join.Alias;
+        }
+
+        string IParsingContext.GetParameter(object value)
+        {
+            return AddDbParameter(value).ParameterName;
+        }
+
+        #endregion
         #endregion
 
         #region Properties
@@ -141,18 +273,6 @@ namespace ObjectStore.SqlClient
             get
             {
                 return _alias;
-            }
-        }
-
-        public string WhereClausel
-        {
-            get
-            {
-                return _whereClausel;
-            }
-            set
-            {
-                _whereClausel = value;
             }
         }
 

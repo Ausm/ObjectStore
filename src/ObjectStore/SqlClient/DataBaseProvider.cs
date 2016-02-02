@@ -115,7 +115,7 @@ namespace ObjectStore.SqlClient
                 }
             }
         }
-        #endregion        static DataBaseProvider _instance;
+        #endregion
 
         #region Fields
         Dictionary<string, Dictionary<Thread, ReferencedConnection>> _connections = new Dictionary<string, Dictionary<Thread, ReferencedConnection>>();
@@ -273,6 +273,16 @@ namespace ObjectStore.SqlClient
             }
         }
         #endregion
+        #endregion
+
+        #region Properties
+        internal ExpressionParser ExpressionParser
+        {
+            get
+            {
+                return _expressionParser;
+            }
+        }
         #endregion
     }
 }

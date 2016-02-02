@@ -31,7 +31,7 @@ namespace ObjectStore.Expressions
                 ExpressionParserRule rule = _parent._rules.FirstOrDefault(x => x.IsApplicable(expression));
                 if (rule != null)
                 {
-                    ExpressionParseEventArgs eventArgs = new ExpressionParseEventArgs(_getParamFunc, ParseExpression, _expressionStack.Peek(), _services);
+                    ExpressionParseEventArgs eventArgs = new ExpressionParseEventArgs(ParseExpression, _expressionStack.FirstOrDefault(), _services);
                     _expressionStack.Push(expression);
                     string returnValue = rule.Parse(expression, eventArgs);
                     _expressionStack.Pop();

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq.Expressions;
 
 namespace ObjectStore.OrMapping
 {
@@ -31,7 +32,7 @@ namespace ObjectStore.OrMapping
 
         string Alias { get; }
 
-        string WhereClausel { get; set; }
+        void SetWhereClausel(LambdaExpression expression);
 
         void SetOrderBy(string expression);
 

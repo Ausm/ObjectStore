@@ -38,13 +38,15 @@ namespace ObjectStore.SqlClient
 
                 stringBuilder.AppendFormat("{0}.{1} IN (SELECT {2}.{1} FROM {3} {2}", _outherAlias, _keyFieldName, Alias, Tablename);
 
-                foreach (Join join in Joins)
-                    stringBuilder.AppendFormat(" LEFT OUTER JOIN {0} ON {1}", join.TableName, join.On);
+                string whereClause = GetWhereClause();
 
-                if (string.IsNullOrEmpty(WhereClausel))
+                foreach (Join join in Joins)
+                    stringBuilder.Append(" LEFT OUTER ").Append(join);
+
+                if (string.IsNullOrEmpty(whereClause))
                     stringBuilder.Append(")");
                 else
-                    stringBuilder.AppendFormat(" WHERE {0})", WhereClausel);
+                    stringBuilder.AppendFormat(" WHERE {0})", whereClause);
 
                 return stringBuilder.ToString();
             }
