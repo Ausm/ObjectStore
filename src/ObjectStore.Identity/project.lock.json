@@ -2518,7 +2518,7 @@
           "lib/dotnet5.4/Microsoft.AspNet.WebUtilities.dll": {}
         }
       },
-      "Microsoft.CSharp/4.0.1-beta-23516": {
+      "Microsoft.CSharp/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -2771,15 +2771,15 @@
         "type": "project",
         "framework": ".NETPlatform,Version=v5.4",
         "dependencies": {
-          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "Microsoft.CSharp": "4.0.1-rc2-23608",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
           "ObjectStore.Interfaces": "1.0.0-alpha2",
           "System.Collections": "4.0.11-beta-23516",
           "System.ComponentModel": "4.0.1-beta-23516",
           "System.ComponentModel.Primitives": "4.0.1-beta-23516",
           "System.Data.SqlClient": "4.0.0-beta-23516",
-          "System.Linq": "4.0.1-beta-23516",
-          "System.Linq.Queryable": "4.0.1-beta-23516",
+          "System.Linq": "4.0.1-rc2-23608",
+          "System.Linq.Queryable": "4.0.1-rc2-23608",
           "System.Reflection": "4.1.0-beta-23516",
           "System.Reflection.Emit": "4.0.1-beta-23516",
           "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
@@ -2797,7 +2797,7 @@
         "type": "project",
         "framework": ".NETPlatform,Version=v5.4",
         "dependencies": {
-          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "Microsoft.CSharp": "4.0.1-rc2-23608",
           "System.Collections": "4.0.11-beta-23516",
           "System.Linq": "4.0.1-beta-23516",
           "System.Runtime": "4.0.21-beta-23516",
@@ -3036,7 +3036,7 @@
           "lib/dotnet/System.IO.FileSystem.Primitives.dll": {}
         }
       },
-      "System.Linq/4.0.1-beta-23516": {
+      "System.Linq/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -3062,10 +3062,11 @@
           "ref/dotnet5.4/System.Linq.Expressions.dll": {}
         }
       },
-      "System.Linq.Queryable/4.0.1-beta-23516": {
+      "System.Linq.Queryable/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
+          "System.Diagnostics.Debug": "4.0.10",
           "System.Linq": "4.0.0",
           "System.Linq.Expressions": "4.0.10",
           "System.Reflection": "4.0.10",
@@ -9220,7 +9221,7 @@
           "lib/dotnet5.4/Microsoft.AspNet.WebUtilities.dll": {}
         }
       },
-      "Microsoft.CSharp/4.0.1-beta-23516": {
+      "Microsoft.CSharp/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -9473,15 +9474,15 @@
         "type": "project",
         "framework": ".NETPlatform,Version=v5.4",
         "dependencies": {
-          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "Microsoft.CSharp": "4.0.1-rc2-23608",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
           "ObjectStore.Interfaces": "1.0.0-alpha2",
           "System.Collections": "4.0.11-beta-23516",
           "System.ComponentModel": "4.0.1-beta-23516",
           "System.ComponentModel.Primitives": "4.0.1-beta-23516",
           "System.Data.SqlClient": "4.0.0-beta-23516",
-          "System.Linq": "4.0.1-beta-23516",
-          "System.Linq.Queryable": "4.0.1-beta-23516",
+          "System.Linq": "4.0.1-rc2-23608",
+          "System.Linq.Queryable": "4.0.1-rc2-23608",
           "System.Reflection": "4.1.0-beta-23516",
           "System.Reflection.Emit": "4.0.1-beta-23516",
           "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
@@ -9499,7 +9500,7 @@
         "type": "project",
         "framework": ".NETPlatform,Version=v5.4",
         "dependencies": {
-          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "Microsoft.CSharp": "4.0.1-rc2-23608",
           "System.Collections": "4.0.11-beta-23516",
           "System.Linq": "4.0.1-beta-23516",
           "System.Runtime": "4.0.21-beta-23516",
@@ -9905,7 +9906,7 @@
           "lib/dotnet/System.IO.FileSystem.Primitives.dll": {}
         }
       },
-      "System.Linq/4.0.1-beta-23516": {
+      "System.Linq/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -9931,10 +9932,11 @@
           "ref/dotnet5.4/System.Linq.Expressions.dll": {}
         }
       },
-      "System.Linq.Queryable/4.0.1-beta-23516": {
+      "System.Linq.Queryable/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
+          "System.Diagnostics.Debug": "4.0.10",
           "System.Linq": "4.0.0",
           "System.Linq.Expressions": "4.0.10",
           "System.Reflection": "4.0.10",
@@ -10644,7 +10646,7 @@
           "lib/dotnet5.4/Microsoft.AspNet.WebUtilities.dll": {}
         }
       },
-      "Microsoft.CSharp/4.0.1-beta-23516": {
+      "Microsoft.CSharp/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -10897,15 +10899,15 @@
         "type": "project",
         "framework": ".NETPlatform,Version=v5.4",
         "dependencies": {
-          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "Microsoft.CSharp": "4.0.1-rc2-23608",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
           "ObjectStore.Interfaces": "1.0.0-alpha2",
           "System.Collections": "4.0.11-beta-23516",
           "System.ComponentModel": "4.0.1-beta-23516",
           "System.ComponentModel.Primitives": "4.0.1-beta-23516",
           "System.Data.SqlClient": "4.0.0-beta-23516",
-          "System.Linq": "4.0.1-beta-23516",
-          "System.Linq.Queryable": "4.0.1-beta-23516",
+          "System.Linq": "4.0.1-rc2-23608",
+          "System.Linq.Queryable": "4.0.1-rc2-23608",
           "System.Reflection": "4.1.0-beta-23516",
           "System.Reflection.Emit": "4.0.1-beta-23516",
           "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
@@ -10923,7 +10925,7 @@
         "type": "project",
         "framework": ".NETPlatform,Version=v5.4",
         "dependencies": {
-          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "Microsoft.CSharp": "4.0.1-rc2-23608",
           "System.Collections": "4.0.11-beta-23516",
           "System.Linq": "4.0.1-beta-23516",
           "System.Runtime": "4.0.21-beta-23516",
@@ -11329,7 +11331,7 @@
           "lib/dotnet/System.IO.FileSystem.Primitives.dll": {}
         }
       },
-      "System.Linq/4.0.1-beta-23516": {
+      "System.Linq/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -11355,10 +11357,11 @@
           "ref/dotnet5.4/System.Linq.Expressions.dll": {}
         }
       },
-      "System.Linq.Queryable/4.0.1-beta-23516": {
+      "System.Linq.Queryable/4.0.1-rc2-23608": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
+          "System.Diagnostics.Debug": "4.0.10",
           "System.Linq": "4.0.0",
           "System.Linq.Expressions": "4.0.10",
           "System.Reflection": "4.0.10",
@@ -12036,6 +12039,56 @@
         "lib/xamarinmac20/_._",
         "Microsoft.CSharp.4.0.1-beta-23516.nupkg",
         "Microsoft.CSharp.4.0.1-beta-23516.nupkg.sha512",
+        "Microsoft.CSharp.nuspec",
+        "ref/dotnet5.1/de/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/es/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/fr/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/it/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/ja/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/ko/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/Microsoft.CSharp.dll",
+        "ref/dotnet5.1/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/ru/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/zh-hans/Microsoft.CSharp.xml",
+        "ref/dotnet5.1/zh-hant/Microsoft.CSharp.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/_._",
+        "ref/netcore50/de/Microsoft.CSharp.xml",
+        "ref/netcore50/es/Microsoft.CSharp.xml",
+        "ref/netcore50/fr/Microsoft.CSharp.xml",
+        "ref/netcore50/it/Microsoft.CSharp.xml",
+        "ref/netcore50/ja/Microsoft.CSharp.xml",
+        "ref/netcore50/ko/Microsoft.CSharp.xml",
+        "ref/netcore50/Microsoft.CSharp.dll",
+        "ref/netcore50/Microsoft.CSharp.xml",
+        "ref/netcore50/ru/Microsoft.CSharp.xml",
+        "ref/netcore50/zh-hans/Microsoft.CSharp.xml",
+        "ref/netcore50/zh-hant/Microsoft.CSharp.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._"
+      ]
+    },
+    "Microsoft.CSharp/4.0.1-rc2-23608": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "tuEnzFGqeXnm8PkyU7mmXFUG7Sd02JoAjDOnQ5PnXwPS+VCZdxxQkAnlUQRbxwhxsbFPbaMPv4D2HWhvUnOplA==",
+      "files": [
+        "lib/dotnet5.4/Microsoft.CSharp.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/netcore50/Microsoft.CSharp.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "Microsoft.CSharp.4.0.1-rc2-23608.nupkg",
+        "Microsoft.CSharp.4.0.1-rc2-23608.nupkg.sha512",
         "Microsoft.CSharp.nuspec",
         "ref/dotnet5.1/de/Microsoft.CSharp.xml",
         "ref/dotnet5.1/es/Microsoft.CSharp.xml",
@@ -13445,6 +13498,56 @@
         "System.Linq.nuspec"
       ]
     },
+    "System.Linq/4.0.1-rc2-23608": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "yUk+/d27VJ9AHMADykD8hvDIl16jgS9849QsGKyfccIGnMlg8Gn4JJRFF0I+Pze5qLtzGM8R6IFD7Q9VxOTUfg==",
+      "files": [
+        "lib/dotnet5.4/System.Linq.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/netcore50/System.Linq.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet5.1/de/System.Linq.xml",
+        "ref/dotnet5.1/es/System.Linq.xml",
+        "ref/dotnet5.1/fr/System.Linq.xml",
+        "ref/dotnet5.1/it/System.Linq.xml",
+        "ref/dotnet5.1/ja/System.Linq.xml",
+        "ref/dotnet5.1/ko/System.Linq.xml",
+        "ref/dotnet5.1/ru/System.Linq.xml",
+        "ref/dotnet5.1/System.Linq.dll",
+        "ref/dotnet5.1/System.Linq.xml",
+        "ref/dotnet5.1/zh-hans/System.Linq.xml",
+        "ref/dotnet5.1/zh-hant/System.Linq.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/_._",
+        "ref/netcore50/de/System.Linq.xml",
+        "ref/netcore50/es/System.Linq.xml",
+        "ref/netcore50/fr/System.Linq.xml",
+        "ref/netcore50/it/System.Linq.xml",
+        "ref/netcore50/ja/System.Linq.xml",
+        "ref/netcore50/ko/System.Linq.xml",
+        "ref/netcore50/ru/System.Linq.xml",
+        "ref/netcore50/System.Linq.dll",
+        "ref/netcore50/System.Linq.xml",
+        "ref/netcore50/zh-hans/System.Linq.xml",
+        "ref/netcore50/zh-hant/System.Linq.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "System.Linq.4.0.1-rc2-23608.nupkg",
+        "System.Linq.4.0.1-rc2-23608.nupkg.sha512",
+        "System.Linq.nuspec"
+      ]
+    },
     "System.Linq.Expressions/4.0.11-beta-23516": {
       "type": "package",
       "serviceable": true,
@@ -13544,6 +13647,56 @@
         "ref/wpa81/_._",
         "System.Linq.Queryable.4.0.1-beta-23516.nupkg",
         "System.Linq.Queryable.4.0.1-beta-23516.nupkg.sha512",
+        "System.Linq.Queryable.nuspec"
+      ]
+    },
+    "System.Linq.Queryable/4.0.1-rc2-23608": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "szgPfZ+prHRzN/0Pb4/ehQ5g80bYMR7Hwml6HkZ4WJZRwpomztoI/aN81xKrKceCybA0+sV91mw1rkf5GMu6gw==",
+      "files": [
+        "lib/dotnet5.4/System.Linq.Queryable.dll",
+        "lib/monoandroid1/_._",
+        "lib/monotouch1/_._",
+        "lib/net45/_._",
+        "lib/netcore50/System.Linq.Queryable.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "lib/xamarinios1/_._",
+        "lib/xamarinmac2/_._",
+        "ref/dotnet5.1/de/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/es/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/fr/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/it/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/ja/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/ko/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/ru/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/System.Linq.Queryable.dll",
+        "ref/dotnet5.1/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/zh-hans/System.Linq.Queryable.xml",
+        "ref/dotnet5.1/zh-hant/System.Linq.Queryable.xml",
+        "ref/monoandroid1/_._",
+        "ref/monotouch1/_._",
+        "ref/net45/_._",
+        "ref/netcore50/de/System.Linq.Queryable.xml",
+        "ref/netcore50/es/System.Linq.Queryable.xml",
+        "ref/netcore50/fr/System.Linq.Queryable.xml",
+        "ref/netcore50/it/System.Linq.Queryable.xml",
+        "ref/netcore50/ja/System.Linq.Queryable.xml",
+        "ref/netcore50/ko/System.Linq.Queryable.xml",
+        "ref/netcore50/ru/System.Linq.Queryable.xml",
+        "ref/netcore50/System.Linq.Queryable.dll",
+        "ref/netcore50/System.Linq.Queryable.xml",
+        "ref/netcore50/zh-hans/System.Linq.Queryable.xml",
+        "ref/netcore50/zh-hant/System.Linq.Queryable.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "ref/xamarinios1/_._",
+        "ref/xamarinmac2/_._",
+        "System.Linq.Queryable.4.0.1-rc2-23608.nupkg",
+        "System.Linq.Queryable.4.0.1-rc2-23608.nupkg.sha512",
         "System.Linq.Queryable.nuspec"
       ]
     },
@@ -15203,9 +15356,9 @@
       "System.Threading >= 4.0.11-beta-23516"
     ],
     ".NETPlatform,Version=v5.4": [
-      "Microsoft.CSharp >= 4.0.1-beta-23516",
+      "Microsoft.CSharp >= 4.0.1-rc2-23608",
       "System.Collections >= 4.0.11-beta-23516",
-      "System.Linq >= 4.0.1-beta-23516",
+      "System.Linq >= 4.0.1-rc2-23608",
       "System.Runtime >= 4.0.21-beta-23516",
       "System.Threading >= 4.0.11-beta-23516"
     ]
