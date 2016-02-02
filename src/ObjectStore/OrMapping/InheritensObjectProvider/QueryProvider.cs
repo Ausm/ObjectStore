@@ -9,8 +9,8 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
 using System.Transactions;
-using System.Data.Common;
 using System.ComponentModel;
+using System.Data.Common;
 
 #if DOTNET5_4
 namespace System.ComponentModel

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNet.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using ObjectStore;
+using ObjectStore.SqlClient;
 using ObjectStore.Identity;
 
 namespace TestEmpty

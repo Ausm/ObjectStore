@@ -1,9 +1,7 @@
 ﻿using ObjectStore.Interfaces;
-using ObjectStore.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 
@@ -135,7 +133,7 @@ namespace ObjectStore.OrMapping
                     for (int i = 1; i < queue.Count; i++)
                     {
                         command.CommandText += ";" + queue[i].Item2.CommandText;
-                        command.Parameters.AddRange(queue[i].Item2.Parameters.OfType<DbParameter>().Select(x => new SqlParameter(x.ParameterName, x.Value)).ToArray());
+                        command.Parameters.AddRange(queue[i].Item2.Parameters.OfType<DbParameter>().ToArray());
                     }
 
                     List<ICommitContext> commitContexts = new List<ICommitContext>(queue.Count);
@@ -292,9 +290,9 @@ namespace ObjectStore.OrMapping
         #endregion
 
         #region Konstruktoren
-        public InheritensObjectProvider(string connectionString)
+        public InheritensObjectProvider(string connectionString, IDataBaseProvider databaseProvider)
         {
-            _databaseProvider = DataBaseProvider.Instance;
+            _databaseProvider = databaseProvider;
             _connectionString = connectionString;
             InitializeMapping();
         }
@@ -310,14 +308,6 @@ namespace ObjectStore.OrMapping
                 _dbWorker = new DataBaseWorker(_connectionString, this);
                 _cache = new WeakCache(_mappingInfoContainer.LoadBehavior == LoadBehavior.OnFirstAccessFullLoad);
             }
-        }
-
-        private SqlConnection GetConnection()
-        {
-            SqlConnection returnValue = new SqlConnection();
-            returnValue.ConnectionString = _connectionString;
-            returnValue.Open();
-            return returnValue;
         }
         #endregion
 

@@ -8,19 +8,21 @@ namespace ObjectStore.OrMapping
 {
     public class RelationalObjectStore : IObjectProvider, IObjectRegistration
     {
+        IDataBaseProvider _databaseProvider;
         Dictionary<Type, IObjectProvider> _relationalObjectProvider;
         string _connectionString;
         bool _autoregisterTypes;
 
-        public RelationalObjectStore(string connectionString, bool autoregister)
+        public RelationalObjectStore(string connectionString, IDataBaseProvider databaseProvider, bool autoregister)
         {
             _relationalObjectProvider = new Dictionary<Type, IObjectProvider>();
             _connectionString = connectionString;
             _autoregisterTypes = autoregister;
+            _databaseProvider = databaseProvider;
         }
 
-        public RelationalObjectStore(string connectionString)
-            : this(connectionString, false)
+        public RelationalObjectStore(string connectionString, IDataBaseProvider databaseProvider)
+            : this(connectionString, databaseProvider, false)
         {
         }
 
@@ -28,7 +30,7 @@ namespace ObjectStore.OrMapping
         {
             if (!_relationalObjectProvider.ContainsKey(typeof(T)))
             {
-                IObjectProvider newProvider = new InheritensObjectProvider<T>(_connectionString);
+                IObjectProvider newProvider = new InheritensObjectProvider<T>(_connectionString, _databaseProvider);
                 _relationalObjectProvider[typeof(T)] = newProvider;
 
                 System.Reflection.MethodInfo registerMethod = null;

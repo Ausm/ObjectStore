@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 
 namespace ObjectStore.OrMapping
 {
-    interface IDataBaseProvider
+    public interface IDataBaseProvider
     {
         IModifyableCommandBuilder GetSelectCommandBuilder();
         ICommandBuilder GetInsertCommandBuilder();
@@ -12,6 +13,8 @@ namespace ObjectStore.OrMapping
 
         DbConnection GetConnection();
         DbConnection GetConnection(string name);
+
+        DbCommand CombineCommands(IEnumerable<DbCommand> commands);
 
         void ReleaseConnection(DbConnection connection);
 

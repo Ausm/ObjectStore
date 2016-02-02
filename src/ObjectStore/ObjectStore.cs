@@ -2,7 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+#if DNXCORE50 || DOTNET5_4
 using System.Reflection;
+#endif
+
+[assembly: InternalsVisibleTo("ObjectStore.SqlClient")]
 
 namespace ObjectStore
 {
@@ -115,6 +120,6 @@ namespace ObjectStore
             return list;
         }
 #endregion
-#endregion
+        #endregion
     }
 }

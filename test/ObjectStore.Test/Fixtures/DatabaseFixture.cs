@@ -1,6 +1,7 @@
 ﻿using ObjectStore.Interfaces;
 using ObjectStore.OrMapping;
 using ObjectStore.Test.Resources;
+using ObjectStore.SqlClient;
 using System;
 using System.Data.SqlClient;
 using System.IO;
@@ -15,7 +16,7 @@ namespace ObjectStore.Test.Fixtures
         public DatabaseFixture()
         {
             if (_objectProvider == null)
-                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore(Resource.MsSqlConnectionString, true));
+                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore(Resource.MsSqlConnectionString, DataBaseProvider.Instance, true));
 
             ExecuteQuery(File.ReadAllText("Resources\\MsSql_InitDatabase.sql"));
         }

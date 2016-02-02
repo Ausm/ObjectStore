@@ -149,6 +149,17 @@
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
+      "ObjectStore.SqlClient/1.0.0-alpha2": {
+        "type": "project",
+        "framework": "DNX,Version=v4.5.1",
+        "dependencies": {
+          "ObjectStore": "1.0.0-alpha2"
+        },
+        "frameworkAssemblies": [
+          "System.Data",
+          "System.Transactions"
+        ]
+      },
       "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
@@ -475,6 +486,31 @@
           "System.Linq": "4.0.1-beta-23516",
           "System.Runtime": "4.0.21-beta-23516",
           "System.Threading": "4.0.11-beta-23516"
+        }
+      },
+      "ObjectStore.SqlClient/1.0.0-alpha2": {
+        "type": "project",
+        "framework": "DNXCore,Version=v5.0",
+        "dependencies": {
+          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "ObjectStore": "1.0.0-alpha2",
+          "System.Collections": "4.0.11-beta-23516",
+          "System.ComponentModel": "4.0.1-beta-23516",
+          "System.ComponentModel.Primitives": "4.0.1-beta-23516",
+          "System.Data.SqlClient": "4.0.0-beta-23516",
+          "System.Linq": "4.0.1-beta-23516",
+          "System.Linq.Queryable": "4.0.1-beta-23516",
+          "System.Reflection": "4.1.0-beta-23516",
+          "System.Reflection.Emit": "4.0.1-beta-23516",
+          "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
+          "System.Reflection.Emit.Lightweight": "4.0.1-beta-23516",
+          "System.Reflection.Extensions": "4.0.1-beta-23516",
+          "System.Reflection.Primitives": "4.0.1-beta-23516",
+          "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
+          "System.Runtime": "4.0.21-beta-23516",
+          "System.Runtime.Extensions": "4.0.11-beta-23516",
+          "System.Threading": "4.0.11-beta-23516",
+          "System.Threading.Thread": "4.0.0-beta-23516"
         }
       },
       "System.Collections/4.0.11-beta-23516": {
@@ -1506,6 +1542,17 @@
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
+      "ObjectStore.SqlClient/1.0.0-alpha2": {
+        "type": "project",
+        "framework": "DNX,Version=v4.5.1",
+        "dependencies": {
+          "ObjectStore": "1.0.0-alpha2"
+        },
+        "frameworkAssemblies": [
+          "System.Data",
+          "System.Transactions"
+        ]
+      },
       "xunit/2.2.0-beta1-build3239": {
         "type": "package",
         "dependencies": {
@@ -1765,6 +1812,17 @@
       "ObjectStore.Interfaces/1.0.0-alpha2": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
+      },
+      "ObjectStore.SqlClient/1.0.0-alpha2": {
+        "type": "project",
+        "framework": "DNX,Version=v4.5.1",
+        "dependencies": {
+          "ObjectStore": "1.0.0-alpha2"
+        },
+        "frameworkAssemblies": [
+          "System.Data",
+          "System.Transactions"
+        ]
       },
       "xunit/2.2.0-beta1-build3239": {
         "type": "package",
@@ -2110,6 +2168,31 @@
           "System.Linq": "4.0.1-beta-23516",
           "System.Runtime": "4.0.21-beta-23516",
           "System.Threading": "4.0.11-beta-23516"
+        }
+      },
+      "ObjectStore.SqlClient/1.0.0-alpha2": {
+        "type": "project",
+        "framework": "DNXCore,Version=v5.0",
+        "dependencies": {
+          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "ObjectStore": "1.0.0-alpha2",
+          "System.Collections": "4.0.11-beta-23516",
+          "System.ComponentModel": "4.0.1-beta-23516",
+          "System.ComponentModel.Primitives": "4.0.1-beta-23516",
+          "System.Data.SqlClient": "4.0.0-beta-23516",
+          "System.Linq": "4.0.1-beta-23516",
+          "System.Linq.Queryable": "4.0.1-beta-23516",
+          "System.Reflection": "4.1.0-beta-23516",
+          "System.Reflection.Emit": "4.0.1-beta-23516",
+          "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
+          "System.Reflection.Emit.Lightweight": "4.0.1-beta-23516",
+          "System.Reflection.Extensions": "4.0.1-beta-23516",
+          "System.Reflection.Primitives": "4.0.1-beta-23516",
+          "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
+          "System.Runtime": "4.0.21-beta-23516",
+          "System.Runtime.Extensions": "4.0.11-beta-23516",
+          "System.Threading": "4.0.11-beta-23516",
+          "System.Threading.Thread": "4.0.0-beta-23516"
         }
       },
       "runtime.any.System.Linq.Expressions/4.0.11-beta-23516": {
@@ -3675,6 +3758,31 @@
           "System.Threading": "4.0.11-beta-23516"
         }
       },
+      "ObjectStore.SqlClient/1.0.0-alpha2": {
+        "type": "project",
+        "framework": "DNXCore,Version=v5.0",
+        "dependencies": {
+          "Microsoft.CSharp": "4.0.1-beta-23516",
+          "ObjectStore": "1.0.0-alpha2",
+          "System.Collections": "4.0.11-beta-23516",
+          "System.ComponentModel": "4.0.1-beta-23516",
+          "System.ComponentModel.Primitives": "4.0.1-beta-23516",
+          "System.Data.SqlClient": "4.0.0-beta-23516",
+          "System.Linq": "4.0.1-beta-23516",
+          "System.Linq.Queryable": "4.0.1-beta-23516",
+          "System.Reflection": "4.1.0-beta-23516",
+          "System.Reflection.Emit": "4.0.1-beta-23516",
+          "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
+          "System.Reflection.Emit.Lightweight": "4.0.1-beta-23516",
+          "System.Reflection.Extensions": "4.0.1-beta-23516",
+          "System.Reflection.Primitives": "4.0.1-beta-23516",
+          "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
+          "System.Runtime": "4.0.21-beta-23516",
+          "System.Runtime.Extensions": "4.0.11-beta-23516",
+          "System.Threading": "4.0.11-beta-23516",
+          "System.Threading.Thread": "4.0.0-beta-23516"
+        }
+      },
       "runtime.any.System.Linq.Expressions/4.0.11-beta-23516": {
         "type": "package",
         "dependencies": {
@@ -5014,6 +5122,10 @@
     "ObjectStore.Interfaces/1.0.0-alpha2": {
       "type": "project",
       "path": "../../src/ObjectStore.Interfaces/project.json"
+    },
+    "ObjectStore.SqlClient/1.0.0-alpha2": {
+      "type": "project",
+      "path": "../../src/ObjectStore.SqlClient/project.json"
     },
     "Microsoft.CSharp/4.0.1-beta-23516": {
       "type": "package",
@@ -8178,7 +8290,8 @@
       "xunit >= 2.2.0-beta1-build3239",
       "xunit.runner.dnx >= 2.1.0-rc1-build204",
       "xunit.runner.visualstudio >= 2.2.0-beta1-build1144",
-      "ObjectStore >= 1.0.0-alpha2"
+      "ObjectStore >= 1.0.0-alpha2",
+      "ObjectStore.SqlClient >= 1.0.0-*"
     ],
     "DNX,Version=v4.5.1": [
       "fx/System.Data >= 4.0.0",
