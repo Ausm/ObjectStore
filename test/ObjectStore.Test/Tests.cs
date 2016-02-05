@@ -6,18 +6,24 @@ using Xunit.Abstractions;
 using E = ObjectStore.Test.Entities;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.ComponentModel;
+using System.Threading;
+using ObjectStore.Test.Resources;
 
 namespace ObjectStore.Test
 {
-    [Collection("Database collection")]
-    public class PreparedEntitiesTests : IClassFixture<InitEnitiesFixture>
+    public class Tests : IClassFixture<InitEnitiesFixture>, IClassFixture<DatabaseFixture>
     {
+        #region Fields
         DatabaseFixture _databaseFixture;
         ITestOutputHelper _output;
         IQueryable<E.Test> _queryable;
         IQueryable<E.SubTest> _subQueryable;
+        EventWaitHandle _waithandle;
+        #endregion
 
-        public PreparedEntitiesTests(DatabaseFixture databaseFixture, InitEnitiesFixture initEntitiesFixture, ITestOutputHelper output)
+        #region Constructor
+        public Tests(DatabaseFixture databaseFixture, InitEnitiesFixture initEntitiesFixture, ITestOutputHelper output)
         {
             _databaseFixture = databaseFixture;
             _output = output;
@@ -26,6 +32,44 @@ namespace ObjectStore.Test
 
             _queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad();
             _subQueryable = _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().ForceLoad();
+            _waithandle = new ManualResetEvent(false);
+        }
+        #endregion
+
+        #region Tests
+        [Fact]
+        public void TestInsertUpdateDelete()
+        {
+            E.Test entity = CreateTestEntity($"Testname {DateTime.Now:g}", Resource.FirstRandomText);
+            _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save();
+            Assert.True(_waithandle.WaitOne(5000));
+            Assert.NotEqual(entity.Id, 0);
+            _output.WriteLine($"First entity saved, new Id: {entity.Id} -> passed");
+
+            E.Test entity2 = CreateTestEntity($"Testname {DateTime.Now:g}", Resource.SecondRandomText);
+            _waithandle.Reset();
+            _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity2).Save();
+            Assert.True(_waithandle.WaitOne(5000));
+            _output.WriteLine($"Second entity saved, new Id: {entity2.Id} -> passed");
+
+            entity.Description = Resource.SecondRandomText;
+            _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save();
+            _output.WriteLine($"First entity updated and saved, Id: {entity2.Id} -> passed");
+
+            int id = entity.Id;
+            int count = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Count();
+            IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity);
+            queryable.Delete();
+            queryable.Save();
+            Assert.Empty(_databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x.Id == id));
+            Assert.Equal(count -1, _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Count());
+            _output.WriteLine($"Deleted entity, Id: {entity2.Id} -> passed");
+
+            queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>();
+            queryable.Delete();
+            queryable.Save();
+            Assert.Empty(_databaseFixture.ObjectProvider.GetQueryable<E.Test>());
+            _output.WriteLine($"Deleted all entities -> passed");
         }
 
         [Theory, MemberData(nameof(SimpleExpressions))]
@@ -45,6 +89,26 @@ namespace ObjectStore.Test
             Assert.Equal(expectedCount, subResult.Count);
             _output.WriteLine("... Done");
         }
+        #endregion
+
+        #region Methods
+        E.Test CreateTestEntity(string name, string description)
+        {
+            E.Test entity = _databaseFixture.ObjectProvider.CreateObject<E.Test>();
+            Assert.NotNull(entity);
+            entity.Name = name;
+            entity.Description = description;
+
+            _output.WriteLine($"Entity created, Name: {entity.Name}");
+
+            ((INotifyPropertyChanged)entity).PropertyChanged += (s, e) => {
+                _output.WriteLine($"Property Changed on Entity - Id:{((E.Test)s).Id}, PropertyName: {e.PropertyName}");
+                if (e.PropertyName == nameof(E.Test.Id))
+                    _waithandle.Set();
+            };
+            return entity;
+        }
+        #endregion
 
         #region MemberData Definitions
         public static TheoryData<string, Expression<Func<E.SubTest, bool>>, int> SimpleExpressions
