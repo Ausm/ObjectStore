@@ -20,44 +20,38 @@
     },
     "dnxcore50": {
       "dependencies": {
-        "Microsoft.CSharp": "4.0.1-beta-23516",
         "System.Collections": "4.0.11-beta-23516",
         "System.ComponentModel": "4.0.1-beta-23516",
         "System.ComponentModel.Primitives": "4.0.1-beta-23516",
         "System.Data.Common": "4.0.1-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
         "System.Linq.Queryable": "4.0.1-beta-23516",
-        "System.Reflection": "4.1.0-beta-23516",
+        "System.ObjectModel": "4.0.11-beta-23516",
         "System.Reflection.Emit": "4.0.1-beta-23516",
         "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
         "System.Reflection.Emit.Lightweight": "4.0.1-beta-23516",
         "System.Reflection.Extensions": "4.0.1-beta-23516",
         "System.Reflection.Primitives": "4.0.1-beta-23516",
-        "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
         "System.Runtime.Extensions": "4.0.11-beta-23516",
+        "System.Runtime.InteropServices": "4.0.21-beta-23516",
         "System.Threading": "4.0.11-beta-23516",
         "System.Threading.Thread": "4.0.0-beta-23516"
       }
     },
     "dotnet5.4": {
       "dependencies": {
-        "Microsoft.CSharp": "4.0.1-rc2-23608",
         "System.Collections": "4.0.11-beta-23516",
         "System.ComponentModel": "4.0.1-beta-23516",
         "System.ComponentModel.Primitives": "4.0.1-beta-23516",
-        "System.Data.Common": "4.0.1-rc2-23608",
-        "System.Linq": "4.0.1-rc2-23608",
+        "System.Data.Common": "4.0.1-beta-23516",
         "System.Linq.Queryable": "4.0.1-rc2-23608",
-        "System.Reflection": "4.1.0-beta-23516",
+        "System.ObjectModel": "4.0.11-beta-23516",
         "System.Reflection.Emit": "4.0.1-beta-23516",
         "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23516",
         "System.Reflection.Emit.Lightweight": "4.0.1-beta-23516",
         "System.Reflection.Extensions": "4.0.1-beta-23516",
         "System.Reflection.Primitives": "4.0.1-beta-23516",
-        "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
         "System.Runtime.Extensions": "4.0.11-beta-23516",
+        "System.Runtime.InteropServices": "4.0.21-beta-23516",
         "System.Threading": "4.0.11-beta-23516",
         "System.Threading.Thread": "4.0.0-beta-23516"
       }
@@ -65,6 +59,6 @@
   },
   "dependencies": {
     "ObjectStore.Interfaces": "1.0.0-alpha2-*",
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final"
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final" 
   }
 }
