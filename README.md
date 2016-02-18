@@ -9,7 +9,7 @@ ObjectStore
 **Simply write classes like:**
 
 
-```
+```C#
 [Table("Entity1")]
 public abstract class Entity1
 {
