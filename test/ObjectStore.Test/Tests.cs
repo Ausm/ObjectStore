@@ -72,7 +72,7 @@ namespace ObjectStore.Test
             _output.WriteLine($"Deleted all entities -> passed");
         }
 
-        [Theory, MemberData(nameof(SimpleExpressions))]
+        [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(string name, Expression<Func<E.SubTest, bool>> expression, int expectedCount)
         {
             _output.WriteLine($"Test {name} expression");
@@ -81,7 +81,7 @@ namespace ObjectStore.Test
             _output.WriteLine("... Done");
         }
 
-        [Theory, MemberData(nameof(ForeignObjectExpressions))]
+        [ExtTheory, MemberData(nameof(ForeignObjectExpressions))]
         public void TestForeignObjectExpression(string name, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>> function, int expectedCount)
         {
             _output.WriteLine($"Test {name} expression");
