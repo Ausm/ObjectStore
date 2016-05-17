@@ -1,25 +1,21 @@
 {
-  "version": "1.0.0-alpha2-*",
+  "version": "1.0.0-alpha2",
   "description": "MsSql Provider for ObjectStore Class Library",
   "authors": [ "Matthias Auswoeger" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
   "frameworks": {
-    "dnx451": { },
-    "net451": { },
-    "dnxcore50": {
-      "dependencies": {
-        "System.Data.SqlClient": "4.0.0-rc2-23608"
-      }
+    "net451": {
+      "imports": [ "dnx451" ]
     },
-    "dotnet5.4": {
-      "dependencies": {
-        "System.Data.SqlClient": "4.0.0-rc2-23608"
-      }
+    "netcoreapp1.0": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
     }
   },
   "dependencies": {
-    "ObjectStore": "1.0.0-alpha2-*"
+    "ObjectStore": "1.0.0-alpha2",
+    "System.Data.SqlClient": "4.1.0-rc2-24027"
   }
 }

@@ -41,7 +41,7 @@ namespace ObjectStore.SqlClient
                                 {
                                     if (_connection != null)
                                     {
-#if !DNXCORE50 && !DOTNET5_4
+#if !NETCOREAPP1_0
                                         try
                                         {
                                             Thread.BeginCriticalRegion();
@@ -50,7 +50,7 @@ namespace ObjectStore.SqlClient
                                             _connection = null;
                                             connection.Dispose();
                                             _disposingThread = null;
-#if !DNXCORE50 && !DOTNET5_4
+#if !NETCOREAPP1_0
 
                                         }
                                         finally
@@ -121,7 +121,8 @@ namespace ObjectStore.SqlClient
         Dictionary<string, Dictionary<Thread, ReferencedConnection>> _connections = new Dictionary<string, Dictionary<Thread, ReferencedConnection>>();
         DateTime _lastCleanUpTime = DateTime.Now;
         int _currentUniqe = 0;
-        ExpressionParser _expressionParser; 
+        ExpressionParser _expressionParser;
+        static Func<DbCommand> _getCommand = () => new SqlCommand();
         #endregion
 
         #region Singleton Implementation
@@ -228,6 +229,7 @@ namespace ObjectStore.SqlClient
             return null;
         }
 
+        internal static DbCommand GetCommand() => _getCommand();
 
         internal int GetUniqe()
         {
@@ -244,7 +246,7 @@ namespace ObjectStore.SqlClient
         partial void InitExpressionParser();
         void CleanUpClosedThreads()
         {
-#if DEBUG && !DNXCORE50 && !DOTNET5_4
+#if DEBUG && !NETCOREAPP1_0
             System.Diagnostics.Debug.Print("CleanUpConnectionThreads");
 #endif
             bool threadsRemoved = false;
@@ -267,13 +269,7 @@ namespace ObjectStore.SqlClient
         #endregion
 
         #region Properties
-        internal ExpressionParser ExpressionParser
-        {
-            get
-            {
-                return _expressionParser;
-            }
-        }
+        internal ExpressionParser ExpressionParser => _expressionParser;
         #endregion
     }
 }

@@ -1,4 +1,4 @@
-﻿#if DNXCORE50 || DOTNET5_4
+﻿#if  NETCOREAPP1_0
 using ApplicationException = global::System.InvalidOperationException;
 #endif
 

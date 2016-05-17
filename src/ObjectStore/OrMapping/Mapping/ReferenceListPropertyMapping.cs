@@ -1,4 +1,4 @@
-﻿#if DNXCORE50 || DOTNET5_4
+﻿#if  NETCOREAPP1_0
 using ApplicationException = global::System.InvalidOperationException;
 #endif
 
@@ -25,7 +25,7 @@ namespace ObjectStore.OrMapping
             _propertyInfo = info;
 
             object[] attributes =
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                 info.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true).ToArray();
 #else
                 info.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true);
@@ -59,7 +59,7 @@ namespace ObjectStore.OrMapping
 
         public override void AddInhertiedProperty(TypeBuilder typeBuilder, MethodInfo notifyChangeMethode)
         {
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (!MemberInfo.DeclaringType.GetTypeInfo().IsAbstract)
 #else
             if (!MemberInfo.DeclaringType.IsAbstract)

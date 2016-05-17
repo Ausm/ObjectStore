@@ -50,7 +50,7 @@ namespace ObjectStore.SqlClient
 
         static bool IsPropertyInfo(MemberInfo memberInfo)
         {
-#if DNXCORE50 || DOTNET5_4
+#if NETCOREAPP1_0
             return memberInfo is PropertyInfo;
 #else
             return memberInfo.MemberType == MemberTypes.Property;

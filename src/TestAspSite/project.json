@@ -13,7 +13,10 @@
     "ObjectStore.Identity": "1.0.0-alpha2",
     "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final",
     "Microsoft.AspNet.Tooling.Razor": "1.0.0-rc1-final",
-    "ObjectStore.SqlClient": "1.0.0-*"
+    "ObjectStore.SqlClient": "1.0.0-*",
+    "Microsoft.AspNetCore.Hosting": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-rc2-final"
   },
 
   "commands": {
@@ -21,30 +24,35 @@
   },
 
   "frameworks": {
-    "dnx451": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ],
       "dependencies": {
-        "Microsoft.AspNet.Authorization": "1.0.0-rc1-final"
+        "Microsoft.NETCore.App": {
+          "version": "1.0.0-rc2-3002702",
+          "type": "platform"
+        }
       }
-    },
-    "net451": {
-      "dependencies": {
-        "Microsoft.AspNet.Authorization": "1.0.0-rc1-final"
-      }
-    },
-    "dnxcore50": { },
-    "dotnet5.4": { }
+    }
   },
 
-  "publishExclude": [
-    "node_modules",
-    "bower_components",
-    "**.xproj",
-    "**.user",
-    "**.vspscc"
-  ],
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ]
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "preserveCompilationContext": true
+  },
+
+  "runtimeOptions": {
+    "gcServer": true
+  },
+
+  "publishOptions": {
+    "include": [
+      "wwwroot",
+      "Views",
+      "hosting.json"
+    ]
+  }
 }

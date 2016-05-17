@@ -1,4 +1,4 @@
-﻿#if DNXCORE50 || DOTNET5_4
+﻿#if  NETCOREAPP1_0
 using ApplicationException = global::System.InvalidOperationException;
 #endif
 
@@ -12,7 +12,7 @@ using System.Transactions;
 using System.ComponentModel;
 using System.Data.Common;
 
-#if DOTNET5_4
+#if NETCOREAPP1_0
 namespace System.ComponentModel
 {
     public enum ListSortDirection
@@ -359,7 +359,7 @@ namespace ObjectStore.OrMapping
                                             ((MemberExpression)x).Expression,
                                             System.Linq.Expressions.Expression.Constant(null)),
                                         System.Linq.Expressions.Expression.Constant(
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                                             x.Type.GetTypeInfo().IsValueType ? 
 #else
                                             x.Type.IsValueType ? 
@@ -699,7 +699,7 @@ namespace ObjectStore.OrMapping
 
                 if (expression.NodeType == ExpressionType.MemberAccess &&
                     ((MemberExpression)expression).Expression.NodeType == ExpressionType.MemberAccess &&
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                     !((MemberExpression)expression).Expression.Type.GetTypeInfo().IsValueType &&
 #else
                     !((MemberExpression)expression).Expression.Type.IsValueType &&
@@ -794,7 +794,7 @@ namespace ObjectStore.OrMapping
                         IEnumerable<string> enumerable =
                                 ExpressionHelper.GetFilteredExpression(expression,
                                     x => x.NodeType == ExpressionType.MemberAccess &&
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                             (x as MemberExpression).Member is PropertyInfo)
 #else
                             (x as MemberExpression).Member.MemberType == MemberTypes.Property)

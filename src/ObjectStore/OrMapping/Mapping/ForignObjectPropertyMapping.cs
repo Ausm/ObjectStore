@@ -1,4 +1,4 @@
-﻿#if DNXCORE50 || DOTNET5_4
+﻿#if  NETCOREAPP1_0
 using ApplicationException = global::System.InvalidOperationException;
 #endif
 
@@ -20,7 +20,7 @@ namespace ObjectStore.OrMapping
             _propertyInfo = info;
 
             object[] attributes =
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                 info.GetCustomAttributes(typeof(ForeignObjectMappingAttribute), true).ToArray();
 #else
                 info.GetCustomAttributes(typeof(ForeignObjectMappingAttribute), true);
@@ -51,7 +51,7 @@ namespace ObjectStore.OrMapping
 
         public override void AddInhertiedProperty(TypeBuilder typeBuilder, MethodInfo notifyPropertyChangedMethode)
         {
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (!MemberInfo.DeclaringType.GetTypeInfo().IsAbstract)
 #else
             if (!MemberInfo.DeclaringType.IsAbstract)
@@ -98,7 +98,7 @@ namespace ObjectStore.OrMapping
         {
             get
             {
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                 if (_foreignProperty.PropertyType.GetTypeInfo().IsValueType && !(_foreignProperty.PropertyType.GetTypeInfo().IsGenericType && _foreignProperty.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
 #else
                 if (_foreignProperty.PropertyType.IsValueType && !(_foreignProperty.PropertyType.IsGenericType && _foreignProperty.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))

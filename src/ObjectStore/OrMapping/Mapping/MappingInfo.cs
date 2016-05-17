@@ -1,4 +1,4 @@
-﻿#if DNXCORE50 || DOTNET5_4
+﻿#if  NETCOREAPP1_0
 using IDataReader = global::System.Data.Common.DbDataReader;
 using IDataRecord = global::System.Data.Common.DbDataReader;
 #else
@@ -126,7 +126,7 @@ namespace ObjectStore.OrMapping
             if (_moduleBuilder == null)
             {
                 AssemblyName assemblyName = new AssemblyName("InheritensObjectProviderClasses");
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                 AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
 #else
                 AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
@@ -140,7 +140,7 @@ namespace ObjectStore.OrMapping
 #region Konstruktoren
         public MappingInfo(Type type)
         {
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (!type.GetTypeInfo().IsAbstract)
 #else
             if (!type.IsAbstract)
@@ -157,7 +157,7 @@ namespace ObjectStore.OrMapping
         {
 #region Tabellennamen bestimmen
             {
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                 TableAttribute attribute = Type.GetTypeInfo().GetCustomAttribute(typeof(TableAttribute), true) as TableAttribute;
 #else
                 TableAttribute attribute = Type.GetCustomAttributes(typeof(TableAttribute), true).FirstOrDefault() as TableAttribute;
@@ -223,7 +223,7 @@ namespace ObjectStore.OrMapping
 #region Dynamischen Type erstellen
 
             TypeBuilder typeBuilder = GetTypeBuilder(string.Format("{1}.Dynamic.{0}", Type.Name, Type.Namespace));
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (Type.GetTypeInfo().IsInterface)
 #else
             if (Type.IsInterface)
@@ -709,7 +709,7 @@ namespace ObjectStore.OrMapping
 #endregion
 
             _dynamicType =
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                 typeBuilder.CreateTypeInfo().DeclaringType;
 #else
                 typeBuilder.CreateType();

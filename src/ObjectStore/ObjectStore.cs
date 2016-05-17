@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
 using System.Reflection;
 #endif
 

@@ -1,4 +1,4 @@
-﻿#if DNXCORE50 || DOTNET5_4
+﻿#if  NETCOREAPP1_0
 using IDataReader = global::System.Data.Common.DbDataReader;
 using IDataRecord = global::System.Data.Common.DbDataReader;
 #else
@@ -24,7 +24,7 @@ namespace ObjectStore.OrMapping
             _propertyInfo = propertyInfo;
 
             MappingAttribute attribute =
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
                 _propertyInfo.GetCustomAttribute(typeof(MappingAttribute), true) as MappingAttribute;
 #else
                 _propertyInfo.GetCustomAttributes(typeof(MappingAttribute), true).FirstOrDefault() as MappingAttribute;
@@ -45,7 +45,7 @@ namespace ObjectStore.OrMapping
             dynamicMethod.Emit(OpCodes.Ldflda, _internalField);
             dynamicMethod.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("GetUncommittedValue"));
 
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (DataBaseValueType.GetTypeInfo().IsValueType)
 #else
             if (DataBaseValueType.IsValueType)
@@ -75,7 +75,7 @@ namespace ObjectStore.OrMapping
 
         public override void AddInhertiedProperty(TypeBuilder typeBuilder, MethodInfo notifyPropertyChangedMethode)
         {
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (!MemberInfo.DeclaringType.GetTypeInfo().IsAbstract)
 #else
             if (!MemberInfo.DeclaringType.IsAbstract)
@@ -152,7 +152,7 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Ldloc, ordinal);
             generator.Emit(OpCodes.Callvirt, getValueMethod);
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (DataBaseValueType.GetTypeInfo().IsValueType)
 #else
             if (DataBaseValueType.IsValueType)
@@ -166,7 +166,7 @@ namespace ObjectStore.OrMapping
             }
             generator.Emit(OpCodes.Br_S, endLabel);
             generator.MarkLabel(nullLabel);
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (DataBaseValueType.GetTypeInfo().IsValueType)
 #else
             if (DataBaseValueType.IsValueType)
@@ -196,7 +196,7 @@ namespace ObjectStore.OrMapping
             else
                 generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("GetChangedValue"));
 
-#if DNXCORE50 || DOTNET5_4
+#if  NETCOREAPP1_0
             if (DataBaseValueType.GetTypeInfo().IsValueType)
 #else
             if (DataBaseValueType.IsValueType)
