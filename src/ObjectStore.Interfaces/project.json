@@ -3,8 +3,8 @@
   "description": "ObjectStore.Interfaces Class Library",
   "authors": [ "Matthias Auswoeger" ],
   "frameworks": {
-    "net451": {
-      "imports": [ "dnx451" ]
+    "net452": {
+      "imports": [ "dnx451", "net451" ]
     },
     "netcoreapp1.0": {
       "imports": [

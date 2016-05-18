@@ -3,13 +3,13 @@
   "description": "ObjectStore Class Library",
   "authors": [ "Matthias Auswoeger" ],
   "frameworks": {
-    "net451": {
-      "imports": [ "dnx451" ],
+    "net452": {
+      "imports": [ "dnx451", "net451" ],
       "frameworkAssemblies": {
-        "System.Data": "4.0.0.0",
-        "System.Transactions": "4.0.0.0"
-      }
-    },
+      "System.Data": "4.0.0.0",
+      "System.Transactions": "4.0.0.0"
+    }
+  },
     "netcoreapp1.0": {
       "imports": [
         "dotnet5.6",
