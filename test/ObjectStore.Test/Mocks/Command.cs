@@ -10,6 +10,7 @@ namespace ObjectStore.Test.Mocks
         #region Fields
         SqlCommand _innerCommand = new SqlCommand();
         Func<Command, DataReader> _getReader;
+        Connection _connection;
         #endregion
 
         #region Constructors
@@ -89,12 +90,12 @@ namespace ObjectStore.Test.Mocks
         {
             get
             {
-                return _innerCommand.Connection;
+                return _connection;
             }
 
             set
             {
-                _innerCommand.Connection = value as SqlConnection;
+                _connection = value as Connection;
             }
         }
 
@@ -146,6 +147,9 @@ namespace ObjectStore.Test.Mocks
 
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
+            if (_connection == null || _connection.State != ConnectionState.Open)
+                throw new InvalidOperationException("Connection is not open.");
+
             return _getReader(this);
         }
         #endregion

@@ -3,11 +3,7 @@ using ObjectStore.OrMapping;
 using ObjectStore.Test.Resources;
 using ObjectStore.SqlClient;
 using System;
-using System.Data.SqlClient;
-using System.IO;
-using Xunit;
 using System.Data.Common;
-using System.Data;
 using System.Reflection;
 using ObjectStore.Test.Mocks;
 using System.Text.RegularExpressions;
@@ -31,6 +27,15 @@ namespace ObjectStore.Test.Fixtures
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getCommand", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
 #endif
                 .SetValue(null, getCommand);
+
+            Func<string, DbConnection> getConnection = x => new Connection(x);
+#if DNXCORE50
+            typeof(DataBaseProvider).GetField("_getConnection", BindingFlags.NonPublic | BindingFlags.Static)
+#else
+            typeof(DataBaseProvider).GetTypeInfo().GetField("_getConnection", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
+#endif
+                .SetValue(null, getConnection);
+
 
             _resultManager = new ResultManager<string>();
         }

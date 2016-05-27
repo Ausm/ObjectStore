@@ -46,7 +46,7 @@ namespace ObjectStore.SqlClient
                                         {
                                             Thread.BeginCriticalRegion();
 #endif
-                                        SqlConnection connection = _connection;
+                                            DbConnection connection = _connection;
                                             _connection = null;
                                             connection.Dispose();
                                             _disposingThread = null;
@@ -70,22 +70,22 @@ namespace ObjectStore.SqlClient
                 _disposingThread.Start();
             }
 
-            SqlConnection _connection;
+            DbConnection _connection;
             int _referenceCount;
             DateTime? _dereferenceTime;
             Thread _disposingThread;
             string _connectionString;
 
-            public SqlConnection IncreaseReferencCount()
+            public DbConnection IncreaseReferencCount()
             {
                 _dereferenceTime = null;
-                SqlConnection returnValue;
+                DbConnection returnValue;
                 lock (this)
                 {
                     if (_connection == null)
                     {
                         _referenceCount = 1;
-                        _connection = new SqlConnection(_connectionString);
+                        _connection = _getConnection(_connectionString);
                     }
                     else
                     {
@@ -123,6 +123,7 @@ namespace ObjectStore.SqlClient
         int _currentUniqe = 0;
         ExpressionParser _expressionParser;
         static Func<DbCommand> _getCommand = () => new SqlCommand();
+        static Func<string, DbConnection> _getConnection = c => new SqlConnection(c);
         #endregion
 
         #region Singleton Implementation
@@ -214,10 +215,9 @@ namespace ObjectStore.SqlClient
             }
         }
 
-        private void OnConnectionOpened(SqlConnection connection)
+        private void OnConnectionOpened(DbConnection connection)
         {
-            if (ConnectionOpened != null)
-                ConnectionOpened(connection, EventArgs.Empty);
+            ConnectionOpened?.Invoke(connection, EventArgs.Empty);
         }
 
         public event EventHandler ConnectionOpened;
