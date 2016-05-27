@@ -23,12 +23,10 @@ namespace ObjectStore.Test
         #endregion
 
         #region Constructor
-        public Tests(DatabaseFixture databaseFixture, InitEnitiesFixture initEntitiesFixture, ITestOutputHelper output)
+        public Tests(DatabaseFixture databaseFixture, ITestOutputHelper output)
         {
             _databaseFixture = databaseFixture;
             _output = output;
-
-            //initEntitiesFixture.Init(databaseFixture.ObjectProvider);
 
             _queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad();
             _subQueryable = _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().ForceLoad();
@@ -37,39 +35,88 @@ namespace ObjectStore.Test
         #endregion
 
         #region Tests
+
         [Fact]
-        public void TestInsertUpdateDelete()
+        public void TestInsert()
         {
-            E.Test entity = CreateTestEntity($"Testname {DateTime.Now:g}", Resource.FirstRandomText);
-            _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save();
-            Assert.True(_waithandle.WaitOne(5000));
-            Assert.NotEqual(entity.Id, 0);
+            List<E.Test> cachedItems = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceCache().ToList();
+            int newId = cachedItems.Count == 0 ? 1 : cachedItems.Max(x => x.Id) + 1;
+            string name = $"Testname {DateTime.Now:g}";
+            string description = Resource.FirstRandomText;
+
+            _databaseFixture.AddSupportedQuery("Insert", @"^INSERT\s+dbo\.TestTable\s*\(\[Name],\s*\[Description]\)\s*VALUES\s*\(@param\d+,\s*@param\d+\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+\k<P>\s*=\s*Id$",
+                new string[] { "Id", "Name", "Description" }, new[] {
+                new object[] { newId, name, description }
+                });
+
+            E.Test entity = _databaseFixture.ObjectProvider.CreateObject<E.Test>();
+            Assert.NotNull(entity);
+            entity.Name = name;
+            entity.Description = description;
+
+            _output.WriteLine($"Entity created, Name: {entity.Name}");
+
+            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Id), 
+                () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save());
+
+            Assert.Equal(entity.Id, newId);
             _output.WriteLine($"First entity saved, new Id: {entity.Id} -> passed");
+        }
 
-            E.Test entity2 = CreateTestEntity($"Testname {DateTime.Now:g}", Resource.SecondRandomText);
-            _waithandle.Reset();
-            _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity2).Save();
-            Assert.True(_waithandle.WaitOne(5000));
-            _output.WriteLine($"Second entity saved, new Id: {entity2.Id} -> passed");
+        [Fact]
+        public void TestUpdate()
+        {
+            _databaseFixture.AddSupportedQuery("Select", @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$",
+                new string[] { "Id", "Name", "Description" }, new[] {
+                new object[] { 1, $"Testname {DateTime.Now:g}", Resource.FirstRandomText }
+                });
 
-            entity.Description = Resource.SecondRandomText;
+            E.Test entity = Assert.Single(_queryable);
+
+            _databaseFixture.AddSupportedQuery("Update", @"^\s*UPDATE\s+dbo\.TestTable\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s+SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$",
+                new string[] { "Id", "Name", "Description" }, new[] {
+                new object[] { entity.Id, entity.Name, Resource.SecondRandomText }
+                });
+
+            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Description), 
+                () => entity.Description = Resource.SecondRandomText);
+
             _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save();
-            _output.WriteLine($"First entity updated and saved, Id: {entity2.Id} -> passed");
+        }
 
-            int id = entity.Id;
-            int count = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Count();
+        [Fact]
+        public void TestDeleteSingle()
+        {
+            _databaseFixture.AddSupportedQuery("Select", @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$",
+                new string[] { "Id", "Name", "Description" }, new[] {
+                new object[] { 1, $"Testname {DateTime.Now:g}", Resource.FirstRandomText },
+                new object[] { 2, $"Testname2 {DateTime.Now:g}", Resource.SecondRandomText }
+                });
+
+            E.Test entity = Assert.Single(_queryable.ToList().Where(x => x.Id == 1));
+
             IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity);
             queryable.Delete();
-            queryable.Save();
-            Assert.Empty(_databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x.Id == id));
-            Assert.Equal(count - 1, _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Count());
-            _output.WriteLine($"Deleted entity, Id: {entity2.Id} -> passed");
 
-            queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>();
-            queryable.Delete();
+            _databaseFixture.AddSupportedQuery("Delete", @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$", new string[0]);
             queryable.Save();
-            Assert.Empty(_databaseFixture.ObjectProvider.GetQueryable<E.Test>());
-            _output.WriteLine($"Deleted all entities -> passed");
+        }
+
+        [Fact]
+        public void TestDeleteAll()
+        {
+            _databaseFixture.AddSupportedQuery("Select", @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$",
+                new string[] { "Id", "Name", "Description" }, new[] {
+                new object[] { 1, $"Testname {DateTime.Now:g}", Resource.FirstRandomText },
+                new object[] { 2, $"Testname2 {DateTime.Now:g}", Resource.SecondRandomText }
+                });
+
+            IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>();
+            queryable.ToList();
+            queryable.Delete();
+
+            _databaseFixture.AddSupportedQuery("Delete", @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$", new string[0]);
+            queryable.Save();
         }
 
         [ExtTheory, MemberData(nameof(SimpleExpressions))]

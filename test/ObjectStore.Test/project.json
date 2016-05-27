@@ -9,10 +9,6 @@
     "ObjectStore.SqlClient": "1.0.0-alpha2"
   },
 
-  "commands": {
-    "test": "xunit.runner.dnx"
-  },
-
   "frameworks": {
     "netcoreapp1.0": {
       "dependencies": {
@@ -25,6 +21,14 @@
         "dnxcore50",
         "portable-net45+win8"
       ]
+    },
+    "net452": {
+      "dependencies": {
+        "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027"
+      },
+      "frameworkAssemblies": {
+        "System.ObjectModel": "4.0.0.0"
+      }
     }
   }
 }
