@@ -77,7 +77,7 @@ namespace ObjectStore.SqlClient
                 i++;
             }
 
-            SqlCommand command = new SqlCommand();
+            DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());
             command.CommandText = string.Format("UPDATE {0} SET {1} WHERE {2}\r\nSELECT {3} FROM {0} WHERE {2}",
                                     _tablename,

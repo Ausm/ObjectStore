@@ -710,7 +710,7 @@ namespace ObjectStore.OrMapping
 
             _dynamicType =
 #if  NETCOREAPP1_0
-                typeBuilder.CreateTypeInfo().DeclaringType;
+                typeBuilder.CreateTypeInfo().UnderlyingSystemType;
 #else
                 typeBuilder.CreateType();
 #endif

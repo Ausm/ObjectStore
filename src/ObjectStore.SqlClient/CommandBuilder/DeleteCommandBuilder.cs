@@ -39,7 +39,7 @@ namespace ObjectStore.SqlClient
 
         public DbCommand GetDbCommand()
         {
-            SqlCommand command = new SqlCommand();
+            DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());
             command.CommandText = _whereClausel.Count == 0 ?
                                     string.Format("DELETE {0}", _tablename) :

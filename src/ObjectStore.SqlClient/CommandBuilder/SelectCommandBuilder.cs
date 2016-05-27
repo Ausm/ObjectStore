@@ -205,7 +205,7 @@ namespace ObjectStore.SqlClient
                         exp => _databaseProvider.ExpressionParser.ParseExpression(exp, this)
                             ).ToArray()));
 
-            SqlCommand command = new SqlCommand();
+            DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());
             command.CommandText = stringBuilder.ToString();
             return command;

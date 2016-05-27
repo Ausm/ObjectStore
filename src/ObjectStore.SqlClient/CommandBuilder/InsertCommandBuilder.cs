@@ -95,7 +95,7 @@ namespace ObjectStore.SqlClient
 
         public DbCommand GetDbCommand()
         {
-            SqlCommand command = new SqlCommand();
+            DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());
             command.CommandText =
                 string.Format(_insertFields.Count == 0 ? "{5}INSERT {0} DEFAULT VALUES\r\n{6}SELECT {3} FROM {0} WHERE {4}" :
