@@ -130,14 +130,24 @@ namespace ObjectStore.Test
             _output.WriteLine("... Done");
         }
 
-        //[ExtTheory, MemberData(nameof(ForeignObjectExpressions))]
-        //public void TestForeignObjectExpression(string name, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>> function, int expectedCount)
-        //{
-        //    _output.WriteLine($"Test {name} expression");
-        //    List<E.SubTest> subResult = function(_subQueryable, _queryable.FirstOrDefault()).ToList();
-        //    Assert.Equal(expectedCount, subResult.Count);
-        //    _output.WriteLine("... Done");
-        //}
+        [ExtTheory, MemberData(nameof(ForeignObjectExpressions))]
+        public void TestForeignObjectExpression(string name, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>> function, string queryPattern, IEnumerable<object[]> values)
+        {
+            _databaseFixture.AddSupportedQuery("TestTableSelect",
+                @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$",
+                new string[] { "Id", "Name", "Description" },
+                new object[] { 1, "Testname1", "TestDescription" },
+                new object[] { 2, "Testname2", "TestDescription" });
+
+            _output.WriteLine($"Test {name} expression");
+
+            E.Test t = Assert.Single(_queryable.ToList().Where(x => x.Id == 1));
+
+            _databaseFixture.AddSupportedQuery(name, @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.Test,\s*\k<T>\.\[Name],\s*\k<T>\.\[First],\s*\k<T>\.\[Second],\s*\k<T>\.\[Nullable]\s+FROM\s+dbo\.SubTestTable\s+\k<T>\s+" + queryPattern + "$", new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" }, values.ToArray());
+            List<E.SubTest> subResult = function(_subQueryable, t).ToList();
+            Assert.Equal(values.Count(), subResult.Count);
+            _output.WriteLine("... Done");
+        }
         #endregion
 
         #region Methods
@@ -269,13 +279,35 @@ namespace ObjectStore.Test
             }
         }
 
-        public static TheoryData<string, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>>, int> ForeignObjectExpressions
+        public static TheoryData<string, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>>, string, IEnumerable<object[]>> ForeignObjectExpressions
         {
             get
             {
-                TheoryData<string, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>>, int> returnValue = new TheoryData<string, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>>, int>();
-                returnValue.Add("ForeignObject Equal", (s, t) => s.Where(x => x.Test == t), 10);
-                returnValue.Add("ForeignObject Property Equal to", (s, t) => { string name = t.Name; return s.Where(x => x.Test.Name == name); }, 10);
+                TheoryData<string, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>>, string, IEnumerable<object[]>> returnValue = new TheoryData<string, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>>, string, IEnumerable<object[]>>();
+                returnValue.Add("ForeignObject Equal", 
+                    (s, t) => s.Where(x => x.Test == t), @"WHERE\s+\k<T>\.Test\s*=\s*@param\d+", new[] {
+                    new object[] { 1, 1, "SubEntity0", 0, 10, DBNull.Value},
+                    new object[] { 2, 1, "SubEntity2", 1, 9, DBNull.Value},
+                    new object[] { 3, 1, "SubEntity4", 2, 8, DBNull.Value},
+                    new object[] { 4, 1, "SubEntity6", 3, 7, DBNull.Value},
+                    new object[] { 5, 1, "SubEntity8", 4, 6, DBNull.Value},
+                    new object[] { 6, 1, "SubEntity10", 5, 5, DBNull.Value},
+                    new object[] { 7, 1, "SubEntity12", 6, 4, DBNull.Value},
+                    new object[] { 8, 1, "SubEntity14", 7, 3, DateTime.Now},
+                    new object[] { 9, 1, "SubEntity16", 8, 2, DBNull.Value},
+                    new object[] { 10, 1, "SubEntity18", 9, 1, DBNull.Value}});
+                returnValue.Add("ForeignObject Property Equal to",
+                    (s, t) => { string name = t.Name; return s.Where(x => x.Test.Name == name); }, @"LEFT\s+(OUTER\s+)?JOIN\s+dbo\.TestTable\s(?<T2>T\d+)\s+ON\s+\k<T2>\.Id\s*=\s*\k<T>\.Test\s+WHERE\s+\k<T2>\.\[Name]\s*=\s*@param\d+", new[] {
+                    new object[] { 1, 1, "SubEntity0", 0, 10, DBNull.Value},
+                    new object[] { 2, 1, "SubEntity2", 1, 9, DBNull.Value},
+                    new object[] { 3, 1, "SubEntity4", 2, 8, DBNull.Value},
+                    new object[] { 4, 1, "SubEntity6", 3, 7, DBNull.Value},
+                    new object[] { 5, 1, "SubEntity8", 4, 6, DBNull.Value},
+                    new object[] { 6, 1, "SubEntity10", 5, 5, DBNull.Value},
+                    new object[] { 7, 1, "SubEntity12", 6, 4, DBNull.Value},
+                    new object[] { 8, 1, "SubEntity14", 7, 3, DateTime.Now},
+                    new object[] { 9, 1, "SubEntity16", 8, 2, DBNull.Value},
+                    new object[] { 10, 1, "SubEntity18", 9, 1, DBNull.Value}});
                 return returnValue;
             }
         }
