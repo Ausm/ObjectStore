@@ -177,11 +177,7 @@ namespace ObjectStore.OrMapping
 
 #region MappingInfos erstellen
             _mappingInfos = new List<Mapping>();
-            foreach (PropertyInfo item in Type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance
-#if !DNXCORE50 && !DOTNET5_4
-                | BindingFlags.GetProperty
-#endif
-                ).Where(x =>
+            foreach (PropertyInfo item in Type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty).Where(x =>
             {
                 MethodInfo methodInfo = x.GetGetMethod();
                 return methodInfo != null && methodInfo.IsAbstract;

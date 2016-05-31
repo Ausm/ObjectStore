@@ -258,7 +258,7 @@ namespace ObjectStore.OrMapping
                     {
                         match = _context.GetPredicateCompiled()(obj);
                     }
-#if DEBUG && !DNXCORE50 && !DOTNET5_4 && !NETCOREAPP1_0
+#if DEBUG && !NETCOREAPP1_0
                     catch (Exception ex)
                     {
                         if (!_isWeakCacheExceptionSent)
@@ -367,7 +367,7 @@ namespace ObjectStore.OrMapping
                         }
                         else
                         {
-#if !DNXCORE50 && !DOTNET5_4 && !NETCOREAPP1_0
+#if !NETCOREAPP1_0
                             string transactionLocalIdentifier = System.Transactions.Transaction.Current.TransactionInformation.LocalIdentifier;
                             if (_objectsToCommit.ContainsKey(transactionLocalIdentifier))
                                 _objectsToCommit[transactionLocalIdentifier] = _objectsToCommit[transactionLocalIdentifier].Union(dropCommitEntries);
@@ -565,7 +565,7 @@ namespace ObjectStore.OrMapping
                         {
                             CollectionChanged(this, e);
                         }
-#if DEBUG && !DNXCORE50 && !DOTNET5_4 && !NETCOREAPP1_0
+#if DEBUG && !NETCOREAPP1_0
                         catch (Exception ex)
                         {
                             System.Diagnostics.Trace.TraceError("Error in  CollectionChanged-Call.\nException:\n{0}", ex);
