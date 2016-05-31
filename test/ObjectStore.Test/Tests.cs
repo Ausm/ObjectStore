@@ -122,7 +122,7 @@ namespace ObjectStore.Test
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(string name, Expression<Func<E.SubTest, bool>> expression, string queryPattern, IEnumerable<object[]> values)
         {
-            _databaseFixture.AddSupportedQuery(name, @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s+\k<T>\.Test,\s+\k<T>\.\[Name],\s+\k<T>\.\[First],\s+\k<T>\.\[Second],\s+\k<T>\.\[Nullable]\s+FROM\s+dbo\.SubTestTable\s+\k<T>\s+WHERE\s+" + queryPattern + "$", new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" }, values.ToArray());
+            _databaseFixture.AddSupportedQuery(name, @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+WHERE\s+" + queryPattern + "$", new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" }, values.ToArray());
 
             _output.WriteLine($"Test {name} expression");
             List<E.SubTest> subResult = _subQueryable.Where(expression).ToList();
@@ -143,7 +143,7 @@ namespace ObjectStore.Test
 
             E.Test t = Assert.Single(_queryable.ToList().Where(x => x.Id == 1));
 
-            _databaseFixture.AddSupportedQuery(name, @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.Test,\s*\k<T>\.\[Name],\s*\k<T>\.\[First],\s*\k<T>\.\[Second],\s*\k<T>\.\[Nullable]\s+FROM\s+dbo\.SubTestTable\s+\k<T>\s+" + queryPattern + "$", new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" }, values.ToArray());
+            _databaseFixture.AddSupportedQuery(name, @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+" + queryPattern + "$", new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" }, values.ToArray());
             List<E.SubTest> subResult = function(_subQueryable, t).ToList();
             Assert.Equal(values.Count(), subResult.Count);
             _output.WriteLine("... Done");
