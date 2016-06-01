@@ -35,13 +35,8 @@ install:
 script:
   # dotnet info
   - dotnet --info
-  # Run dotnet new 
-  - mkdir -p "test/test-dotnet-new" && pushd "test/test-dotnet-new"
-  - dotnet new --lang fsharp
-  - echo 'dotnet restore' && echo -en 'travis_fold:start:dotnet_restore'
   - dotnet restore
-  - echo -en 'travis_fold:end:dotnet_restore'
-  - dotnet build
-  - dotnet test
-  # dotnet --verbose run a b
-  - popd
+  # dotnet build
+  - dotnet build --framework "netcoreapp1.0" **/project.json
+  # dotnet test
+  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test/project.json
