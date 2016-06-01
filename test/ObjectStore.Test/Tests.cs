@@ -57,7 +57,8 @@ namespace ObjectStore.Test
             _output.WriteLine($"Entity created, Name: {entity.Name}");
 
             Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Id), 
-                () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save());
+                () => _databaseFixture.GetHitCount("Insert", 
+                    () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save(), 1));
 
             Assert.Equal(entity.Id, newId);
             _output.WriteLine($"First entity saved, new Id: {entity.Id} -> passed");
@@ -71,7 +72,7 @@ namespace ObjectStore.Test
                 new object[] { 1, $"Testname {DateTime.Now:g}", Resource.FirstRandomText }
                 });
 
-            E.Test entity = Assert.Single(_queryable);
+            E.Test entity = _databaseFixture.GetHitCount("Select", () => Assert.Single(_queryable), 1);
 
             _databaseFixture.AddSupportedQuery("Update", @"^\s*UPDATE\s+dbo\.TestTable\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s+SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$",
                 new string[] { "Id", "Name", "Description" }, new[] {
@@ -81,7 +82,7 @@ namespace ObjectStore.Test
             Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Description), 
                 () => entity.Description = Resource.SecondRandomText);
 
-            _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save();
+            _databaseFixture.GetHitCount("Update", () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save(), 1);
         }
 
         [Fact]
@@ -93,13 +94,13 @@ namespace ObjectStore.Test
                 new object[] { 2, $"Testname2 {DateTime.Now:g}", Resource.SecondRandomText }
                 });
 
-            E.Test entity = Assert.Single(_queryable.ToList().Where(x => x.Id == 1));
+            E.Test entity = _databaseFixture.GetHitCount("Select", () => Assert.Single(_queryable.ToList().Where(x => x.Id == 1)), 1);
 
             IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity);
             queryable.Delete();
 
             _databaseFixture.AddSupportedQuery("Delete", @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$", new string[0]);
-            queryable.Save();
+            _databaseFixture.GetHitCount("Delete", () => queryable.Save(), 1);
         }
 
         [Fact]
@@ -112,11 +113,11 @@ namespace ObjectStore.Test
                 });
 
             IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>();
-            queryable.ToList();
+            _databaseFixture.GetHitCount("Select", () => queryable.ToList(), 1);
             queryable.Delete();
 
             _databaseFixture.AddSupportedQuery("Delete", @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$", new string[0]);
-            queryable.Save();
+            _databaseFixture.GetHitCount("Delete", () => queryable.Save(), 2);
         }
 
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
@@ -125,7 +126,7 @@ namespace ObjectStore.Test
             _databaseFixture.AddSupportedQuery(name, @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+WHERE\s+" + queryPattern + "$", new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" }, values.ToArray());
 
             _output.WriteLine($"Test {name} expression");
-            List<E.SubTest> subResult = _subQueryable.Where(expression).ToList();
+            List<E.SubTest> subResult = _databaseFixture.GetHitCount(name, () => _subQueryable.Where(expression).ToList(), 1);
             Assert.Equal(values.Count(), subResult.Count);
             _output.WriteLine("... Done");
         }
@@ -133,7 +134,7 @@ namespace ObjectStore.Test
         [ExtTheory, MemberData(nameof(ForeignObjectExpressions))]
         public void TestForeignObjectExpression(string name, Func<IQueryable<E.SubTest>, E.Test, IQueryable<E.SubTest>> function, string queryPattern, IEnumerable<object[]> values)
         {
-            _databaseFixture.AddSupportedQuery("TestTableSelect",
+            _databaseFixture.AddSupportedQuery("Select",
                 @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$",
                 new string[] { "Id", "Name", "Description" },
                 new object[] { 1, "Testname1", "TestDescription" },
@@ -141,10 +142,10 @@ namespace ObjectStore.Test
 
             _output.WriteLine($"Test {name} expression");
 
-            E.Test t = Assert.Single(_queryable.ToList().Where(x => x.Id == 1));
+            E.Test t = Assert.Single(_databaseFixture.GetHitCount("Select", () => _queryable.ToList().Where(x => x.Id == 1), 1));
 
             _databaseFixture.AddSupportedQuery(name, @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+" + queryPattern + "$", new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" }, values.ToArray());
-            List<E.SubTest> subResult = function(_subQueryable, t).ToList();
+            List<E.SubTest> subResult = _databaseFixture.GetHitCount(name, () => function(_subQueryable, t).ToList(), 1);
             Assert.Equal(values.Count(), subResult.Count);
             _output.WriteLine("... Done");
         }
