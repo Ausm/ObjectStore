@@ -1,4 +1,4 @@
-ObjectStore ![#](https://travis-ci.org/Ausm/ObjectStore.svg)
+ObjectStore [![Build Status](https://travis-ci.org/Ausm/ObjectStore.svg?branch=master)](https://travis-ci.org/Ausm/ObjectStore)
 ===========
 
 .Net Or-Mapper working with dynamically implemented abstract Classes
