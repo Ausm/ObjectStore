@@ -27,6 +27,11 @@ namespace ObjectStore.Test.Mocks
 
             public string[] ColumnNames => _columnNames;
 
+            public void SetValues(IEnumerable<object[]> values)
+            {
+                _values.Insert(0, values);
+            }
+
             public IEnumerable<object[]> GetValues()
             {
                 if (_values.Count == 0)
@@ -58,6 +63,12 @@ namespace ObjectStore.Test.Mocks
                 _items[key] = new Item(condition, columnNames, values);
             else
                 _items.Add(key, new Item(condition, columnNames, values));
+        }
+
+        public void SetValues(T key, IEnumerable<object[]> values)
+        {
+            if (_items.ContainsKey(key))
+                _items[key].SetValues(values);
         }
 
         public override DataReader GetReader(DbCommand command)

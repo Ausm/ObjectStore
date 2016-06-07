@@ -7,6 +7,9 @@ using System.Data.Common;
 using System.Reflection;
 using ObjectStore.Test.Mocks;
 using System.Text.RegularExpressions;
+using ObjectStore.Test.Tests;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ObjectStore.Test.Fixtures
 {
@@ -15,23 +18,26 @@ namespace ObjectStore.Test.Fixtures
         #region Subclasses
         class HitCommandEventArgs : EventArgs
         {
-            public HitCommandEventArgs(string key)
+            public HitCommandEventArgs(Query key)
             {
                 Key = key;
             }
 
-            public string Key { get; }
+            public Query Key { get; }
         }
         #endregion
 
         #region Fields
         IObjectProvider _objectProvider;
-        ResultManager<string> _resultManager;
+        ResultManager<Query> _resultManager;
+        bool _isInitialized;
         #endregion
 
         #region Constructor
         public DatabaseFixture()
         {
+            _isInitialized = false;
+
             if (_objectProvider == null)
                 ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore(Resource.MsSqlConnectionString, DataBaseProvider.Instance, true));
 
@@ -44,7 +50,7 @@ namespace ObjectStore.Test.Fixtures
                 .SetValue(null, getConnection);
 
 
-            _resultManager = new ResultManager<string>();
+            _resultManager = new ResultManager<Query>();
         }
         #endregion
 
@@ -59,12 +65,12 @@ namespace ObjectStore.Test.Fixtures
         #endregion
 
         #region Methods
-        public void AddSupportedQuery(string key, string pattern, string[] columnNames, params object[][] values)
+        public void SetResult(Query key, IEnumerable<object[]> values)
         {
-            _resultManager.AddItem(key, x => new Regex(pattern).IsMatch(x.CommandText), columnNames, values);
+            _resultManager.SetValues(key, values);
         }
 
-        public T GetHitCount<T>(string key, Func<T> action, int expectedHitCount)
+        public T GetHitCount<T>(Query key, Func<T> action, int expectedHitCount)
         {
             int hitCount = 0;
             EventHandler<HitCommandEventArgs> handler = (s, e) =>
@@ -80,7 +86,22 @@ namespace ObjectStore.Test.Fixtures
             Xunit.Assert.Equal(expectedHitCount, hitCount);
             return returnValue;
         }
-        public int GetHitCount<T>(string key, Action action)
+
+        public void InitializeSupportedQueries(Func<Query, IEnumerable<object[]>> getDefaultResult, Func<Query, string[]> getColumnNames, Func<Query, string> getPattern)
+        {
+            if (_isInitialized)
+                return;
+
+            _isInitialized = true;
+
+            foreach (Query query in Enum.GetValues(typeof(Query)))
+            {
+                IEnumerable<object[]> values = getDefaultResult(query);
+                _resultManager.AddItem(query, x => new Regex(getPattern(query)).IsMatch(x.CommandText), getColumnNames(query), getDefaultResult(query));
+            }
+        }
+
+        public int GetHitCount<T>(Query key, Action action)
         {
             int hitCount = 0;
             EventHandler<HitCommandEventArgs> handler = (s, e) =>
@@ -102,7 +123,7 @@ namespace ObjectStore.Test.Fixtures
 
         DataReader GetReader(Command command)
         {
-            string key;
+            Query key;
 
             DataReader returnValue = _resultManager.GetReader(command, out key);
             if (returnValue == null)
