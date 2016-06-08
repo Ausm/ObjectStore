@@ -31,6 +31,8 @@ namespace ObjectStore.Test.Tests
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$";
                 case Query.SimpleExpressionEqual:
                     return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*=\s*\k<T>\.\[Second]");
+                case Query.SimpleExpressionUnequal:
+                    return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*!=\s*\k<T>\.\[Second]");
                 case Query.SimpleExpressionEqualToNull:
                     return GetSimpleExpressionPattern(@"\k<T>\.\[Nullable]\s+IS\s+NULL");
                 case Query.SimpleExpressionUnequalToNull:
@@ -51,6 +53,8 @@ namespace ObjectStore.Test.Tests
                     return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*=\s*@param\d+");
                 case Query.SimpleExpressionContains:
                     return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*IN\s*\(@param\d+,\s*@param\d+,\s*@param\d+\)");
+                case Query.SimpleExpressionAnd:
+                    return GetSimpleExpressionPattern(@"\(\k<T>\.\[First]\s*=\s*@param\d+\s*\)\s*AND\s*\(\s*\k<T>\.\[Second]\s*=\s*@param\d+\)\s*");
                 case Query.ForeignObjectEqual:
                     return GetForeignObjectExpressionPattern(@"WHERE\s+\k<T>\.Test\s*=\s*@param\d+");
                 case Query.ForeignObjectPropertyEqualTo:

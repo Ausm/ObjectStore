@@ -34,27 +34,18 @@ namespace ObjectStore.SqlClient
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} <= {args.ParseChild(exp.Right)}", ExpressionType.LessThanOrEqual)
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} - {args.ParseChild(exp.Right)}", ExpressionType.Subtract, ExpressionType.SubtractChecked)
                         .AddRule<MemberExpression>((exp, args) => $"{args.ParseChild(exp.Expression)}.{Mapping.GetMapping((PropertyInfo)exp.Member).FieldName}",
-                            e => IsPropertyInfo(e.Member) && e.Expression.NodeType == ExpressionType.Parameter,
+                            e => e.Member.MemberType == MemberTypes.Property && e.Expression.NodeType == ExpressionType.Parameter,
                             ExpressionType.MemberAccess)
                         .AddRule<MemberExpression>((exp, args) => $"{args.GetService<IParsingContext>().GetJoin((MemberExpression)exp.Expression)}.{Mapping.GetMapping((PropertyInfo)exp.Member).FieldName}",
-                            e => IsPropertyInfo(e.Member) && 
+                            e => e.Member.MemberType == MemberTypes.Property && 
                             e.Expression is MemberExpression &&
-                            IsPropertyInfo(((MemberExpression)e.Expression).Member) &&
+                            ((MemberExpression)e.Expression).Member.MemberType == MemberTypes.Property &&
                             ((MemberExpression)e.Expression).Member.GetCustomAttributes(typeof(ForeignObjectMappingAttribute), true).Any(), 
                             ExpressionType.MemberAccess)
-                        .AddRule<MethodCallExpression>((exp, args) => $"{args.ParseChild(exp.Arguments[1])} IN ({string.Join(", ", ((IEnumerable)Expression.Lambda(exp.Arguments[0]).Compile().DynamicInvoke()).OfType<object>().Select(x => args.GetService<IParsingContext>().GetParameter(x)).ToArray())})", x => x.Method.DeclaringType == typeof(Enumerable) && x.Method.Name == nameof(Enumerable.Contains) && x.Arguments.Count == 2)
+                        .AddRule<MethodCallExpression>((exp, args) => $"{args.ParseChild(exp.Arguments[1])} IN {args.ParseChild(exp.Arguments[0])}", x => x.Method.DeclaringType == typeof(Enumerable) && x.Method.Name == nameof(Enumerable.Contains) && x.Arguments.Count == 2)
                         .AddRule<ParameterExpression>((exp, args) => args.GetService<IParsingContext>().GetAlias(exp))
                         .AddRule<LambdaExpression>((exp, args) => args.ParseChild(exp.Body))
                         .AddRule<UnaryExpression>((exp, args) => args.ParseChild(exp.Operand), ExpressionType.Convert, ExpressionType.ConvertChecked);
-        }
-
-        static bool IsPropertyInfo(MemberInfo memberInfo)
-        {
-#if NETCOREAPP1_0
-            return memberInfo is PropertyInfo;
-#else
-            return memberInfo.MemberType == MemberTypes.Property;
-#endif
         }
     }
 }

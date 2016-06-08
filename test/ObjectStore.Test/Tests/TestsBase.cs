@@ -52,34 +52,7 @@ namespace ObjectStore.Test.Tests
             _databaseFixture = databaseFixture;
             _output = output;
 
-            _databaseFixture.InitializeSupportedQueries(GetDefaultResult, x =>
-                {
-                    switch (x)
-                    {
-                        case Query.Insert:
-                        case Query.Update:
-                        case Query.Select:
-                            return new string[] { "Id", "Name", "Description" };
-                        case Query.SimpleExpressionEqual:
-                        case Query.SimpleExpressionEqualToNull:
-                        case Query.SimpleExpressionUnequalToNull:
-                        case Query.SimpleExpressionAdd:
-                        case Query.SimpleExpressionSubtract:
-                        case Query.SimpleExpressionGreater:
-                        case Query.SimpleExpressionGreaterEqual:
-                        case Query.SimpleExpressionLess:
-                        case Query.SimpleExpressionLessEqual:
-                        case Query.SimpleExpressionConstantValue:
-                        case Query.SimpleExpressionContains:
-                        case Query.ForeignObjectEqual:
-                        case Query.ForeignObjectPropertyEqualTo:
-                            return new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" };
-                        case Query.Delete:
-                        case Query.DeleteSub:
-                        default:
-                            return new string[0];
-                    }
-                }, GetQuerryPattern);
+            _databaseFixture.InitializeSupportedQueries(GetDefaultResult, GetColumnNames, GetQuerryPattern);
 
             _queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad();
             _subQueryable = _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().ForceLoad();
@@ -150,11 +123,11 @@ namespace ObjectStore.Test.Tests
         }
 
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
-        public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression, string queryPattern, IEnumerable<object[]> values)
+        public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression)
         {
             _output.WriteLine($"Test {query} expression");
             List<E.SubTest> subResult = _databaseFixture.GetHitCount(query, () => _subQueryable.Where(expression).ToList(), 1);
-            Assert.Equal(values.Count(), subResult.Count);
+            Assert.Equal(GetDefaultResult(query).Count(), subResult.Count);
             _output.WriteLine("... Done");
         }
 
@@ -190,6 +163,8 @@ namespace ObjectStore.Test.Tests
                     return GetEntitys(1, 2);
                 case Query.SimpleExpressionEqual:
                     return GetSubEntitys(6, 16);
+                case Query.SimpleExpressionUnequal:
+                    return GetSubEntitys(1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20);
                 case Query.SimpleExpressionEqualToNull:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20);
                 case Query.SimpleExpressionUnequalToNull:
@@ -210,6 +185,8 @@ namespace ObjectStore.Test.Tests
                     return GetSubEntitys(6, 16);
                 case Query.SimpleExpressionContains:
                     return GetSubEntitys(3, 6, 8, 13, 16, 18);
+                case Query.SimpleExpressionAnd:
+                    return GetSubEntitys(4, 14);
                 case Query.ForeignObjectEqual:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                 case Query.ForeignObjectPropertyEqualTo:
@@ -219,6 +196,38 @@ namespace ObjectStore.Test.Tests
             }
         }
 
+        string[] GetColumnNames(Query key)
+        {
+            switch (key)
+            {
+                case Query.Insert:
+                case Query.Update:
+                case Query.Select:
+                    return new string[] { "Id", "Name", "Description" };
+                case Query.SimpleExpressionEqual:
+                case Query.SimpleExpressionUnequal:
+                case Query.SimpleExpressionEqualToNull:
+                case Query.SimpleExpressionUnequalToNull:
+                case Query.SimpleExpressionAdd:
+                case Query.SimpleExpressionSubtract:
+                case Query.SimpleExpressionGreater:
+                case Query.SimpleExpressionGreaterEqual:
+                case Query.SimpleExpressionLess:
+                case Query.SimpleExpressionLessEqual:
+                case Query.SimpleExpressionConstantValue:
+                case Query.SimpleExpressionContains:
+                case Query.SimpleExpressionAnd:
+                case Query.ForeignObjectEqual:
+                case Query.ForeignObjectPropertyEqualTo:
+                    return new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" };
+                case Query.Delete:
+                case Query.DeleteSub:
+                default:
+                    return new string[0];
+            }
+        }
+
+        #region Static Methods
         static IEnumerable<object[]> GetSubEntitys(params int[] ids)
         {
             foreach (int id in ids)
@@ -231,24 +240,29 @@ namespace ObjectStore.Test.Tests
                 yield return _entityData[id - 1];
         }
         #endregion
+        #endregion
 
         #region MemberData Definitions
-        public static TheoryData<Query, Expression<Func<E.SubTest, bool>>, string, IEnumerable<object[]>> SimpleExpressions
+        public static TheoryData<Query, Expression<Func<E.SubTest, bool>>> SimpleExpressions
         {
             get
             {
-                TheoryData<Query, Expression<Func<E.SubTest, bool>>, string, IEnumerable<object[]>> returnValue = new TheoryData<Query, Expression<Func<E.SubTest, bool>>, string, IEnumerable<object[]>>();
-                returnValue.Add(Query.SimpleExpressionEqual, x => x.First == x.Second, @"\k<T>\.\[First]\s*=\s*\k<T>\.\[Second]", GetSubEntitys(6,16));
-                returnValue.Add(Query.SimpleExpressionEqualToNull, x => x.Nullable == null, @"\k<T>\.\[Nullable]\s+IS\s+NULL", GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20 ));
-                returnValue.Add(Query.SimpleExpressionUnequalToNull, x => x.Nullable != null, @"\k<T>\.\[Nullable]\s+IS\s+NOT\s+NULL", GetSubEntitys(8, 18));
-                returnValue.Add(Query.SimpleExpressionAdd, x => x.First + x.Second == 10, @"\k<T>\.\[First]\s*\+\s*\k<T>\.\[Second]\s*=\s*@param\d+", GetSubEntitys(1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20));
-                returnValue.Add(Query.SimpleExpressionSubtract, x => x.First - x.Second == 2, @"\k<T>\.\[First]\s*\-\s*\k<T>\.\[Second]\s*=\s*@param\d+", GetSubEntitys(7, 17));
-                returnValue.Add(Query.SimpleExpressionGreater, x => x.First > x.Second, @"\k<T>\.\[First]\s*\>\s*\k<T>\.\[Second]", GetSubEntitys(7, 8, 9, 10, 17, 18, 19, 20));
-                returnValue.Add(Query.SimpleExpressionGreaterEqual, x => x.First >= x.Second, @"\k<T>\.\[First]\s*>=\s*\k<T>\.\[Second]", GetSubEntitys(6, 7, 8, 9, 10, 16, 17, 18, 19, 20));
-                returnValue.Add(Query.SimpleExpressionLess, x => x.First < x.Second, @"\k<T>\.\[First]\s*<\s*\k<T>\.\[Second]", GetSubEntitys(1, 2, 3, 4, 5, 11, 12, 13, 14, 15));
-                returnValue.Add(Query.SimpleExpressionLessEqual, x => x.First <= x.Second, @"\k<T>\.\[First]\s*<=\s*\k<T>\.\[Second]", GetSubEntitys(1,2,3,4,5,6,11,12,13,14,15,16));
-                returnValue.Add(Query.SimpleExpressionConstantValue, x => x.First == 5, @"\k<T>\.\[First]\s*=\s*@param\d+", GetSubEntitys(6, 16));
-                returnValue.Add(Query.SimpleExpressionContains, x => new int[] { 2, 5, 7 }.Contains(x.First), @"\k<T>\.\[First]\s*IN\s*\(@param\d+,\s*@param\d+,\s*@param\d+\)", GetSubEntitys(3, 6, 8, 13, 16, 18));
+                TheoryData<Query, Expression<Func<E.SubTest, bool>>> returnValue = new TheoryData<Query, Expression<Func<E.SubTest, bool>>>();
+                returnValue.Add(Query.SimpleExpressionEqual, x => x.First == x.Second);
+                returnValue.Add(Query.SimpleExpressionUnequal, x => x.First != x.Second);
+                returnValue.Add(Query.SimpleExpressionEqualToNull, x => x.Nullable == null);
+                returnValue.Add(Query.SimpleExpressionEqualToNull, x => null == x.Nullable);
+                returnValue.Add(Query.SimpleExpressionUnequalToNull, x => x.Nullable != null);
+                returnValue.Add(Query.SimpleExpressionUnequalToNull, x => null != x.Nullable);
+                returnValue.Add(Query.SimpleExpressionAdd, x => x.First + x.Second == 10);
+                returnValue.Add(Query.SimpleExpressionSubtract, x => x.First - x.Second == 2);
+                returnValue.Add(Query.SimpleExpressionGreater, x => x.First > x.Second);
+                returnValue.Add(Query.SimpleExpressionGreaterEqual, x => x.First >= x.Second);
+                returnValue.Add(Query.SimpleExpressionLess, x => x.First < x.Second);
+                returnValue.Add(Query.SimpleExpressionLessEqual, x => x.First <= x.Second);
+                returnValue.Add(Query.SimpleExpressionConstantValue, x => x.First == 5);
+                returnValue.Add(Query.SimpleExpressionContains, x => new int[] { 2, 5, 7 }.Contains(x.First));
+                returnValue.Add(Query.SimpleExpressionAnd, x => x.First == 3 && x.Second == 7);
                 return returnValue;
             }
         }

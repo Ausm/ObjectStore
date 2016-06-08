@@ -9,6 +9,7 @@
         Select,
         SimpleExpressionEqual,
         SimpleExpressionEqualToNull,
+        SimpleExpressionUnequal,
         SimpleExpressionUnequalToNull,
         SimpleExpressionAdd,
         SimpleExpressionSubtract,
@@ -18,6 +19,7 @@
         SimpleExpressionLessEqual,
         SimpleExpressionConstantValue,
         SimpleExpressionContains,
+        SimpleExpressionAnd,
         ForeignObjectEqual,
         ForeignObjectPropertyEqualTo
     }
