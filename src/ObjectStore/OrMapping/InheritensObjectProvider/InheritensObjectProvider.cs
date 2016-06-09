@@ -129,16 +129,9 @@ namespace ObjectStore.OrMapping
                         _queue = new List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>>();
                     }
 
-                    DbCommand command = queue[0].Item2;
-                    for (int i = 1; i < queue.Count; i++)
-                    {
-                        command.CommandText += ";" + queue[i].Item2.CommandText;
-                        command.Parameters.AddRange(queue[i].Item2.Parameters.OfType<DbParameter>().ToArray());
-                    }
-
                     List<ICommitContext> commitContexts = new List<ICommitContext>(queue.Count);
 
-                    using (command)
+                    using (DbCommand command = _dataBaseProvider.CombineCommands(queue.Select(x => x.Item2)))
                     {
                         command.Connection = connection;
                         using (DbDataReader reader = command.ExecuteReader())

@@ -226,7 +226,19 @@ namespace ObjectStore.SqlClient
         #region Methods
         public DbCommand CombineCommands(IEnumerable<DbCommand> commands)
         {
-            return null;
+            DbCommand command = commands.FirstOrDefault();
+            if (commands.Count() == 1)
+                return commands.First();
+
+
+            IEnumerator<DbCommand> commandsEnumerator = commands.Skip(1).GetEnumerator();
+            while (commandsEnumerator.MoveNext())
+            {
+                command.CommandText += ";" + commandsEnumerator.Current.CommandText;
+                command.Parameters.AddRange(commandsEnumerator.Current.Parameters.OfType<DbParameter>().ToArray());
+            }
+
+            return command;
         }
 
         internal static DbCommand GetCommand() => _getCommand();
