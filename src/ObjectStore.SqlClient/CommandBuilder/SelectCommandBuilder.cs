@@ -219,7 +219,8 @@ namespace ObjectStore.SqlClient
         #region IParsingContext
         string IParsingContext.GetAlias(ParameterExpression expression)
         {
-            if (_whereExpressions.Any(x => x.Parameters[0] == expression))
+            if (_whereExpressions.Any(x => x.Parameters[0] == expression) ||
+                _orderbyExpressions.Any(x => x.Parameters[0] == expression))
                 return _alias;
 
             throw new ArgumentException("There is no Alias for this expression.", nameof(expression));

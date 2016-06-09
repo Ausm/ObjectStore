@@ -101,7 +101,7 @@ namespace ObjectStore.Test.Fixtures
             }
         }
 
-        public int GetHitCount<T>(Query key, Action action)
+        public int GetHitCount(Query key, Action action)
         {
             int hitCount = 0;
             EventHandler<HitCommandEventArgs> handler = (s, e) =>

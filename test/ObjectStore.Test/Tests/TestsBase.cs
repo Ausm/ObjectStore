@@ -122,6 +122,24 @@ namespace ObjectStore.Test.Tests
             _databaseFixture.GetHitCount(Query.Delete, () => queryable.Save(), 2);
         }
 
+        [Fact]
+        public void TestOrderBy()
+        {
+            E.Test t = Assert.Single(_databaseFixture.GetHitCount(Query.Select, () => _queryable.ToList().Where(x => x.Id == 1), 1));
+            Assert.Equal(1 , _databaseFixture.GetHitCount(Query.OrderBy, () =>
+                Assert.Collection(_subQueryable.Where(x => x.Test == t).OrderBy(x => x.Second),
+                    x => Assert.Equal(10, x.Id),
+                    x => Assert.Equal(9, x.Id),
+                    x => Assert.Equal(8, x.Id),
+                    x => Assert.Equal(7, x.Id),
+                    x => Assert.Equal(6, x.Id),
+                    x => Assert.Equal(5, x.Id),
+                    x => Assert.Equal(4, x.Id),
+                    x => Assert.Equal(3, x.Id),
+                    x => Assert.Equal(2, x.Id),
+                    x => Assert.Equal(1, x.Id))));
+        }
+
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression)
         {
@@ -161,6 +179,8 @@ namespace ObjectStore.Test.Tests
                     return Enumerable.Empty<object[]>();
                 case Query.Select:
                     return GetEntitys(1, 2);
+                case Query.OrderBy:
+                    return GetSubEntitys(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
                 case Query.SimpleExpressionEqual:
                     return GetSubEntitys(6, 16);
                 case Query.SimpleExpressionUnequal:
@@ -204,6 +224,7 @@ namespace ObjectStore.Test.Tests
                 case Query.Update:
                 case Query.Select:
                     return new string[] { "Id", "Name", "Description" };
+                case Query.OrderBy:
                 case Query.SimpleExpressionEqual:
                 case Query.SimpleExpressionUnequal:
                 case Query.SimpleExpressionEqualToNull:

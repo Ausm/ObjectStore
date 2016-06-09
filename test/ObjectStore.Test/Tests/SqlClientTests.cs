@@ -29,6 +29,8 @@ namespace ObjectStore.Test.Tests
                     return @"^\s*DELETE\s+dbo\.SubTestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.Select:
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$";
+                case Query.OrderBy:
+                    return GetSimpleExpressionPattern(@"\k<T>\.Test\s*=\s*@param\d+\s+ORDER\s+BY\s+\k<T>\.\[Second]\s*");
                 case Query.SimpleExpressionEqual:
                     return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*=\s*\k<T>\.\[Second]");
                 case Query.SimpleExpressionUnequal:
