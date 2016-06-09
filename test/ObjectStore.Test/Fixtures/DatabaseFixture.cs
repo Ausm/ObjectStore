@@ -9,7 +9,6 @@ using ObjectStore.Test.Mocks;
 using System.Text.RegularExpressions;
 using ObjectStore.Test.Tests;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ObjectStore.Test.Fixtures
 {
@@ -70,23 +69,6 @@ namespace ObjectStore.Test.Fixtures
             _resultManager.SetValues(key, values);
         }
 
-        public T GetHitCount<T>(Query key, Func<T> action, int expectedHitCount)
-        {
-            int hitCount = 0;
-            EventHandler<HitCommandEventArgs> handler = (s, e) =>
-            {
-                if (e.Key == key)
-                    hitCount++;
-            };
-
-            HitCommand += handler;
-            T returnValue = action();
-            HitCommand -= handler;
-
-            Xunit.Assert.Equal(expectedHitCount, hitCount);
-            return returnValue;
-        }
-
         public void InitializeSupportedQueries(Func<Query, IEnumerable<object[]>> getDefaultResult, Func<Query, string[]> getColumnNames, Func<Query, string> getPattern)
         {
             if (_isInitialized)
@@ -99,22 +81,6 @@ namespace ObjectStore.Test.Fixtures
                 IEnumerable<object[]> values = getDefaultResult(query);
                 _resultManager.AddItem(query, x => new Regex(getPattern(query)).IsMatch(x.CommandText), getColumnNames(query), getDefaultResult(query));
             }
-        }
-
-        public int GetHitCount(Query key, Action action)
-        {
-            int hitCount = 0;
-            EventHandler<HitCommandEventArgs> handler = (s, e) =>
-            {
-                if (e.Key == key)
-                    hitCount++;
-            };
-
-            HitCommand += handler;
-            action();
-            HitCommand -= handler;
-
-            return hitCount;
         }
 
         public void Dispose()

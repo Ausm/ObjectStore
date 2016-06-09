@@ -1,4 +1,5 @@
 ﻿using Xunit;
+using Assert = ObjectStore.Test.Common.Assert;
 using System;
 using System.Linq;
 using ObjectStore.Test.Fixtures;
@@ -80,9 +81,8 @@ namespace ObjectStore.Test.Tests
 
             _output.WriteLine($"Entity created, Name: {entity.Name}");
 
-            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Id),
-                () => _databaseFixture.GetHitCount(Query.Insert,
-                    () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save(), 1));
+            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Id), 
+                () => Assert.ScriptCalled(_databaseFixture, Query.Insert, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save()));
 
             Assert.Equal(entity.Id, newId);
             _output.WriteLine($"First entity saved, new Id: {entity.Id} -> passed");
@@ -93,34 +93,34 @@ namespace ObjectStore.Test.Tests
         {
             _databaseFixture.SetResult(Query.Select, GetEntitys(1));
 
-            E.Test entity = _databaseFixture.GetHitCount(Query.Select, () => Assert.Single(_queryable), 1);
+            E.Test entity = Assert.ScriptCalled(_databaseFixture, Query.Select, () => Assert.Single(_queryable));
 
             _databaseFixture.SetResult(Query.Update, new[] { new object[] { entity.Id, entity.Name, Resource.SecondRandomText } });
 
             Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Description),
                 () => entity.Description = Resource.SecondRandomText);
 
-            _databaseFixture.GetHitCount(Query.Update, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save(), 1);
+            Assert.ScriptCalled(_databaseFixture, Query.Update, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save());
         }
 
         [Fact]
         public void TestDeleteSingle()
         {
-            E.Test entity = _databaseFixture.GetHitCount(Query.Select, () => Assert.Single(_queryable.ToList().Where(x => x.Id == 1)), 1);
+            E.Test entity = Assert.ScriptCalled(_databaseFixture, Query.Select, () => Assert.Single(_queryable.ToList().Where(x => x.Id == 1)));
 
             IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity);
             queryable.Delete();
 
-            _databaseFixture.GetHitCount(Query.Delete, () => queryable.Save(), 1);
+            Assert.ScriptCalled(_databaseFixture, Query.Delete, () => queryable.Save());
         }
 
         [Fact]
         public void TestDeleteAll()
         {
-            _databaseFixture.GetHitCount(Query.Select, () => _queryable.ToList(), 1);
+            Assert.ScriptCalled(_databaseFixture, Query.Select, () => _queryable.ToList());
             _queryable.Delete();
 
-            _databaseFixture.GetHitCount(Query.Delete, () => _queryable.Save(), 2);
+            Assert.ScriptsCalled(_databaseFixture, () => _queryable.Save(), 2, Query.Delete);
         }
 
         [Fact]
@@ -130,28 +130,33 @@ namespace ObjectStore.Test.Tests
             EventHandler<DatabaseFixture.HitCommandEventArgs> blockHandler = (s, e) => manualResetEvent.WaitOne();
 
             _databaseFixture.HitCommand += blockHandler;
-
-            _databaseFixture.GetHitCount(Query.Select, () =>
+            try
             {
-                Task[] tasks = new Task[] {
-                _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync(),
-                _databaseFixture.ObjectProvider.GetQueryable<E.Test>().FetchAsync(),
-                _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync()};
+                Assert.ScriptsCalled(_databaseFixture, () =>
+                {
+                    Task[] tasks = new Task[] {
+                        _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync(),
+                        _databaseFixture.ObjectProvider.GetQueryable<E.Test>().FetchAsync(),
+                        _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync()};
 
-                manualResetEvent.Set();
+                    manualResetEvent.Set();
 
-                Task.WaitAll(tasks);
+                    Task.WaitAll(tasks);
 
-            });
-
-            _databaseFixture.HitCommand -= blockHandler;
+                }, Query.SelectSub, Query.Select, Query.SelectSub);
+            }
+            finally
+            {
+                _databaseFixture.HitCommand -= blockHandler;
+            }
         }
 
         [Fact]
         public void TestOrderBy()
         {
-            E.Test t = Assert.Single(_databaseFixture.GetHitCount(Query.Select, () => _queryable.ToList().Where(x => x.Id == 1), 1));
-            Assert.Equal(1, _databaseFixture.GetHitCount(Query.OrderBy, () =>
+            E.Test t = Assert.Single(Assert.ScriptCalled(_databaseFixture, Query.Select, () => _queryable.ToList().Where(x => x.Id == 1)));
+
+            Assert.ScriptCalled(_databaseFixture, Query.OrderBy, () =>
                Assert.Collection(_subQueryable.Where(x => x.Test == t).OrderBy(x => x.Second),
                    x => Assert.Equal(10, x.Id),
                    x => Assert.Equal(9, x.Id),
@@ -162,14 +167,14 @@ namespace ObjectStore.Test.Tests
                    x => Assert.Equal(4, x.Id),
                    x => Assert.Equal(3, x.Id),
                    x => Assert.Equal(2, x.Id),
-                   x => Assert.Equal(1, x.Id))));
+                   x => Assert.Equal(1, x.Id)));
         }
 
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression)
         {
             _output.WriteLine($"Test {query} expression");
-            List<E.SubTest> subResult = _databaseFixture.GetHitCount(query, () => _subQueryable.Where(expression).ToList(), 1);
+            List<E.SubTest> subResult = Assert.ScriptCalled(_databaseFixture, query, () => _subQueryable.Where(expression).ToList());
             Assert.Equal(GetDefaultResult(query).Count(), subResult.Count);
             _output.WriteLine("... Done");
         }
@@ -179,9 +184,9 @@ namespace ObjectStore.Test.Tests
         {
             _output.WriteLine($"Test {query} expression");
 
-            E.Test t = Assert.Single(_databaseFixture.GetHitCount(Query.Select, () => _queryable.ToList().Where(x => x.Id == 1), 1));
+            E.Test t = Assert.Single(Assert.ScriptCalled(_databaseFixture, Query.Select, () => _queryable.ToList().Where(x => x.Id == 1)));
 
-            List<E.SubTest> subResult = _databaseFixture.GetHitCount(query, () => function(_subQueryable, t).ToList(), 1);
+            List<E.SubTest> subResult = Assert.ScriptCalled(_databaseFixture, query, () => function(_subQueryable, t).ToList());
             Assert.Equal(values.Count(), subResult.Count);
             _output.WriteLine("... Done");
         }
