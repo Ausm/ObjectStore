@@ -30,16 +30,16 @@ namespace ObjectStore.OrMapping
     {
         public class QueryProvider : IQueryProvider
         {
-#region Membervariablen
+            #region Membervariablen
             static Dictionary<ValueComparedExpression<Expression>, WeakReference<QueryProvider>> _queryProvider;
 
             InheritensObjectProvider<T> _objectProvider;
             QueryContext _queryContext;
             WeakCache.ContextEnumerable _enumerable;
             Expression _queryexpression;
-#endregion
+            #endregion
 
-#region Konstruktor
+            #region Konstruktor
             private QueryProvider(Expression expression, InheritensObjectProvider<T> objectProvider)
             {
                 _objectProvider = objectProvider;
@@ -59,9 +59,9 @@ namespace ObjectStore.OrMapping
 
                 return returnValue;
             }
-#endregion
+            #endregion
 
-#region Properties
+            #region Properties
             internal QueryContext Context
             {
                 get
@@ -77,9 +77,9 @@ namespace ObjectStore.OrMapping
                     return _enumerable ?? (_enumerable = _objectProvider._cache.CreateEnumerable(Context));
                 }
             }
-#endregion
+            #endregion
 
-#region Methoden
+            #region Methoden
             public IEnumerable<T> GetValues()
             {
                 _objectProvider._dbWorker.FillCache(Context.FillCacheContext);
@@ -111,17 +111,17 @@ namespace ObjectStore.OrMapping
                     return string.Format("Unparseable:{0}", ex);
                 }
             }
-#endregion
+            #endregion
 
-#region Events
+            #region Events
             public event System.Collections.Specialized.NotifyCollectionChangedEventHandler CollectionChanged
             {
                 add { Enumerable.CollectionChanged += value; }
                 remove { Enumerable.CollectionChanged -= value; }
             }
-#endregion
+            #endregion
 
-#region IQueryProvider Members
+            #region IQueryProvider Members
 
             public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
             {
@@ -131,7 +131,7 @@ namespace ObjectStore.OrMapping
                     MethodCallExpression callExpression = (MethodCallExpression)expression;
 
 
-                    if (callExpression.Method.Name == "Select" && 
+                    if (callExpression.Method.Name == "Select" &&
                         callExpression.Method.GetParameters().Length == 2 &&
                         callExpression.Method.GetParameters()[0].ParameterType == typeof(IQueryable<T>) &&
                         callExpression.Method.GetParameters()[1].ParameterType == typeof(Expression<Func<T, TElement>>))
@@ -191,7 +191,7 @@ namespace ObjectStore.OrMapping
                         return Queryable.Create(_objectProvider, (expression as MethodCallExpression).Arguments[0]).Provider.Execute<TResult>(expression);
                     }
 
-#region Invoke Save
+                    #region Invoke Save
                     MethodCallExpression callExpression = expression as MethodCallExpression;
                     if (callExpression != null &&
                         callExpression.Method.Name == "Save" &&
@@ -206,8 +206,8 @@ namespace ObjectStore.OrMapping
                         }
 
                     }
-#endregion
-#region Invoke Delete
+                    #endregion
+                    #region Invoke Delete
                     if (callExpression != null &&
                         callExpression.Method == typeof(Extensions).GetMethod("Delete").MakeGenericMethod(typeof(T)) &&
                         typeof(TResult) == typeof(bool))
@@ -215,18 +215,17 @@ namespace ObjectStore.OrMapping
                         Enumerable.Delete();
                         return (TResult)(object)true;
                     }
-#endregion
-#region Invoke BeginFetch
-                    if (callExpression != null &&
-                            callExpression.Method == typeof(Extensions).GetMethod("BeginFetch").MakeGenericMethod(typeof(T)) &&
+                    #endregion
+                    #region Invoke BeginFetch
+                    if (callExpression?.Method == typeof(Extensions).GetMethod(nameof(Extensions.BeginFetch)).MakeGenericMethod(typeof(T)) &&
                             typeof(TResult) == typeof(IAsyncResult))
                     {
                         WeakCache.ContextEnumerable enumerable = Enumerable; // Um sicherzustellen das die Enumerable auch bereits erstellt wurde.
                         return (TResult)_objectProvider._dbWorker.FillCacheAsync(this);
                     }
 
-#endregion
-#region Invoke DropChanges
+                    #endregion
+                    #region Invoke DropChanges
                     if (callExpression != null &&
                         callExpression.Method == typeof(Extensions).GetMethod("DropChanges").MakeGenericMethod(typeof(T)) &&
                         typeof(TResult) == typeof(bool))
@@ -234,8 +233,8 @@ namespace ObjectStore.OrMapping
                         Enumerable.DropChanges();
                         return (TResult)(object)true;
                     }
-#endregion
-#region Invoke FirstOrDefault
+                    #endregion
+                    #region Invoke FirstOrDefault
                     if (callExpression != null &&
                         callExpression.Method.Name == "FirstOrDefault" &&
                         callExpression.Method.DeclaringType == typeof(System.Linq.Queryable) &&
@@ -251,8 +250,8 @@ namespace ObjectStore.OrMapping
 
                         return (TResult)(object)GetValues().FirstOrDefault();
                     }
-#endregion
-#region Invoke Contains
+                    #endregion
+                    #region Invoke Contains
                     if (callExpression != null &&
                         callExpression.Method.Name == "Contains" &&
                         callExpression.Method.DeclaringType == typeof(System.Linq.Queryable) &&
@@ -262,8 +261,8 @@ namespace ObjectStore.OrMapping
                         T element = (T)Expression.Lambda<Func<T>>(callExpression.Arguments[1]).Compile()();
                         return (TResult)(object)(Context.TopCount.HasValue ? Enumerable.Contains(element) : Context.GetPredicateCompiled()(element));
                     }
-#endregion
-#region Invoke CheckChanged
+                    #endregion
+                    #region Invoke CheckChanged
                     if (callExpression != null &&
                         callExpression.Method.Name == "CheckChanged" &&
                         callExpression.Method.DeclaringType == typeof(Extensions) &&
@@ -272,8 +271,8 @@ namespace ObjectStore.OrMapping
                     {
                         return (TResult)(object)Enumerable.Changed;
                     }
-#endregion
-#region Invoke Count
+                    #endregion
+                    #region Invoke Count
                     if (callExpression != null &&
                         callExpression.Method.Name == "Count" &&
                         callExpression.Method.DeclaringType == typeof(System.Linq.Queryable) &&
@@ -282,8 +281,8 @@ namespace ObjectStore.OrMapping
                     {
                         return (TResult)(object)GetValues().Count();
                     }
-#endregion
-#region Invoke Any
+                    #endregion
+                    #region Invoke Any
                     if (callExpression != null &&
                         callExpression.Method.Name == "Any" &&
                         callExpression.Method.DeclaringType == typeof(System.Linq.Queryable) &&
@@ -294,7 +293,7 @@ namespace ObjectStore.OrMapping
                             return (TResult)(object)true;
                         return (TResult)(object)GetValues().Any();
                     }
-#endregion
+                    #endregion
 
                 }
 
@@ -305,12 +304,12 @@ namespace ObjectStore.OrMapping
             {
                 return typeof(QueryProvider).GetMethods().Where(x => x.Name == "Execute" && x.IsGenericMethod).FirstOrDefault().MakeGenericMethod(expression.Type).Invoke(this, new object[] { expression });
             }
-#endregion
+            #endregion
         }
 
         internal class QueryContext
         {
-#region OrderItem
+            #region OrderItem
             internal interface IOrderItem
             {
                 LambdaExpression Expression { get; }
@@ -362,7 +361,7 @@ namespace ObjectStore.OrMapping
 #if  NETCOREAPP1_0
                                             x.Type.GetTypeInfo().IsValueType ? 
 #else
-                                            x.Type.IsValueType ? 
+                                            x.Type.IsValueType ?
 #endif
                                                 Activator.CreateInstance(x.Type) : null, x.Type),
                                         x);
@@ -370,7 +369,7 @@ namespace ObjectStore.OrMapping
                     }
                 }
 
-#region IOrderItem Members
+                #region IOrderItem Members
 
                 public LambdaExpression Expression
                 {
@@ -436,11 +435,11 @@ namespace ObjectStore.OrMapping
                         Comparer<TKey>.Default.Compare(Compiled(first), Compiled(second)) :
                         Comparer<TKey>.Default.Compare(Compiled(first), Compiled(second)) * -1;
                 }
-#endregion
+                #endregion
             }
-#endregion
+            #endregion
 
-#region Membervariablen
+            #region Membervariablen
             List<Expression<Func<T, bool>>> _whereExpressions;
             List<IOrderItem> _orderExpressions;
             int? _topCount;
@@ -456,9 +455,9 @@ namespace ObjectStore.OrMapping
 
             static Dictionary<ValueComparedExpression<Expression>, WeakReference<QueryContext>> _cachedContext = new Dictionary<ValueComparedExpression<Expression>, WeakReference<QueryContext>>();
             static QueryContext _baseQueryContext;
-#endregion
+            #endregion
 
-#region Konstruktor
+            #region Konstruktor
             private QueryContext(QueryContext innerQueryContext)
             {
                 _whereExpressions = new List<Expression<Func<T, bool>>>();
@@ -474,10 +473,10 @@ namespace ObjectStore.OrMapping
                     _orderExpressions = _innerQueryContext._orderExpressions == null ? null : new List<IOrderItem>(_innerQueryContext._orderExpressions);
                 }
             }
-#endregion
+            #endregion
 
-#region Methoden
-#region Static
+            #region Methoden
+            #region Static
             internal static QueryContext Analyse(Expression expression)
             {
                 return AnalyseInternal(expression).AddToCache(expression);
@@ -511,7 +510,7 @@ namespace ObjectStore.OrMapping
                     if (context._isCached)
                         context = new QueryContext(context);
 
-#region Invoke Where
+                    #region Invoke Where
                     if (callExpression.Method.Name == "Where" &&
                        callExpression.Arguments.Count == 2 &&
                        callExpression.Arguments[1].Type == typeof(Expression<Func<T, bool>>))
@@ -520,9 +519,9 @@ namespace ObjectStore.OrMapping
                         context.SetWhere(predicate);
                         return context;
                     }
-#endregion
+                    #endregion
 
-#region Invoke OrderBy
+                    #region Invoke OrderBy
                     if (callExpression.Method.Name == "OrderBy" &&
                             callExpression.Arguments.Count == 2)
                     {
@@ -530,9 +529,9 @@ namespace ObjectStore.OrMapping
                         typeof(QueryContext).GetMethod("SetOrderBy", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(orderBy.Body.Type).Invoke(context, new object[] { orderBy, System.ComponentModel.ListSortDirection.Ascending });
                         return context;
                     }
-#endregion
+                    #endregion
 
-#region Invoke OrderByDescending
+                    #region Invoke OrderByDescending
                     if (callExpression.Method.Name == "OrderByDescending" &&
                             callExpression.Arguments.Count == 2)
                     {
@@ -540,9 +539,9 @@ namespace ObjectStore.OrMapping
                         typeof(QueryContext).GetMethod("SetOrderBy", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(orderBy.Body.Type).Invoke(context, new object[] { orderBy, System.ComponentModel.ListSortDirection.Descending });
                         return context;
                     }
-#endregion
+                    #endregion
 
-#region Invoke ThenBy
+                    #region Invoke ThenBy
                     if (callExpression.Method.Name == "ThenBy" &&
                             callExpression.Arguments.Count == 2)
                     {
@@ -550,9 +549,9 @@ namespace ObjectStore.OrMapping
                         typeof(QueryContext).GetMethod("SetThenBy", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(orderBy.Body.Type).Invoke(context, new object[] { orderBy, System.ComponentModel.ListSortDirection.Ascending });
                         return context;
                     }
-#endregion
+                    #endregion
 
-#region Invoke ThenByDescending
+                    #region Invoke ThenByDescending
                     if (callExpression.Method.Name == "ThenByDescending" &&
                             callExpression.Arguments.Count == 2)
                     {
@@ -560,9 +559,9 @@ namespace ObjectStore.OrMapping
                         typeof(QueryContext).GetMethod("SetThenBy", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(orderBy.Body.Type).Invoke(context, new object[] { orderBy, System.ComponentModel.ListSortDirection.Descending });
                         return context;
                     }
-#endregion
+                    #endregion
 
-#region Invoke Take
+                    #region Invoke Take
                     if (callExpression.Method.Name == "Take" &&
                        callExpression.Arguments.Count == 2 &&
                        callExpression.Arguments[1].Type == typeof(int))
@@ -571,9 +570,9 @@ namespace ObjectStore.OrMapping
                         context.SetTop(count);
                         return context;
                     }
-#endregion
+                    #endregion
 
-#region Invoke Force
+                    #region Invoke Force
                     if (callExpression.Method.Name == "ForceLoad" &&
                        callExpression.Arguments.Count == 1)
                     {
@@ -583,9 +582,9 @@ namespace ObjectStore.OrMapping
                         context.SetForceLoad();
                         return context;
                     }
-#endregion
+                    #endregion
 
-#region Invoke ForceCache
+                    #region Invoke ForceCache
                     if (callExpression.Method.Name == "ForceCache" &&
                        callExpression.Arguments.Count == 1)
                     {
@@ -595,7 +594,7 @@ namespace ObjectStore.OrMapping
                         context.SetForceCache();
                         return context;
                     }
-#endregion
+                    #endregion
                 }
 
                 throw new NotSupportedException();
@@ -614,9 +613,9 @@ namespace ObjectStore.OrMapping
                 _isCached = true;
                 return this;
             }
-#endregion
+            #endregion
 
-#region Protected
+            #region Protected
             protected void SetWhere(Expression<Func<T, bool>> predicate)
             {
                 _whereExpressions.Add((Expression<Func<T, bool>>)ExpressionHelper.ReplaceExpressionParts(predicate, x => ExpressionHelper.ContainsAny(x, y => y.NodeType == ExpressionType.Parameter) || x == predicate ? x : Expression.Constant(LambdaExpression.Lambda(x).Compile().DynamicInvoke(), x.Type)));
@@ -651,9 +650,9 @@ namespace ObjectStore.OrMapping
             {
                 _forceLoad = true;
             }
-#endregion
+            #endregion
 
-#region Public
+            #region Public
             public Expression<Func<T, bool>> GetPredicate()
             {
                 Expression<Func<T, bool>> _predicate = null; // = _whereExpressions.First();
@@ -752,10 +751,10 @@ namespace ObjectStore.OrMapping
                 }
                 return 0;
             }
-#endregion
-#endregion
+            #endregion
+            #endregion
 
-#region Properties
+            #region Properties
             private IEnumerable<Expression<Func<T, bool>>> WhereExpressions
             {
                 get
@@ -785,8 +784,8 @@ namespace ObjectStore.OrMapping
                         return _predicateRelatedProperties.AsReadOnly();
 
                     if (_whereExpressions == null || _whereExpressions.Count == 0)
-                        return _innerQueryContext == null ? 
-                            (_predicateRelatedProperties = new List<string>(MappingInfo.GetMappingInfo(typeof(T)).KeyMappingInfos.Select(x => x.MemberInfo.Name))).AsReadOnly() : 
+                        return _innerQueryContext == null ?
+                            (_predicateRelatedProperties = new List<string>(MappingInfo.GetMappingInfo(typeof(T)).KeyMappingInfos.Select(x => x.MemberInfo.Name))).AsReadOnly() :
                             (_predicateRelatedProperties = new List<string>(_innerQueryContext.PredicateRelatedProperties)).AsReadOnly();
 
                     foreach (Expression<Func<T, bool>> expression in _whereExpressions)
@@ -865,7 +864,7 @@ namespace ObjectStore.OrMapping
                     return _baseQueryContext;
                 }
             }
-#endregion
+            #endregion
         }
     }
 }

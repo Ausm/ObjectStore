@@ -196,7 +196,7 @@ namespace ObjectStore.OrMapping
             public IAsyncResult FillCacheAsync(QueryProvider provider)
             {
                 QueryContext context = provider.Context.FillCacheContext;
-                if (context.Load)
+                if (context.ForceLoad)
                     return null;
 
                 IModifyableCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());

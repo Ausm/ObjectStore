@@ -16,7 +16,7 @@ namespace ObjectStore.Test.Fixtures
     public class DatabaseFixture : IDisposable
     {
         #region Subclasses
-        class HitCommandEventArgs : EventArgs
+        public class HitCommandEventArgs : EventArgs
         {
             public HitCommandEventArgs(Query key)
             {
@@ -123,20 +123,21 @@ namespace ObjectStore.Test.Fixtures
 
         DataReader GetReader(Command command)
         {
-            Query key;
+            List<Query> keys = new List<Query>();
 
-            DataReader returnValue = _resultManager.GetReader(command, out key);
+            DataReader returnValue = _resultManager.GetReader(command, keys);
             if (returnValue == null)
                 throw new NotImplementedException($"No result for Query: \"{command.CommandText}\"");
-
-            HitCommand?.Invoke(this, new HitCommandEventArgs(key));
+            if(HitCommand != null)
+                foreach(Query key in keys)
+                    HitCommand(this, new HitCommandEventArgs(key));
 
             return returnValue;
         }
         #endregion
 
         #region Events
-        event EventHandler<HitCommandEventArgs> HitCommand;
+        public event EventHandler<HitCommandEventArgs> HitCommand;
         #endregion
     }
 }

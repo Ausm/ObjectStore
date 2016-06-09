@@ -13,14 +13,16 @@ namespace ObjectStore.Test.Mocks
         string[] _columnNames;
         IEnumerable<object[]> _values;
         IEnumerator<object[]> _current;
+        IEnumerator<Tuple<string[], IEnumerable<object[]>>> _resultSets;
         #endregion
 
         #region Constructors
-        public DataReader(string[] columnNames, IEnumerable<object[]> values)
+        public DataReader(string[] columnNames, IEnumerable<object[]> values, IEnumerable<Tuple<string[], IEnumerable<object[]>>> resultSets = null)
         {
             _columnNames = columnNames;
             _values = values;
             _current = _values.GetEnumerator();
+            _resultSets = resultSets?.GetEnumerator();
         }
         #endregion
 
@@ -199,7 +201,12 @@ namespace ObjectStore.Test.Mocks
 
         public override bool NextResult()
         {
-            throw new NotImplementedException();
+            if (!_resultSets.MoveNext())
+                return false;
+
+            _columnNames = _resultSets.Current.Item1;
+            _values = _resultSets.Current.Item2;
+            return true;
         }
 
         public override bool Read()

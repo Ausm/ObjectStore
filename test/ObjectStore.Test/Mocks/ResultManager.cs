@@ -73,18 +73,44 @@ namespace ObjectStore.Test.Mocks
 
         public override DataReader GetReader(DbCommand command)
         {
-            T key;
-            return GetReader(command, out key);
+            return GetReader(command, null);
         }
 
-        public DataReader GetReader(DbCommand command, out T key)
+        public DataReader GetReader(DbCommand command, ICollection<T> key)
         {
-            KeyValuePair<T, Item> item = _items.FirstOrDefault(x => x.Value.IsApplicable(command));
-            key = item.Key;
-            if (item.Value == null)
-                return null;
+            string fullCommandText = command.CommandText;
+            try
+            {
+                string[] columnNames = null;
+                IEnumerable<object[]> values = null;
+                List<Tuple<string[], IEnumerable<object[]>>> resultSets = new List<Tuple<string[], IEnumerable<object[]>>>();
 
-            return new DataReader(item.Value.ColumnNames, item.Value.GetValues());
+                foreach (string commandText in fullCommandText.Split(';'))
+                {
+                    command.CommandText = commandText;
+
+                    KeyValuePair<T, Item> item = _items.FirstOrDefault(x => x.Value.IsApplicable(command));
+                    if (item.Value == null)
+                        return null;
+
+                    key?.Add(item.Key);
+                    if (columnNames == null)
+                    {
+                        columnNames = item.Value.ColumnNames;
+                        values = item.Value.GetValues();
+                    }
+                    else
+                    {
+                        resultSets.Add(Tuple.Create(item.Value.ColumnNames, item.Value.GetValues()));
+                    }
+                }
+
+                return new DataReader(columnNames, values, resultSets);
+            }
+            finally
+            {
+                command.CommandText = fullCommandText;
+            }
         }
     }
 }

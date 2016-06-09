@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.ComponentModel;
 using ObjectStore.Test.Resources;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace ObjectStore.Test.Tests
 {
@@ -78,8 +80,8 @@ namespace ObjectStore.Test.Tests
 
             _output.WriteLine($"Entity created, Name: {entity.Name}");
 
-            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Id), 
-                () => _databaseFixture.GetHitCount(Query.Insert, 
+            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Id),
+                () => _databaseFixture.GetHitCount(Query.Insert,
                     () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save(), 1));
 
             Assert.Equal(entity.Id, newId);
@@ -95,7 +97,7 @@ namespace ObjectStore.Test.Tests
 
             _databaseFixture.SetResult(Query.Update, new[] { new object[] { entity.Id, entity.Name, Resource.SecondRandomText } });
 
-            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Description), 
+            Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Description),
                 () => entity.Description = Resource.SecondRandomText);
 
             _databaseFixture.GetHitCount(Query.Update, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save(), 1);
@@ -115,29 +117,52 @@ namespace ObjectStore.Test.Tests
         [Fact]
         public void TestDeleteAll()
         {
-            IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>();
-            _databaseFixture.GetHitCount(Query.Select, () => queryable.ToList(), 1);
-            queryable.Delete();
+            _databaseFixture.GetHitCount(Query.Select, () => _queryable.ToList(), 1);
+            _queryable.Delete();
 
-            _databaseFixture.GetHitCount(Query.Delete, () => queryable.Save(), 2);
+            _databaseFixture.GetHitCount(Query.Delete, () => _queryable.Save(), 2);
+        }
+
+        [Fact]
+        public void TestBeginFetch()
+        {
+            ManualResetEvent manualResetEvent = new ManualResetEvent(false);
+            EventHandler<DatabaseFixture.HitCommandEventArgs> blockHandler = (s, e) => manualResetEvent.WaitOne();
+
+            _databaseFixture.HitCommand += blockHandler;
+
+            _databaseFixture.GetHitCount(Query.Select, () =>
+            {
+                Task[] tasks = new Task[] {
+                _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync(),
+                _databaseFixture.ObjectProvider.GetQueryable<E.Test>().FetchAsync(),
+                _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync()};
+
+                manualResetEvent.Set();
+
+                Task.WaitAll(tasks);
+
+            });
+
+            _databaseFixture.HitCommand -= blockHandler;
         }
 
         [Fact]
         public void TestOrderBy()
         {
             E.Test t = Assert.Single(_databaseFixture.GetHitCount(Query.Select, () => _queryable.ToList().Where(x => x.Id == 1), 1));
-            Assert.Equal(1 , _databaseFixture.GetHitCount(Query.OrderBy, () =>
-                Assert.Collection(_subQueryable.Where(x => x.Test == t).OrderBy(x => x.Second),
-                    x => Assert.Equal(10, x.Id),
-                    x => Assert.Equal(9, x.Id),
-                    x => Assert.Equal(8, x.Id),
-                    x => Assert.Equal(7, x.Id),
-                    x => Assert.Equal(6, x.Id),
-                    x => Assert.Equal(5, x.Id),
-                    x => Assert.Equal(4, x.Id),
-                    x => Assert.Equal(3, x.Id),
-                    x => Assert.Equal(2, x.Id),
-                    x => Assert.Equal(1, x.Id))));
+            Assert.Equal(1, _databaseFixture.GetHitCount(Query.OrderBy, () =>
+               Assert.Collection(_subQueryable.Where(x => x.Test == t).OrderBy(x => x.Second),
+                   x => Assert.Equal(10, x.Id),
+                   x => Assert.Equal(9, x.Id),
+                   x => Assert.Equal(8, x.Id),
+                   x => Assert.Equal(7, x.Id),
+                   x => Assert.Equal(6, x.Id),
+                   x => Assert.Equal(5, x.Id),
+                   x => Assert.Equal(4, x.Id),
+                   x => Assert.Equal(3, x.Id),
+                   x => Assert.Equal(2, x.Id),
+                   x => Assert.Equal(1, x.Id))));
         }
 
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
@@ -179,6 +204,8 @@ namespace ObjectStore.Test.Tests
                     return Enumerable.Empty<object[]>();
                 case Query.Select:
                     return GetEntitys(1, 2);
+                case Query.SelectSub:
+                    return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
                 case Query.OrderBy:
                     return GetSubEntitys(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
                 case Query.SimpleExpressionEqual:
@@ -224,6 +251,7 @@ namespace ObjectStore.Test.Tests
                 case Query.Update:
                 case Query.Select:
                     return new string[] { "Id", "Name", "Description" };
+                case Query.SelectSub:
                 case Query.OrderBy:
                 case Query.SimpleExpressionEqual:
                 case Query.SimpleExpressionUnequal:
@@ -252,7 +280,7 @@ namespace ObjectStore.Test.Tests
         static IEnumerable<object[]> GetSubEntitys(params int[] ids)
         {
             foreach (int id in ids)
-                yield return _subEntityData[id -1];
+                yield return _subEntityData[id - 1];
         }
 
         static IEnumerable<object[]> GetEntitys(params int[] ids)

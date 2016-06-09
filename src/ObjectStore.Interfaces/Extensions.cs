@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Linq.Expressions;
 using ObjectStore.Interfaces;
+using System.Threading.Tasks;
 
 namespace ObjectStore
 {
@@ -142,6 +143,10 @@ namespace ObjectStore
             return ((MethodCallExpression)expression.Body).Method;
         }
 
+        public static async Task FetchAsync<T>(this IQueryable<T> source)
+        {
+            await Task.Factory.FromAsync(BeginFetch(source), x => x.AsyncWaitHandle.WaitOne());
+        }
 #else
         public static bool Save<T>(this IQueryable<T> source)
         {
@@ -228,6 +233,11 @@ namespace ObjectStore
                     );
             }
             throw new InvalidOperationException("Source is not a IStoreQueryable.");
+        }
+
+        public static async Task FetchAsync<T>(this IQueryable<T> source)
+        {
+            await Task.Factory.FromAsync(BeginFetch(source), x => x.AsyncWaitHandle.WaitOne());
         }
 #endif
         #endregion

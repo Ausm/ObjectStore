@@ -7,6 +7,7 @@
         Delete,
         DeleteSub,
         Select,
+        SelectSub,
         OrderBy,
         SimpleExpressionEqual,
         SimpleExpressionEqualToNull,
