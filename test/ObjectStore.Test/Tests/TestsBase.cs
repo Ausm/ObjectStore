@@ -177,7 +177,7 @@ namespace ObjectStore.Test.Tests
                     x => Assert.Equal(x, Query.Select),
                     x => Assert.Equal(x, Query.SelectSub));
 
-                Assert.Equal(20, collectionChangedCounter);
+                Assert.InRange(collectionChangedCounter, 20, int.MaxValue);
             }
             finally
             {
