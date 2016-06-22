@@ -11,6 +11,7 @@ using System.ComponentModel;
 using ObjectStore.Test.Resources;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Specialized;
 
 namespace ObjectStore.Test.Tests
 {
@@ -124,30 +125,65 @@ namespace ObjectStore.Test.Tests
         }
 
         [Fact]
-        public void TestBeginFetch()
+        public async Task TestBeginFetch()
         {
+            int collectionChangedCounter = 0;
+            List<Query> hittedCommands = new List<Query>();
             ManualResetEvent manualResetEvent = new ManualResetEvent(false);
-            EventHandler<DatabaseFixture.HitCommandEventArgs> blockHandler = (s, e) => manualResetEvent.WaitOne();
+            ManualResetEvent manualResetEvent2 = new ManualResetEvent(false);
+            EventHandler<DatabaseFixture.HitCommandEventArgs> blockHandler = (s, e) =>
+            {
+                hittedCommands.Add(e.Key);
+                manualResetEvent2.Set();
+                manualResetEvent.WaitOne();
+            };
+
+            NotifyCollectionChangedEventHandler collectionChangedHandler = (s, e) =>
+            {
+                lock (this)
+                {
+                    collectionChangedCounter++;
+                }
+            };
+
+            IQueryable<E.Test> testQueryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>();
+            IQueryable<E.SubTest> subTestQueryable = _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>();
+
 
             _databaseFixture.HitCommand += blockHandler;
             try
             {
-                Assert.ScriptsCalled(_databaseFixture, () =>
-                {
-                    Task[] tasks = new Task[] {
-                        _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync(),
-                        _databaseFixture.ObjectProvider.GetQueryable<E.Test>().FetchAsync(),
-                        _databaseFixture.ObjectProvider.GetQueryable<E.SubTest>().FetchAsync()};
 
-                    manualResetEvent.Set();
+                ((INotifyCollectionChanged)testQueryable).CollectionChanged += collectionChangedHandler;
+                ((INotifyCollectionChanged)subTestQueryable).CollectionChanged += collectionChangedHandler;
 
-                    Task.WaitAll(tasks);
+                Task[] tasks = new Task[] {
+                        subTestQueryable.FetchAsync(),
+                        testQueryable.FetchAsync(),
+                        subTestQueryable.FetchAsync()};
 
-                }, Query.SelectSub, Query.Select, Query.SelectSub);
+                manualResetEvent2.WaitOne();
+                Assert.Collection(hittedCommands,
+                    x => Assert.Equal(x, Query.SelectSub));
+
+                manualResetEvent.Set();
+
+                await tasks[0];
+                await tasks[1];
+                await tasks[2];
+
+                Assert.Collection(hittedCommands,
+                    x => Assert.Equal(x, Query.SelectSub),
+                    x => Assert.Equal(x, Query.Select),
+                    x => Assert.Equal(x, Query.SelectSub));
+
+                Assert.Equal(20, collectionChangedCounter);
             }
             finally
             {
                 _databaseFixture.HitCommand -= blockHandler;
+                ((INotifyCollectionChanged)testQueryable).CollectionChanged -= collectionChangedHandler;
+                ((INotifyCollectionChanged)subTestQueryable).CollectionChanged -= collectionChangedHandler;
             }
         }
 

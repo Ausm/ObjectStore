@@ -129,26 +129,33 @@ namespace ObjectStore.OrMapping
                         _queue = new List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>>();
                     }
 
-                    List<ICommitContext> commitContexts = new List<ICommitContext>(queue.Count);
-
-                    using (DbCommand command = _dataBaseProvider.CombineCommands(queue.Select(x => x.Item2)))
+                    try
                     {
-                        command.Connection = connection;
-                        using (DbDataReader reader = command.ExecuteReader())
+                        List<ICommitContext> commitContexts = new List<ICommitContext>(queue.Count);
+
+                        using (DbCommand command = _dataBaseProvider.CombineCommands(queue.Select(x => x.Item2)))
                         {
-                            for (int i = 0; i < queue.Count; i++)
+                            command.Connection = connection;
+                            using (DbDataReader reader = command.ExecuteReader())
                             {
-                                commitContexts.Add(queue[i].Item3(reader, queue[i].Item1));
-                                queue[i].Item1.SetCompleted();
-                                reader.NextResult();
+                                for (int i = 0; i < queue.Count; i++)
+                                {
+                                    commitContexts.Add(queue[i].Item3(reader, queue[i].Item1));
+                                    reader.NextResult();
+                                }
                             }
                         }
+
+                        foreach (ICommitContext context in commitContexts.Where(x => x != null))
+                            context.Commit();
+                    }
+                    finally
+                    {
+                        foreach (AsyncResult result in queue.Select(x => x.Item1))
+                            result.SetCompleted();
                     }
 
-                    foreach (ICommitContext context in commitContexts.Where(x => x != null))
-                        context.Commit();
-
-                    lock(this)
+                    lock (this)
                     {
                         if (_queue.Count == 0)
                             return;
