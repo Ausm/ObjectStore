@@ -206,6 +206,59 @@ namespace ObjectStore.Test.Tests
                    x => Assert.Equal(1, x.Id)));
         }
 
+        [Fact]
+        public void TestCheckChanged()
+        {
+            List<string> recordedPropertyChanged = new List<string>();
+            List<E.Test> elements = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _queryable.ToList());
+
+            PropertyChangedEventHandler propertyChangedHandler = (s, e) =>
+            {
+                recordedPropertyChanged.Add(e.PropertyName);
+            };
+
+            ((INotifyPropertyChanged)elements[0]).PropertyChanged += propertyChangedHandler;
+
+            try
+            {
+
+                string originalDescription = elements[0].Description;
+                string newDescription = elements[0].Description == Resource.FirstRandomText ? Resource.SecondRandomText : Resource.FirstRandomText;
+
+                Assert.False(_queryable.CheckChanged());
+
+                elements[0].Description = newDescription;
+
+                Assert.True(_queryable.CheckChanged());
+
+                elements[0].Description = originalDescription;
+
+                Assert.False(_queryable.CheckChanged());
+
+                elements[0].Description = newDescription;
+
+                Assert.True(_queryable.CheckChanged());
+
+                _queryable.DropChanges();
+
+                Assert.False(_queryable.CheckChanged());
+
+
+                Assert.Collection(recordedPropertyChanged,
+                    x => Assert.Equal(nameof(E.Test.Description), x),
+                    x => Assert.Equal(nameof(E.Test.Description), x),
+                    x => Assert.Equal(nameof(E.Test.Description), x),
+                    x => Assert.True(string.IsNullOrEmpty(x)),
+                    x => Assert.True(string.IsNullOrEmpty(x)));
+
+            }
+            finally
+            {
+                ((INotifyPropertyChanged)elements[0]).PropertyChanged -= propertyChangedHandler;
+            }
+
+        }
+
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression)
         {

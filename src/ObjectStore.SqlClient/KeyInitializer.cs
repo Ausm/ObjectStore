@@ -13,11 +13,6 @@ namespace ObjectStore.SqlClient
             keyInitializer.Add(typeof(T), new KeyInitializer(beforInsert, afterInsert, setInInsert, sqlDbType, emptyValue));
         }
 
-        public static void RegisterKeyInitializer<T>(string beforInsert, string afterInsert, bool setInInsert, System.Data.SqlDbType sqlDbType, Func<T, bool> emptyCheck)
-        {
-            keyInitializer.Add(typeof(T), new KeyInitializer(beforInsert, afterInsert, setInInsert, sqlDbType, emptyCheck));
-        }
-
         public static KeyInitializer GetInitializer(Type type)
         {
             if (keyInitializer.ContainsKey(type))
@@ -37,7 +32,6 @@ namespace ObjectStore.SqlClient
         #endregion
 
         #region Membervariablen
-        Func<object, bool> _isEmptyCheck;
         object _emptyValue;
         string _beforInsert;
         string _afterInsert;
@@ -46,21 +40,10 @@ namespace ObjectStore.SqlClient
         #endregion
 
         #region Konstruktoren
-        public KeyInitializer(string beforInsert, string afterInsert, bool setInInsert, System.Data.SqlDbType sqlDbType, Func<object, bool> emptyCheck)
-        {
-            _beforInsert = beforInsert;
-            _afterInsert = afterInsert;
-            _isEmptyCheck = emptyCheck;
-            _emptyValue = null;
-            _setInInsert = setInInsert;
-            _sqlDbType = sqlDbType;
-        }
-
         public KeyInitializer(string beforInsert, string afterInsert, bool setInInsert, System.Data.SqlDbType sqlDbType, object emptyValue)
         {
             _beforInsert = beforInsert;
             _afterInsert = afterInsert;
-            _isEmptyCheck = null;
             _emptyValue = emptyValue;
             _setInInsert = setInInsert;
             _sqlDbType = sqlDbType;
@@ -70,10 +53,6 @@ namespace ObjectStore.SqlClient
         #region Funktionen
         public bool CheckEmpty(object value)
         {
-            if (_isEmptyCheck != null)
-            {
-                return _isEmptyCheck(value);
-            }
             return _emptyValue.Equals(value);
         }
         #endregion
