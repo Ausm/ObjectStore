@@ -137,16 +137,6 @@ namespace ObjectStore.SqlClient
 
         }
 
-        public void AddJoin(string tablename, string onClausel)
-        {
-            //_joins.Add(new Join() { TableName = tablename, On = onClausel });
-        }
-
-        public void ResetOrder()
-        {
-            _orderbyExpressions = new List<LambdaExpression>();
-        }
-
         public void SetOrderBy(LambdaExpression expression)
         {
             _orderbyExpressions.Add(expression);
@@ -216,6 +206,11 @@ namespace ObjectStore.SqlClient
             _whereExpressions.Add(expression);
         }
 
+        public void SetTablename(string tablename)
+        {
+            _tablename = tablename;
+        }
+
         #region IParsingContext
         string IParsingContext.GetAlias(ParameterExpression expression)
         {
@@ -247,36 +242,6 @@ namespace ObjectStore.SqlClient
         }
 
         #endregion
-        #endregion
-
-        #region Properties
-        public string Tablename
-        {
-            get
-            {
-                return _tablename;
-            }
-            set
-            {
-                _tablename = value;
-            }
-        }
-
-        public string Alias
-        {
-            get
-            {
-                return _alias;
-            }
-        }
-
-        public IEnumerable<DbParameter> Parameters
-        {
-            get
-            {
-                return _parameters;
-            }
-        }
         #endregion
     }
 }

@@ -166,11 +166,6 @@ namespace ObjectStore.SqlClient
         #endregion
 
         #region Connections
-        public DbConnection GetConnection()
-        {
-            return GetConnection("default");
-        }
-
         public DbConnection GetConnection(string connectionString)
         {
             ReferencedConnection referencedConnection;

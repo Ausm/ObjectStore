@@ -10,7 +10,8 @@ namespace ObjectStore.OrMapping
 
         void AddField(string fieldname, object value, FieldType fieldtype, Type keyInitializerType, bool isChanged);
 
-        string Tablename { get; set; }
+        void SetTablename(string tablename);
+
         DbCommand GetDbCommand();
     }
 

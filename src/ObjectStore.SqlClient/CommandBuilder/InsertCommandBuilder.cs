@@ -33,7 +33,7 @@ namespace ObjectStore.SqlClient
         }
         #endregion
 
-        #region Funktionen
+        #region Methods
         public void AddField(string fieldname, FieldType fieldtype)
         {
             if (!_selectFields.Contains(fieldname))
@@ -109,20 +109,12 @@ namespace ObjectStore.SqlClient
                                     _afterInsert.ToString());
             return command;
         }
-        #endregion
 
-        #region Properties
-        public string Tablename
+        public void SetTablename(string tablename)
         {
-            get
-            {
-                return _tablename;
-            }
-            set
-            {
-                _tablename = value;
-            }
+            _tablename = tablename;
         }
+
         #endregion
     }
 }

@@ -694,7 +694,7 @@ namespace ObjectStore.OrMapping
 
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Ldstr, TableName);
-            generator.Emit(OpCodes.Callvirt, typeof(ICommandBuilder).GetProperty("Tablename").GetSetMethod());
+            generator.Emit(OpCodes.Callvirt, typeof(ICommandBuilder).GetMethod(nameof(ICommandBuilder.SetTablename)));
 
             foreach (Mapping mapping in _mappingInfos)
             {
@@ -721,7 +721,7 @@ namespace ObjectStore.OrMapping
 
         public virtual T FillCommand<T>(T commandBuilder) where T : ICommandBuilder
         {
-            commandBuilder.Tablename = _tableName;
+            commandBuilder.SetTablename(_tableName);
             foreach (Mapping mapping in _mappingInfos)
             {
                 mapping.FillCommandBuilder(commandBuilder);

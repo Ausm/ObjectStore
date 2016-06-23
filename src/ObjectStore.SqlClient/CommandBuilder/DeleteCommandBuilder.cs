@@ -22,7 +22,7 @@ namespace ObjectStore.SqlClient
         }
         #endregion
 
-        #region Funktionen
+        #region Methods
         public void AddField(string fieldname, FieldType fieldtype)
         {
         }
@@ -46,20 +46,12 @@ namespace ObjectStore.SqlClient
                                     string.Format("DELETE {0} WHERE {1}", _tablename, string.Join(" AND ", _whereClausel.ToArray()));
             return command;
         }
-        #endregion
-
-        #region Properties
-        public string Tablename 
+        
+        public void SetTablename(string tablename)
         {
-            get
-            {
-                return _tablename;
-            }
-            set
-            {
-                _tablename = value;
-            }
+            _tablename = tablename;
         }
+
         #endregion
     }
 }

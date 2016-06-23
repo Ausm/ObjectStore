@@ -86,20 +86,12 @@ namespace ObjectStore.SqlClient
                                     string.Join(", ", _selectFields.ToArray()));
             return command;
         }
-        #endregion
 
-        #region Properties
-        public string Tablename
+        public void SetTablename(string tablename)
         {
-            get
-            {
-                return _tablename;
-            }
-            set
-            {
-                _tablename = value;
-            }
+            _tablename = tablename;
         }
+
         #endregion
     }
 }
