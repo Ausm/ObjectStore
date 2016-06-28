@@ -1,11 +1,4 @@
-﻿#if  NETCOREAPP1_0
-using IDataReader = global::System.Data.Common.DbDataReader;
-using IDataRecord = global::System.Data.Common.DbDataReader;
-#else
-using System.Data;
-#endif
-
-using System;
+﻿using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Linq;
@@ -61,7 +54,7 @@ namespace ObjectStore.OrMapping
             if (!IsPrimaryKey)
                 return;
 
-            MethodInfo getValueMethod = typeof(IDataRecord).GetMethod("get_Item", new Type[] { typeof(string) });
+            MethodInfo getValueMethod = typeof(IValueSource).GetMethod(nameof(IValueSource.GetValue), new Type[] { typeof(string) }).MakeGenericMethod(typeof(object));
 
             // Array in Stack Laden
             dynamicMethod.Emit(OpCodes.Ldloc, array);
@@ -130,59 +123,14 @@ namespace ObjectStore.OrMapping
 
         public override void AddFillMethodeCode(ILGenerator generator)
         {
-            MethodInfo getOrdinalMethod = typeof(IDataRecord).GetMethod("GetOrdinal", new Type[] { typeof(string) });
-            MethodInfo getValueMethod = typeof(IDataRecord).GetMethod("GetValue", new Type[] { typeof(int) });
-            MethodInfo isDbNullMethod = typeof(IDataRecord).GetMethod("IsDBNull", new Type[] { typeof(int) });
-
-            LocalBuilder ordinal = generator.DeclareLocal(typeof(int));
-            Label endLabel = generator.DefineLabel();
-            Label nullLabel = generator.DefineLabel();
-            generator.Emit(OpCodes.Ldarg_1);
-            generator.Emit(OpCodes.Ldstr, RemoveBrackets(FieldName));
-            generator.Emit(OpCodes.Callvirt, getOrdinalMethod);
-            generator.Emit(OpCodes.Stloc, ordinal);
+            MethodInfo getValueMethod = typeof(IValueSource).GetMethod(nameof(IValueSource.GetValue), new Type[] { typeof(string) }).MakeGenericMethod(DataBaseValueType);
 
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldflda, _internalField);
             generator.Emit(OpCodes.Ldarg_1);
-            generator.Emit(OpCodes.Ldloc, ordinal);
-            generator.Emit(OpCodes.Callvirt, isDbNullMethod);
-            generator.Emit(OpCodes.Brtrue, nullLabel);
-
-            generator.Emit(OpCodes.Ldarg_1);
-            generator.Emit(OpCodes.Ldloc, ordinal);
+            generator.Emit(OpCodes.Ldstr, RemoveBrackets(FieldName));
             generator.Emit(OpCodes.Callvirt, getValueMethod);
-#if  NETCOREAPP1_0
-            if (DataBaseValueType.GetTypeInfo().IsValueType)
-#else
-            if (DataBaseValueType.IsValueType)
-#endif
-            {
-                generator.Emit(OpCodes.Unbox_Any, DataBaseValueType);
-            }
-            else
-            {
-                generator.Emit(OpCodes.Castclass, DataBaseValueType);
-            }
-            generator.Emit(OpCodes.Br_S, endLabel);
-            generator.MarkLabel(nullLabel);
-#if  NETCOREAPP1_0
-            if (DataBaseValueType.GetTypeInfo().IsValueType)
-#else
-            if (DataBaseValueType.IsValueType)
-#endif
-            {
-                LocalBuilder defaultValue = generator.DeclareLocal(DataBaseValueType);
-                generator.Emit(OpCodes.Ldloca_S, defaultValue);
-                generator.Emit(OpCodes.Initobj, defaultValue.LocalType);
-                generator.Emit(OpCodes.Ldloc, defaultValue);
-            }
-            else
-            {
-                generator.Emit(OpCodes.Ldnull);
-            }
-            generator.MarkLabel(endLabel);
-            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("SetUnCommittedValue"));
+            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.SetUnCommittedValue)));
         }
 
         public override void AddFillCommandBuilderCode(ILGenerator generator)
@@ -192,9 +140,9 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldflda, _internalField);
             if(IsPrimaryKey || IsReadOnly)
-                generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("GetUncommittedValue"));
+                generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.GetUncommittedValue)));
             else
-                generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("GetChangedValue"));
+                generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.GetChangedValue)));
 
 #if  NETCOREAPP1_0
             if (DataBaseValueType.GetTypeInfo().IsValueType)

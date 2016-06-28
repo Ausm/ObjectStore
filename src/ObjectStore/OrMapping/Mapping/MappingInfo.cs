@@ -1,11 +1,4 @@
-﻿#if  NETCOREAPP1_0
-using IDataReader = global::System.Data.Common.DbDataReader;
-using IDataRecord = global::System.Data.Common.DbDataReader;
-#else
-using System.Data;
-#endif
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq.Expressions;
@@ -55,7 +48,7 @@ namespace ObjectStore.OrMapping
 
     public interface IFillAbleObject
     {
-        void Fill(IDataRecord reader);
+        void Fill(IValueSource valueSource);
         void Commit(bool unDoChanges);
         void Rollback();
         void DropChanges();
@@ -113,7 +106,7 @@ namespace ObjectStore.OrMapping
 
         protected Type _dynamicType;
         Func<object> _constructor;
-        protected Func<IDataReader, MappedObjectKeys> _getKeyObjectFromReader;
+        protected Func<IValueSource, MappedObjectKeys> _getKeyObjectFromReader;
         protected LoadBehavior _loadBehavior;
 
         #endregion
@@ -193,7 +186,7 @@ namespace ObjectStore.OrMapping
 
 #region Initialize GetKeyFromReader
             {
-                DynamicMethod method = new DynamicMethod("getKey", typeof(MappedObjectKeys), new Type[] { typeof(IDataReader) }, true);
+                DynamicMethod method = new DynamicMethod("getKey", typeof(MappedObjectKeys), new Type[] { typeof(IValueSource) }, true);
                 ILGenerator getKeyGenerator = method.GetILGenerator();
 
                 LocalBuilder keyArray = getKeyGenerator.DeclareLocal(typeof(object[]));
@@ -212,7 +205,7 @@ namespace ObjectStore.OrMapping
                 getKeyGenerator.Emit(OpCodes.Ldloc, keyArray);
                 getKeyGenerator.Emit(OpCodes.Newobj, typeof(MappedObjectKeys).GetConstructor(new Type[] { typeof(IEnumerable) }));
                 getKeyGenerator.Emit(OpCodes.Ret);
-                _getKeyObjectFromReader = (Func<IDataReader, MappedObjectKeys>)method.CreateDelegate(typeof(Func<IDataReader, MappedObjectKeys>));
+                _getKeyObjectFromReader = (Func<IValueSource, MappedObjectKeys>)method.CreateDelegate(typeof(Func<IValueSource, MappedObjectKeys>));
             }
 #endregion
 
@@ -429,7 +422,7 @@ namespace ObjectStore.OrMapping
 #endregion
 
 #region FillMethode
-            MethodBuilder fillMethode = typeBuilder.DefineMethod("IFillAbleObject.Fill", MethodAttributes.Public | MethodAttributes.Virtual, null, new Type[] { typeof(IDataRecord) });
+            MethodBuilder fillMethode = typeBuilder.DefineMethod(nameof(IFillAbleObject) + "." + nameof(IFillAbleObject.Fill), MethodAttributes.Public | MethodAttributes.Virtual, null, new Type[] { typeof(IValueSource) });
             generator = fillMethode.GetILGenerator();
             Label afterStateChangeLable = generator.DefineLabel();
             foreach (Mapping mapping in _mappingInfos)
@@ -457,7 +450,7 @@ namespace ObjectStore.OrMapping
             generator.MarkLabel(afterStateChangeLable);
             generator.Emit(OpCodes.Ret);
 
-            typeBuilder.DefineMethodOverride(fillMethode, typeof(IFillAbleObject).GetMethod("Fill"));
+            typeBuilder.DefineMethodOverride(fillMethode, typeof(IFillAbleObject).GetMethod(nameof(IFillAbleObject.Fill)));
 #endregion
 
 #region CommitMethode
@@ -730,9 +723,9 @@ namespace ObjectStore.OrMapping
 
         }
 
-        public virtual MappedObjectKeys GetKeyValues(IDataReader reader)
+        public virtual MappedObjectKeys GetKeyValues(IValueSource valueSource)
         {
-            return _getKeyObjectFromReader(reader); 
+            return _getKeyObjectFromReader(valueSource); 
         }
 #endregion
 

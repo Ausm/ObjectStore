@@ -115,6 +115,43 @@ namespace ObjectStore.Sqlite
                 }
             }
         }
+
+        class ValueSource : IValueSource
+        {
+            DbDataReader _dataReader;
+
+            public ValueSource(DbDataReader dataReader)
+            {
+                _dataReader = dataReader;
+            }
+
+            public void Dispose()
+            {
+                _dataReader?.Dispose();
+                _dataReader = null;
+            }
+
+            public T GetValue<T>(string name)
+            {
+                int ordinal = _dataReader.GetOrdinal(name);
+
+                if (_dataReader.IsDBNull(ordinal))
+                    return default(T);
+
+                object returnValue = _dataReader.GetValue(ordinal);
+
+                return (T)returnValue;
+            }
+
+            public bool Next()
+            {
+                if (_dataReader.Read())
+                    return true;
+
+                _dataReader.NextResult();
+                return false;
+            }
+        }
         #endregion
 
         #region Fields
@@ -162,6 +199,11 @@ namespace ObjectStore.Sqlite
         public ICommandBuilder GetDeleteCommandBuilder()
         {
             return new DeleteCommandBuilder();
+        }
+
+        public IValueSource GetValueSource(DbCommand command)
+        {
+            return new ValueSource(command.ExecuteReader());
         }
         #endregion
 
