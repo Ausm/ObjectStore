@@ -4,7 +4,7 @@ using System.Data.Common;
 
 namespace ObjectStore.Test.Mocks
 {
-    class Connection : DbConnection
+    public class Connection : DbConnection
     {
         ConnectionState _connectionState = ConnectionState.Closed;
         string _connectionString;

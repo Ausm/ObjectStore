@@ -138,7 +138,22 @@ namespace ObjectStore.Sqlite
                 if (_dataReader.IsDBNull(ordinal))
                     return default(T);
 
-                object returnValue = _dataReader.GetValue(ordinal);
+                object returnValue;
+
+                if (typeof(T) == typeof(int) || typeof(T) == typeof(int?))
+                    returnValue = _dataReader.GetInt32(ordinal);
+                else if (typeof(T) == typeof(DateTime) || typeof(T) == typeof(DateTime?))
+                {
+                    string stringValue = _dataReader.GetString(ordinal);
+                    DateTime dateTimeValue;
+
+                    if (!DateTime.TryParseExact(stringValue, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dateTimeValue))
+                        return default(T);
+
+                    returnValue = dateTimeValue;
+                }
+                else
+                    returnValue = _dataReader.GetValue(ordinal);
 
                 return (T)returnValue;
             }

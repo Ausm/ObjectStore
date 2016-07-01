@@ -10,8 +10,6 @@ namespace ObjectStore.Sqlite
     internal class InsertCommandBuilder : ICommandBuilder
     {
         #region Membervariablen
-        StringBuilder _beforInsert;
-        StringBuilder _afterInsert;
         List<string> _insertFields;
         List<string> _insertValues;
         List<string> _selectFields;
@@ -28,8 +26,6 @@ namespace ObjectStore.Sqlite
             _selectFields = new List<string>();
             _whereClausel = new List<string>();
             _parameters = new List<SqliteParameter>();
-            _beforInsert = new StringBuilder();
-            _afterInsert = new StringBuilder();
         }
         #endregion
 
@@ -54,27 +50,14 @@ namespace ObjectStore.Sqlite
                 KeyInitializer keyInitializer = KeyInitializer.GetInitializer(keyInitializerType);
                 if (keyInitializer == null || !keyInitializer.CheckEmpty(value))
                 {
-                    SqliteParameter param = new SqliteParameter(string.Format("@param{0}", _parameters.Count), value);
+                    SqliteParameter param = new SqliteParameter($"@param{_parameters.Count}", value);
                     _insertFields.Add(fieldname);
                     _insertValues.Add(param.ParameterName);
                     _whereClausel.Add(string.Format("{0} = {1}", param.ParameterName, fieldname));
                     _parameters.Add(param);
                 }
                 else
-                {
-                    SqliteParameter param = new SqliteParameter(string.Format("@param{0}", _parameters.Count), keyInitializer.SqlDbType);
-                    param.Value = DBNull.Value;
-                    param.IsNullable = true;
-                    if (!string.IsNullOrEmpty(keyInitializer.BeforInsert)) _beforInsert.AppendLine(keyInitializer.BeforInsert.Replace("{parameter}", param.ParameterName));
-                    if (!string.IsNullOrEmpty(keyInitializer.AfterInsert)) _afterInsert.AppendLine(keyInitializer.AfterInsert.Replace("{parameter}", param.ParameterName));
-                    if (keyInitializer.SetInInsert)
-                    {
-                        _insertFields.Add(fieldname);
-                        _insertValues.Add(param.ParameterName);
-                    }
-                    _whereClausel.Add(string.Format("{0} = {1}", param.ParameterName, fieldname));
-                    _parameters.Add(param);
-                }
+                    _whereClausel.Add(keyInitializer.GetWhereClause(fieldname));
             }
             else if (fieldtype == FieldType.WriteableField || fieldtype == FieldType.InsertableField)
             {
@@ -97,16 +80,10 @@ namespace ObjectStore.Sqlite
         {
             DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());
-            command.CommandText =
-                string.Format(_insertFields.Count == 0 ? "{5}INSERT {0} DEFAULT VALUES\r\n{6}SELECT {3} FROM {0} WHERE {4}" :
-                    "{5}INSERT {0} ({1}) VALUES ({2})\r\n{6}SELECT {3} FROM {0} WHERE {4}",
-                                    _tablename,
-                                    string.Join(", ", _insertFields.ToArray()),
-                                    string.Join(", ", _insertValues.ToArray()),
-                                    string.Join(", ", _selectFields.ToArray()),
-                                    string.Join(" AND ", _whereClausel.ToArray()),
-                                    _beforInsert.ToString(),
-                                    _afterInsert.ToString());
+            command.CommandText = _insertFields.Count == 0 ? 
+                    $"INSERT INTO \"{_tablename}\" DEFAULT VALUES;\r\nSELECT {string.Join(", ", _selectFields.ToArray())} FROM {_tablename} WHERE {string.Join(" AND ", _whereClausel.ToArray())}" :
+                    $"INSERT INTO \"{_tablename}\" ({string.Join(", ", _insertFields.ToArray())}) VALUES ({string.Join(", ", _insertValues.ToArray())});\r\nSELECT {string.Join(", ", _selectFields.ToArray())} FROM \"{_tablename}\" WHERE {string.Join(" AND ", _whereClausel.ToArray())}";
+
             return command;
         }
 

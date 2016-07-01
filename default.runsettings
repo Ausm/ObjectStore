@@ -13,6 +13,7 @@
                 <ModulePath>.*\.exe$</ModulePath>
               </Include>
               <Exclude>
+                <ModulePath>.*\.Test\.[^\.]*\.dll$</ModulePath>
                 <ModulePath>.*\.Test\.dll$</ModulePath>
                 <ModulePath>.*\\xunit\..*\.dll$</ModulePath>
               </Exclude>

@@ -43,9 +43,8 @@ namespace ObjectStore.OrMapping
 #else
             if (DataBaseValueType.IsValueType)
 #endif
-            {
                 dynamicMethod.Emit(OpCodes.Box, DataBaseValueType);
-            }
+
             dynamicMethod.Emit(OpCodes.Stelem_Ref);
         }
 
@@ -54,21 +53,29 @@ namespace ObjectStore.OrMapping
             if (!IsPrimaryKey)
                 return;
 
-            MethodInfo getValueMethod = typeof(IValueSource).GetMethod(nameof(IValueSource.GetValue), new Type[] { typeof(string) }).MakeGenericMethod(typeof(object));
+            MethodInfo getValueMethod = typeof(IValueSource).GetMethod(nameof(IValueSource.GetValue), new Type[] { typeof(string) }).MakeGenericMethod(DataBaseValueType);
 
-            // Array in Stack Laden
+            // Load array onto the evaluation stack
             dynamicMethod.Emit(OpCodes.Ldloc, array);
             dynamicMethod.Emit(OpCodes.Ldc_I4, index);
-            // Object in Stack Laden und Casten
+            // Load object in Stack and cast/box it accordingly
             dynamicMethod.Emit(OpCodes.Ldarg_0);
             dynamicMethod.Emit(OpCodes.Ldstr, RemoveBrackets(FieldName));
             dynamicMethod.Emit(OpCodes.Callvirt, getValueMethod);
+
+#if NETCOREAPP1_0
+            if(DataBaseValueType.GetTypeInfo().IsValueType)
+#else
+            if (DataBaseValueType.IsValueType)
+#endif
+                dynamicMethod.Emit(OpCodes.Box, DataBaseValueType);
+
             dynamicMethod.Emit(OpCodes.Stelem_Ref);
         }
 
         public override void AddInhertiedProperty(TypeBuilder typeBuilder, MethodInfo notifyPropertyChangedMethode)
         {
-#if  NETCOREAPP1_0
+#if NETCOREAPP1_0
             if (!MemberInfo.DeclaringType.GetTypeInfo().IsAbstract)
 #else
             if (!MemberInfo.DeclaringType.IsAbstract)
@@ -144,7 +151,7 @@ namespace ObjectStore.OrMapping
             else
                 generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.GetChangedValue)));
 
-#if  NETCOREAPP1_0
+#if NETCOREAPP1_0
             if (DataBaseValueType.GetTypeInfo().IsValueType)
 #else
             if (DataBaseValueType.IsValueType)

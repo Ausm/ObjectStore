@@ -1,6 +1,5 @@
 ﻿using ObjectStore.Interfaces;
 using ObjectStore.OrMapping;
-using ObjectStore.Test.Resources;
 using ObjectStore.SqlClient;
 using System;
 using System.Data.Common;
@@ -9,23 +8,12 @@ using ObjectStore.Test.Mocks;
 using System.Text.RegularExpressions;
 using ObjectStore.Test.Tests;
 using System.Collections.Generic;
+using ObjectStore.Test.Fixtures;
 
-namespace ObjectStore.Test.Fixtures
+namespace ObjectStore.Test.SqlClient
 {
-    public class DatabaseFixture : IDisposable
+    public class SqlClientDatabaseFixture : IDisposable, IDatabaseFixture
     {
-        #region Subclasses
-        public class HitCommandEventArgs : EventArgs
-        {
-            public HitCommandEventArgs(Query key)
-            {
-                Key = key;
-            }
-
-            public Query Key { get; }
-        }
-        #endregion
-
         #region Fields
         IObjectProvider _objectProvider;
         ResultManager<Query> _resultManager;
@@ -33,12 +21,12 @@ namespace ObjectStore.Test.Fixtures
         #endregion
 
         #region Constructor
-        public DatabaseFixture()
+        public SqlClientDatabaseFixture()
         {
             _isInitialized = false;
 
             if (_objectProvider == null)
-                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore(Resource.MsSqlConnectionString, DataBaseProvider.Instance, true));
+                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("data source=(local);Integrated Security=True;initial catalog=Test", DataBaseProvider.Instance, true));
 
             Func<DbCommand> getCommand = () => new Command(GetReader);
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getCommand", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)

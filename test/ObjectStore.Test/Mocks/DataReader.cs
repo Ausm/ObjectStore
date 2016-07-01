@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ObjectStore.Test.Mocks
 {
-    class DataReader : DbDataReader
+    public class DataReader : DbDataReader
     {
         #region Field
         string[] _columnNames;

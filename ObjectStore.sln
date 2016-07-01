@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8D221489-B692-4E11-A4AB-6D5898E49575}"
 EndProject
@@ -27,6 +27,10 @@ EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectStore.SqlClient", "src\ObjectStore.SqlClient\ObjectStore.SqlClient.xproj", "{D1FEB57E-9CC8-4D22-83E1-3510AD830DCB}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectStore.SQLite", "src\ObjectStore.SQLite\ObjectStore.SQLite.xproj", "{755E331A-6379-495D-BA4D-CC1CEF3A93C7}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectStore.Test.SqlClient", "test\ObjectStore.Test.SqlClient\ObjectStore.Test.SqlClient.xproj", "{D2CDB8E5-6602-45BF-AA0C-93682A9C4C8D}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectStore.Test.Sqlite", "test\ObjectStore.Test.Sqlite\ObjectStore.Test.Sqlite.xproj", "{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,6 +66,14 @@ Global
 		{755E331A-6379-495D-BA4D-CC1CEF3A93C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{755E331A-6379-495D-BA4D-CC1CEF3A93C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{755E331A-6379-495D-BA4D-CC1CEF3A93C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2CDB8E5-6602-45BF-AA0C-93682A9C4C8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2CDB8E5-6602-45BF-AA0C-93682A9C4C8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2CDB8E5-6602-45BF-AA0C-93682A9C4C8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2CDB8E5-6602-45BF-AA0C-93682A9C4C8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,5 +86,7 @@ Global
 		{85790DE1-C36D-4C76-B152-63EA75F952A8} = {3365C7B4-A7BC-4261-9628-45CDE634DA19}
 		{D1FEB57E-9CC8-4D22-83E1-3510AD830DCB} = {8D221489-B692-4E11-A4AB-6D5898E49575}
 		{755E331A-6379-495D-BA4D-CC1CEF3A93C7} = {8D221489-B692-4E11-A4AB-6D5898E49575}
+		{D2CDB8E5-6602-45BF-AA0C-93682A9C4C8D} = {3365C7B4-A7BC-4261-9628-45CDE634DA19}
+		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E} = {3365C7B4-A7BC-4261-9628-45CDE634DA19}
 	EndGlobalSection
 EndGlobal

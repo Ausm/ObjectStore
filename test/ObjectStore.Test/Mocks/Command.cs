@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 
 namespace ObjectStore.Test.Mocks
 {
-    class Command : DbCommand
+    public class Command : DbCommand
     {
         #region Fields
-        SqlCommand _innerCommand = new SqlCommand();
-        Func<Command, DataReader> _getReader;
+        string _commandText;
+        ParameterCollection _parameterCollection = new ParameterCollection();
+        Func<Command, DbDataReader> _getReader;
         Connection _connection;
         #endregion
 
         #region Constructors
-        public Command(Func<Command ,DataReader> getReader)
+        public Command(Func<Command, DbDataReader> getReader)
         {
             _getReader = getReader;
         }
@@ -25,12 +25,12 @@ namespace ObjectStore.Test.Mocks
         {
             get
             {
-                return _innerCommand.CommandText;
+                return _commandText;
             }
 
             set
             {
-                _innerCommand.CommandText = value;
+                _commandText = value;
             }
         }
 
@@ -103,7 +103,7 @@ namespace ObjectStore.Test.Mocks
         {
             get
             {
-                return _innerCommand.Parameters;
+                return _parameterCollection;
             }
         }
 

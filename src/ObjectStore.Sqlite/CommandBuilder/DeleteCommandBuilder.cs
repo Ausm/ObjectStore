@@ -41,9 +41,7 @@ namespace ObjectStore.Sqlite
         {
             DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());
-            command.CommandText = _whereClausel.Count == 0 ?
-                                    string.Format("DELETE {0}", _tablename) :
-                                    string.Format("DELETE {0} WHERE {1}", _tablename, string.Join(" AND ", _whereClausel.ToArray()));
+            command.CommandText = _whereClausel.Count == 0 ? $"DELETE FROM \"{_tablename}\"" : $"DELETE FROM \"{_tablename}\" WHERE {string.Join(" AND ", _whereClausel.ToArray())}";
             return command;
         }
         

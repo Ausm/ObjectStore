@@ -73,17 +73,13 @@ namespace ObjectStore.Sqlite
             int i = 0;
             foreach (KeyValuePair<string, string> item in _setValues)
             {
-                setStrings[i] = string.Format("{0} = {1}", item.Key, item.Value);
+                setStrings[i] = $"{item.Key} = {item.Value}";
                 i++;
             }
 
             DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());
-            command.CommandText = string.Format("UPDATE {0} SET {1} WHERE {2}\r\nSELECT {3} FROM {0} WHERE {2}",
-                                    _tablename,
-                                    string.Join(", ", setStrings),
-                                    string.Join(" AND ", _whereClausel.ToArray()),
-                                    string.Join(", ", _selectFields.ToArray()));
+            command.CommandText = $"UPDATE \"{_tablename}\" SET {string.Join(", ", setStrings)} WHERE {string.Join(" AND ", _whereClausel.ToArray())};\r\nSELECT {string.Join(", ", _selectFields.ToArray())} FROM \"{_tablename}\" WHERE {string.Join(" AND ", _whereClausel.ToArray())}";
             return command;
         }
 

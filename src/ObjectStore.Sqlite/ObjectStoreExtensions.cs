@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ObjectStore.Sqlite
 {
-    public static class ObjectStoreSqlClientExtensions
+    public static class ObjectStoreSqliteExtensions
     {
         public static void AddObjectStore(this IServiceCollection services, string connectionString)
         {

@@ -28,7 +28,7 @@ namespace ObjectStore.Sqlite
 
             public override string ToString()
             {
-                return $"JOIN {TableName} {_alias} ON {_alias}.{KeyName} = {ForeignAlias}.{ForeignKeyName}";
+                return $"JOIN \"{TableName}\" {_alias} ON {_alias}.{KeyName} = {ForeignAlias}.{ForeignKeyName}";
             }
 
 
@@ -162,8 +162,7 @@ namespace ObjectStore.Sqlite
 
             if(_top > -1) stringBuilder.AppendFormat(" TOP {0}", _top);
 
-            stringBuilder.AppendFormat(" {2}.{0} FROM {1} {2}", 
-                string.Join(string.Format(", {0}.", _alias), _selectFields.ToArray()), _tablename, _alias);
+            stringBuilder.Append($" {_alias}.{string.Join($", {_alias}.", _selectFields.ToArray())} FROM \"{_tablename}\" {_alias}");
 
             string whereClause = null;
 
