@@ -2,12 +2,19 @@
 using Xunit.Abstractions;
 using System;
 using ObjectStore.Test.Tests;
+using System.Linq;
 
 namespace ObjectStore.Test.Sqlite
 {
     public class SqliteTests : TestsBase, IClassFixture<SqliteDatabaseFixture>
     {
         #region Constructor
+        static SqliteTests()
+        {
+            foreach (object[] values in _subEntityData.Where(x => x[5] is DateTime))
+                values[5] = ((DateTime)values[5]).ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
         public SqliteTests(SqliteDatabaseFixture databaseFixture, ITestOutputHelper output) :
             base(databaseFixture, output)
         {

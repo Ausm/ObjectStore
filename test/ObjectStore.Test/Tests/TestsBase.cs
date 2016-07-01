@@ -25,7 +25,7 @@ namespace ObjectStore.Test.Tests
         const string FirstRandomText = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
         const string SecondRandomText = "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
 
-        static readonly object[][] _subEntityData = new[] {
+        protected static readonly object[][] _subEntityData = new[] {
             new object[] { 1, 1, "SubEntity0", 0, 10, DBNull.Value},
             new object[] { 2, 1, "SubEntity2", 1, 9, DBNull.Value},
             new object[] { 3, 1, "SubEntity4", 2, 8, DBNull.Value},
@@ -47,7 +47,7 @@ namespace ObjectStore.Test.Tests
             new object[] { 19, 2, "SubEntity17", 8, 2, DBNull.Value},
             new object[] { 20, 2, "SubEntity19", 9, 1, DBNull.Value}};
 
-        static readonly object[][] _entityData = new[] {
+        protected static readonly object[][] _entityData = new[] {
             new object[] { 1, $"Testname {DateTime.Now:g}", FirstRandomText },
             new object[] { 2, $"Testname2 {DateTime.Now:g}", SecondRandomText }};
         #endregion

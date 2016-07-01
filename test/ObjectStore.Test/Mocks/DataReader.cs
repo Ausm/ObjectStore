@@ -155,7 +155,7 @@ namespace ObjectStore.Test.Mocks
 
         public override int GetInt32(int ordinal)
         {
-            throw new NotImplementedException();
+            return (int)_current.Current[ordinal];
         }
 
         public override long GetInt64(int ordinal)
@@ -181,7 +181,7 @@ namespace ObjectStore.Test.Mocks
 
         public override string GetString(int ordinal)
         {
-            throw new NotImplementedException();
+            return (string)_current.Current[ordinal];
         }
 
         public override object GetValue(int ordinal)
