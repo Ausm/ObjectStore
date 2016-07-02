@@ -89,7 +89,7 @@ namespace ObjectStore.Test.Sqlite
                     HitCommand(this, new HitCommandEventArgs(key));
 
             //string directory = Path.Combine(Path.GetDirectoryName(typeof(SqliteDatabaseFixture).GetTypeInfo().Assembly.Location), "Resources");
-            //File.Copy(Path.Combine(directory, "test.sqlite3"), Path.Combine(directory, "test.db"), true);
+            //File.Copy(Path.Combine(directory, "Test.sqlite3"), Path.Combine(directory, "test.db"), true);
 
             //SqliteConnection connection = new SqliteConnection("Data Source=Resources/test.db");
             //connection.Open();
