@@ -88,18 +88,18 @@ namespace ObjectStore.Test.Sqlite
                 foreach(Query key in keys)
                     HitCommand(this, new HitCommandEventArgs(key));
 
-            //string directory = Path.Combine(Path.GetDirectoryName(typeof(SqliteDatabaseFixture).GetTypeInfo().Assembly.Location), "Resources");
-            //File.Copy(Path.Combine(directory, "Test.sqlite3"), Path.Combine(directory, "test.db"), true);
+            string directory = Path.Combine(Path.GetDirectoryName(typeof(SqliteDatabaseFixture).GetTypeInfo().Assembly.Location), "Resources");
+            File.Copy(Path.Combine(directory, "Test.sqlite3"), Path.Combine(directory, "test.db"), true);
 
-            //SqliteConnection connection = new SqliteConnection("Data Source=Resources/test.db");
-            //connection.Open();
+            SqliteConnection connection = new SqliteConnection("Data Source=Resources/test.db");
+            connection.Open();
 
-            //SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, connection);
-            //sqliteCommand.Parameters.AddRange(command.Parameters.Cast<SqliteParameter>());
+            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, connection);
+            sqliteCommand.Parameters.AddRange(command.Parameters.Cast<SqliteParameter>());
 
-            //return sqliteCommand.ExecuteReader();
+            return sqliteCommand.ExecuteReader();
 
-            return returnValue;
+            //return returnValue;
         }
         #endregion
 
