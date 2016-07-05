@@ -54,7 +54,7 @@ namespace ObjectStore.SqlClient
                 KeyInitializer keyInitializer = KeyInitializer.GetInitializer(keyInitializerType);
                 if (keyInitializer == null || !keyInitializer.CheckEmpty(value))
                 {
-                    SqlParameter param = new SqlParameter(string.Format("@param{0}", _parameters.Count), value);
+                    SqlParameter param = DataBaseProvider.GetParameter($"@param{_parameters.Count}", value);
                     _insertFields.Add(fieldname);
                     _insertValues.Add(param.ParameterName);
                     _whereClausel.Add(string.Format("{0} = {1}", param.ParameterName, fieldname));
@@ -62,7 +62,7 @@ namespace ObjectStore.SqlClient
                 }
                 else
                 {
-                    SqlParameter param = new SqlParameter(string.Format("@param{0}", _parameters.Count), keyInitializer.SqlDbType);
+                    SqlParameter param = new SqlParameter($"@param{_parameters.Count}", keyInitializer.SqlDbType);
                     param.Value = DBNull.Value;
                     param.IsNullable = true;
                     if (!string.IsNullOrEmpty(keyInitializer.BeforInsert)) _beforInsert.AppendLine(keyInitializer.BeforInsert.Replace("{parameter}", param.ParameterName));
@@ -85,7 +85,7 @@ namespace ObjectStore.SqlClient
                 }
                 else
                 {
-                    SqlParameter param = new SqlParameter(string.Format("@param{0}", _parameters.Count), value);
+                    SqlParameter param = DataBaseProvider.GetParameter($"@param{_parameters.Count}", value);
                     _insertFields.Add(fieldname);
                     _insertValues.Add(param.ParameterName);
                     _parameters.Add(param);

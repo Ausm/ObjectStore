@@ -4,7 +4,11 @@
   "authors": [ "Matthias Auswoeger" ],
   "frameworks": {
     "net452": {
-      "imports": [ "dnx451", "net451" ]
+      "imports": [ "dnx451", "net451" ],
+      "frameworkAssemblies": {
+        "System.Xml": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0"
+      }
     },
     "netcoreapp1.0": {
       "imports": [
@@ -13,7 +17,8 @@
         "portable-net45+win8"
       ],
       "dependencies": {
-        "System.Data.SqlClient": "4.1.0-rc2-24027"
+        "System.Data.SqlClient": "4.1.0-rc2-24027",
+        "System.Xml.XDocument": "4.0.11"
       }
     }
   },

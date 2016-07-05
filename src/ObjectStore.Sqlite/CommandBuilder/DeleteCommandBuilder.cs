@@ -31,8 +31,8 @@ namespace ObjectStore.Sqlite
         {
             if (fieldtype == FieldType.KeyField)
             {
-                SqliteParameter param = new SqliteParameter(string.Format("@param{0}", _parameters.Count), value);
-                _whereClausel.Add(string.Format("{0} = {1}", fieldname, param.ParameterName));
+                SqliteParameter param = DataBaseProvider.GetParameter($"@param{_parameters.Count}", value);
+                _whereClausel.Add($"{fieldname} = {param.ParameterName}");
                 _parameters.Add(param);
             }
         }

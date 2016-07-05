@@ -2,7 +2,7 @@
 using Xunit.Abstractions;
 using System;
 using ObjectStore.Test.Tests;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace ObjectStore.Test.Sqlite
 {
@@ -11,8 +11,6 @@ namespace ObjectStore.Test.Sqlite
         #region Constructor
         static SqliteTests()
         {
-            foreach (object[] values in _subEntityData.Where(x => x[5] is DateTime))
-                values[5] = ((DateTime)values[5]).ToString("yyyy-MM-dd HH:mm:ss");
         }
 
         public SqliteTests(SqliteDatabaseFixture databaseFixture, ITestOutputHelper output) :
@@ -22,14 +20,34 @@ namespace ObjectStore.Test.Sqlite
         #endregion
 
         #region Methods
+        protected override IEnumerable<object[]> GetDefaultResult(Query key)
+        {
+            IEnumerable<object[]> returnValue = base.GetDefaultResult(key);
+
+            foreach (object[] row in returnValue)
+            {
+                for (int i = 0; i < row.Length; i++)
+                {
+                    if (row[i] is DateTime)
+                        row[i] = ((DateTime)row[i]).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+            }
+
+            return returnValue;
+        }
+
         protected override string GetQuerryPattern(Query key)
         {
             switch (key)
             {
                 case Query.Insert:
                     return @"^\s*INSERT\s+INTO\s+""dbo\.TestTable""\s*\(\[Name], \[Description]\)\s*VALUES\s*\(@param\d+,\s*@param\d+\);\s*SELECT\s+Id,\s+\[Name],\s*\[Description]\s+FROM\s+\""dbo.TestTable\""\s+WHERE\s+Id\s*=\s*last_insert_rowid\(\)\s*$";
+                case Query.InsertDifferentTypesEntity:
+                    return @"^\s*INSERT\s+INTO\s+""dbo\.DifferentTypesTable""\s*\(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])(,\s|\s*(?=\)))){10}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){10}\);\s*SELECT\s+(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){11}FROM\s+""dbo.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*last_insert_rowid\(\)\s*$";
                 case Query.Update:
                     return @"^\s*UPDATE\s+""dbo\.TestTable""\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s*;\s*SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+""dbo\.TestTable""\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
+                case Query.UpdateDifferentTypesEntity:
+                    return @"^\s*UPDATE\s+""dbo\.DifferentTypesTable""\s+SET\s+(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\]\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){10}WHERE\s+Id\s*=\s*(?<P>@param\d+);\s*SELECT\s+(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){11}FROM\s+""dbo.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.Delete:
                     return @"^\s*DELETE\s+FROM\s+""dbo\.TestTable""\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.DeleteSub:
@@ -38,6 +56,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+""dbo\.TestTable""\s+\k<T>\s*$";
                 case Query.SelectSub:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+""dbo\.SubTestTable""\s+\k<T>\s*$";
+                case Query.SelectDifferentTypesEntity:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id))(,\s*|\s+(?=FROM))){11}FROM\s+""dbo\.DifferentTypesTable""\s+\k<T>\s*$";
                 case Query.OrderBy:
                     return GetSimpleExpressionPattern(@"\k<T>\.Test\s*=\s*@param\d+\s+ORDER\s+BY\s+\k<T>\.\[Second]\s*");
                 case Query.SimpleExpressionEqual:

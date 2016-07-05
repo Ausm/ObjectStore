@@ -31,7 +31,7 @@ namespace ObjectStore.SqlClient
         {
             if (fieldtype == FieldType.KeyField)
             {
-                SqlParameter param = new SqlParameter(string.Format("@param{0}", _parameters.Count), value);
+                SqlParameter param = DataBaseProvider.GetParameter($"@param{_parameters.Count}", value);
                 _whereClausel.Add(string.Format("{0} = {1}", fieldname, param.ParameterName));
                 _parameters.Add(param);
             }

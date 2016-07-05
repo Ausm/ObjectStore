@@ -3,11 +3,14 @@
     public enum Query
     {
         Insert,
+        InsertDifferentTypesEntity,
         Update,
+        UpdateDifferentTypesEntity,
         Delete,
         DeleteSub,
         Select,
         SelectSub,
+        SelectDifferentTypesEntity,
         OrderBy,
         SimpleExpressionEqual,
         SimpleExpressionEqualToNull,

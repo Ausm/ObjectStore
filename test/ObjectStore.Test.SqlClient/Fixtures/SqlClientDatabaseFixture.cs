@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using ObjectStore.Test.Tests;
 using System.Collections.Generic;
 using ObjectStore.Test.Fixtures;
+using System.Linq;
 
 namespace ObjectStore.Test.SqlClient
 {
@@ -75,7 +76,7 @@ namespace ObjectStore.Test.SqlClient
         {
         }
 
-        DataReader GetReader(Command command)
+        DbDataReader GetReader(Command command)
         {
             List<Query> keys = new List<Query>();
 
@@ -85,6 +86,15 @@ namespace ObjectStore.Test.SqlClient
             if(HitCommand != null)
                 foreach(Query key in keys)
                     HitCommand(this, new HitCommandEventArgs(key));
+
+            //if (keys.Count == 1 && keys[0] == Query.)
+            //{
+            //    System.Data.SqlClient.SqlConnection connection = new System.Data.SqlClient.SqlConnection("Data Source=.;Initial Catalog=Test;Trusted_Connection=True;");
+            //    connection.Open();
+            //    System.Data.SqlClient.SqlCommand sqlCommand = new System.Data.SqlClient.SqlCommand(command.CommandText, connection);
+            //    sqlCommand.Parameters.AddRange(command.Parameters.Cast<DbParameter>().ToArray());
+            //    return sqlCommand.ExecuteReader();
+            //}
 
             return returnValue;
         }

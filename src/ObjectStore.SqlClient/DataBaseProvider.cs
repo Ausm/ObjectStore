@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 
 namespace ObjectStore.SqlClient
 {
@@ -138,7 +140,16 @@ namespace ObjectStore.SqlClient
                 if (_dataReader.IsDBNull(ordinal))
                     return default(T);
 
-                object returnValue = _dataReader.GetValue(ordinal);
+                object returnValue;
+
+                if (typeof(T) == typeof(XElement))
+                {
+                    SqlXml xml = _dataReader.GetFieldValue<SqlXml>(ordinal);
+                    using (System.Xml.XmlReader reader = xml.CreateReader())
+                        returnValue = XElement.Load(reader);
+                }
+                else
+                    returnValue = _dataReader.GetValue(ordinal);
 
                 return (T)returnValue;
             }
@@ -279,6 +290,17 @@ namespace ObjectStore.SqlClient
         }
 
         internal static DbCommand GetCommand() => _getCommand();
+
+        internal static SqlParameter GetParameter(string parameterName, object value)
+        {
+            if (value is XElement)
+                return new SqlParameter(parameterName, System.Data.SqlDbType.Xml) { Value = new SqlXml(((XElement)value).CreateReader()) };
+
+            if (value is DateTime && ((DateTime)value) < new DateTime(1753, 1, 1))
+                value = new DateTime(1753, 1, 1);
+
+            return new SqlParameter(parameterName, value);
+        }
 
         internal int GetUniqe()
         {

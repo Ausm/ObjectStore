@@ -50,7 +50,7 @@ namespace ObjectStore.Sqlite
                 KeyInitializer keyInitializer = KeyInitializer.GetInitializer(keyInitializerType);
                 if (keyInitializer == null || !keyInitializer.CheckEmpty(value))
                 {
-                    SqliteParameter param = new SqliteParameter($"@param{_parameters.Count}", value);
+                    SqliteParameter param = DataBaseProvider.GetParameter($"@param{_parameters.Count}", value);
                     _insertFields.Add(fieldname);
                     _insertValues.Add(param.ParameterName);
                     _whereClausel.Add(string.Format("{0} = {1}", param.ParameterName, fieldname));
@@ -68,7 +68,7 @@ namespace ObjectStore.Sqlite
                 }
                 else
                 {
-                    SqliteParameter param = new SqliteParameter(string.Format("@param{0}", _parameters.Count), value);
+                    SqliteParameter param = DataBaseProvider.GetParameter($"@param{_parameters.Count}", value);
                     _insertFields.Add(fieldname);
                     _insertValues.Add(param.ParameterName);
                     _parameters.Add(param);

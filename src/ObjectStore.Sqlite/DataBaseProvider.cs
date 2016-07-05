@@ -6,6 +6,7 @@ using System.Data.Common;
 using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 
 namespace ObjectStore.Sqlite
 {
@@ -142,16 +143,28 @@ namespace ObjectStore.Sqlite
 
                 if (typeof(T) == typeof(int) || typeof(T) == typeof(int?))
                     returnValue = _dataReader.GetInt32(ordinal);
+                else if (typeof(T) == typeof(byte) || typeof(T) == typeof(byte?))
+                    returnValue = _dataReader.GetByte(ordinal);
+                else if (typeof(T) == typeof(short) || typeof(T) == typeof(short?))
+                    returnValue = _dataReader.GetInt16(ordinal);
+                else if (typeof(T) == typeof(long) || typeof(T) == typeof(long?))
+                    returnValue = _dataReader.GetInt64(ordinal);
+                else if (typeof(T) == typeof(Guid) || typeof(T) == typeof(Guid?))
+                    returnValue = _dataReader.GetGuid(ordinal);
+                else if (typeof(T) == typeof(decimal) || typeof(T) == typeof(decimal?))
+                    returnValue = _dataReader.GetDecimal(ordinal);
                 else if (typeof(T) == typeof(DateTime) || typeof(T) == typeof(DateTime?))
                 {
                     string stringValue = _dataReader.GetString(ordinal);
                     DateTime dateTimeValue;
 
-                    if (!DateTime.TryParseExact(stringValue, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dateTimeValue))
+                    if (!DateTime.TryParseExact(stringValue, "yyyy-MM-dd HH:mm:ss.FFFFFFF", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dateTimeValue))
                         return default(T);
 
                     returnValue = dateTimeValue;
                 }
+                else if (typeof(T) == typeof(XElement))
+                    returnValue = XElement.Parse(_dataReader.GetString(ordinal));
                 else
                     returnValue = _dataReader.GetValue(ordinal);
 
@@ -294,6 +307,14 @@ namespace ObjectStore.Sqlite
         }
 
         internal static DbCommand GetCommand() => _getCommand();
+
+        internal static SqliteParameter GetParameter(string parameterName, object value)
+        {
+            if (value is XElement)
+                return new SqliteParameter(parameterName, SqliteType.Text) { Value = ((XElement)value).ToString() };
+
+            return new SqliteParameter(parameterName, value);
+        }
 
         internal int GetUniqe()
         {

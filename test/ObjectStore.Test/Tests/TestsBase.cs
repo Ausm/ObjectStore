@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Specialized;
+using System.Xml.Linq;
 
 namespace ObjectStore.Test.Tests
 {
@@ -24,6 +25,9 @@ namespace ObjectStore.Test.Tests
 
         const string FirstRandomText = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
         const string SecondRandomText = "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
+
+        static readonly Guid FirstRandomGuid = Guid.NewGuid();
+        static readonly Guid SecondRandomGuid = Guid.NewGuid();
 
         protected static readonly object[][] _subEntityData = new[] {
             new object[] { 1, 1, "SubEntity0", 0, 10, DBNull.Value},
@@ -50,6 +54,11 @@ namespace ObjectStore.Test.Tests
         protected static readonly object[][] _entityData = new[] {
             new object[] { 1, $"Testname {DateTime.Now:g}", FirstRandomText },
             new object[] { 2, $"Testname2 {DateTime.Now:g}", SecondRandomText }};
+
+        protected static readonly object[][] _differentTypesEntityData = new[] {
+            new object[] { 1, FirstRandomText, int.MaxValue, byte.MaxValue, short.MaxValue, long.MaxValue, new DateTime(9999, 12,31,23,59,59,999), FirstRandomGuid, FirstRandomGuid.ToByteArray(), 1234567890.12345m, new XElement("root", new XElement("sub1", "Value")) }
+        };
+
         #endregion
 
         #region Constructor
@@ -66,6 +75,63 @@ namespace ObjectStore.Test.Tests
         #endregion
 
         #region Tests
+
+        [Fact]
+        public virtual void TestUsingDifferentDataTypes()
+        {
+            E.DifferentTypes entity = _databaseFixture.ObjectProvider.CreateObject<E.DifferentTypes>();
+
+            entity.Text = FirstRandomText;
+            entity.Int = int.MaxValue;
+            entity.Byte = byte.MaxValue;
+            entity.Short = short.MaxValue;
+            entity.Long = long.MaxValue;
+            entity.DateTime = DateTime.MaxValue;
+            entity.Guid = FirstRandomGuid;
+            entity.Binary = FirstRandomGuid.ToByteArray();
+            entity.Decimal = 1234567890.12345m;
+            entity.Xml = new XElement("root", new XElement("sub1", "Value"));
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
+
+            Assert.Equal(FirstRandomText, entity.Text);
+            Assert.Equal(int.MaxValue, entity.Int);
+            Assert.Equal(byte.MaxValue, entity.Byte);
+            Assert.Equal(short.MaxValue, entity.Short);
+            Assert.Equal(long.MaxValue, entity.Long);
+            //Assert.Equal(DateTime.MaxValue, entity.DateTime);
+            Assert.Equal(FirstRandomGuid, entity.Guid);
+            Assert.Equal(FirstRandomGuid.ToByteArray(), entity.Binary);
+            Assert.Equal(1234567890.12345m, entity.Decimal);
+            //Assert.Equal(new XElement("root", new XElement("sub1", "Value")), entity.Xml);
+
+            entity = Assert.ScriptCalled(_databaseFixture, Query.SelectDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().ForceLoad().ToList().First());
+
+            entity.Text = SecondRandomText;
+            entity.Int = int.MinValue;
+            entity.Byte = byte.MinValue;
+            entity.Short = short.MinValue;
+            entity.Long = long.MinValue;
+            entity.DateTime = DateTime.MinValue;
+            entity.Guid = SecondRandomGuid;
+            entity.Binary = SecondRandomGuid.ToByteArray();
+            entity.Decimal = 9876543210.54321m;
+            entity.Xml = new XElement("root", new XElement("sub2", "Value"));
+
+            Assert.ScriptCalled(_databaseFixture, Query.UpdateDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
+
+            Assert.Equal(SecondRandomText, entity.Text);
+            Assert.Equal(int.MinValue, entity.Int);
+            Assert.Equal(byte.MinValue, entity.Byte);
+            Assert.Equal(short.MinValue, entity.Short);
+            Assert.Equal(long.MinValue, entity.Long);
+            //Assert.Equal(DateTime.MinValue, entity.DateTime);
+            Assert.Equal(SecondRandomGuid, entity.Guid);
+            Assert.Equal(SecondRandomGuid.ToByteArray(), entity.Binary);
+            Assert.Equal(9876543210.54321m, entity.Decimal);
+            //Assert.Equal(new XElement("root", new XElement("sub2", "Value")), entity.Xml);
+
+        }
 
         [Fact]
         public void TestInsert()
@@ -290,14 +356,19 @@ namespace ObjectStore.Test.Tests
         #region Methods
         protected abstract string GetQuerryPattern(Query key);
 
-        IEnumerable<object[]> GetDefaultResult(Query key)
+        protected virtual IEnumerable<object[]> GetDefaultResult(Query key)
         {
             switch (key)
             {
                 case Query.Insert:
                     return new[] { new object[] { 1, $"Testname {DateTime.Now:g}", FirstRandomText } };
+                case Query.SelectDifferentTypesEntity:
+                case Query.InsertDifferentTypesEntity:
+                    return new[] { new object[] { 1, FirstRandomText, int.MaxValue, byte.MaxValue, short.MaxValue, long.MaxValue, new DateTime(9999, 12,31,23,59,59,999), FirstRandomGuid, FirstRandomGuid.ToByteArray(), 1234567890.12345m, new XElement("root", new XElement("sub1", "Value")) } };
                 case Query.Update:
                     return new[] { new object[] { 1, $"Testname {DateTime.Now:g}", SecondRandomText } };
+                case Query.UpdateDifferentTypesEntity:
+                    return new[] { new object[] { 1, SecondRandomText, int.MinValue, byte.MinValue, short.MinValue, long.MinValue, new DateTime(1753, 1, 1), SecondRandomGuid, SecondRandomGuid.ToByteArray(), 9876543210.54321m, new XElement("root", new XElement("sub2", "Value")) } };
                 case Query.Delete:
                     return Enumerable.Empty<object[]>();
                 case Query.DeleteSub:
@@ -347,6 +418,10 @@ namespace ObjectStore.Test.Tests
         {
             switch (key)
             {
+                case Query.SelectDifferentTypesEntity:
+                case Query.InsertDifferentTypesEntity:
+                case Query.UpdateDifferentTypesEntity:
+                    return new string[] { "Id", "Text", "Int", "Byte", "Short", "Long", "DateTime", "Guid", "Binary", "Decimal", "Xml" };
                 case Query.Insert:
                 case Query.Update:
                 case Query.Select:

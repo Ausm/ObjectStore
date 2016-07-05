@@ -149,7 +149,7 @@ namespace ObjectStore.Sqlite
 
         public DbParameter AddDbParameter(object value)
         {
-            DbParameter returnValue = new SqliteParameter($"@param{_databaseProvider.GetUniqe()}", value);
+            DbParameter returnValue = DataBaseProvider.GetParameter($"@param{_databaseProvider.GetUniqe()}", value);
             _parameters.Add(returnValue);
             return returnValue;
         }

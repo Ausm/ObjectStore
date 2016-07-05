@@ -2,6 +2,8 @@
 using Xunit.Abstractions;
 using System;
 using ObjectStore.Test.Tests;
+using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace ObjectStore.Test.SqlClient
 {
@@ -15,14 +17,34 @@ namespace ObjectStore.Test.SqlClient
         #endregion
 
         #region Methods
+        protected override IEnumerable<object[]> GetDefaultResult(Query key)
+        {
+            IEnumerable<object[]> returnValue = base.GetDefaultResult(key);
+
+            foreach (object[] row in returnValue)
+            {
+                for (int i = 0; i < row.Length; i++)
+                {
+                    if (row[i] is XElement)
+                        row[i] = new System.Data.SqlTypes.SqlXml(((XElement)row[i]).CreateReader());
+                }
+            }
+
+            return returnValue;
+        }
+
         protected override string GetQuerryPattern(Query key)
         {
             switch (key)
             {
                 case Query.Insert:
                     return @"^\s*INSERT\s+dbo\.TestTable\s*\(\[Name],\s*\[Description]\)\s*VALUES\s*\(@param\d+,\s*@param\d+\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+\k<P>\s*=\s*Id$";
+                case Query.InsertDifferentTypesEntity:
+                    return @"^\s*INSERT\s+dbo\.DifferentTypesTable\s*\((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)](,\s*|\s*(?=\)))){10}\)\s*VALUES\s*\(@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+\s*\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+Id,\s*\[Text],\s*\[Int],\s*\[Byte],\s*\[Short],\s*\[Long],\s*\[DateTime],\s*\[Guid],\s*\[Binary],\s*\[Decimal],\s*\[Xml]\s+FROM\s+dbo\.DifferentTypesTable\s+WHERE\s+\k<P>\s*=\s*Id$";
                 case Query.Update:
                     return @"^\s*UPDATE\s+dbo\.TestTable\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s+SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
+                case Query.UpdateDifferentTypesEntity:
+                    return @"^\s*UPDATE\s+dbo\.DifferentTypesTable\s+SET\s+(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)]\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){10}WHERE\s+Id\s*=\s*(?<P>@param\d+)\s+SELECT\s+((Id|(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)]))(,\s*|\s+(?=FROM))){11}FROM\s+dbo\.DifferentTypesTable\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.Delete:
                     return @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.DeleteSub:
@@ -31,6 +53,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$";
                 case Query.SelectSub:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s*$";
+                case Query.SelectDifferentTypesEntity:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.((Id|(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)])))(,\s*|\s+(?=FROM))){11}FROM\s+dbo\.DifferentTypesTable\s+\k<T>\s*$";
                 case Query.OrderBy:
                     return GetSimpleExpressionPattern(@"\k<T>\.Test\s*=\s*@param\d+\s+ORDER\s+BY\s+\k<T>\.\[Second]\s*");
                 case Query.SimpleExpressionEqual:
