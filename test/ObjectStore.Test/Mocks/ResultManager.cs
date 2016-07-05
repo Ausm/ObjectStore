@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ObjectStore.Test.Mocks
 {
-    abstract class ResultManagerBase
+    public abstract class ResultManagerBase
     {
         protected class Item
         {
@@ -47,7 +47,7 @@ namespace ObjectStore.Test.Mocks
 
         public abstract DataReader GetReader(DbCommand command);
     }
-    class ResultManager<T> : ResultManagerBase
+    public class ResultManager<T> : ResultManagerBase
     {
 
         Dictionary<T, Item> _items;
@@ -85,23 +85,34 @@ namespace ObjectStore.Test.Mocks
                 IEnumerable<object[]> values = null;
                 List<Tuple<string[], IEnumerable<object[]>>> resultSets = new List<Tuple<string[], IEnumerable<object[]>>>();
 
-                foreach (string commandText in fullCommandText.Split(';'))
+                KeyValuePair<T, Item> item = _items.FirstOrDefault(x => x.Value.IsApplicable(command));
+                if (item.Value != null)
                 {
-                    command.CommandText = commandText;
-
-                    KeyValuePair<T, Item> item = _items.FirstOrDefault(x => x.Value.IsApplicable(command));
-                    if (item.Value == null)
-                        return null;
-
                     key?.Add(item.Key);
-                    if (columnNames == null)
+                    columnNames = item.Value.ColumnNames;
+                    values = item.Value.GetValues();
+                    resultSets.Add(Tuple.Create(item.Value.ColumnNames, item.Value.GetValues()));
+                }
+                else
+                {
+                    foreach (string commandText in fullCommandText.Split(';'))
                     {
-                        columnNames = item.Value.ColumnNames;
-                        values = item.Value.GetValues();
-                    }
-                    else
-                    {
-                        resultSets.Add(Tuple.Create(item.Value.ColumnNames, item.Value.GetValues()));
+                        command.CommandText = commandText;
+
+                        item = _items.FirstOrDefault(x => x.Value.IsApplicable(command));
+                        if (item.Value == null)
+                            return null;
+
+                        key?.Add(item.Key);
+                        if (columnNames == null)
+                        {
+                            columnNames = item.Value.ColumnNames;
+                            values = item.Value.GetValues();
+                        }
+                        else
+                        {
+                            resultSets.Add(Tuple.Create(item.Value.ColumnNames, item.Value.GetValues()));
+                        }
                     }
                 }
 

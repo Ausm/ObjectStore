@@ -81,7 +81,7 @@ namespace ObjectStore.OrMapping
         string _connectionStringName;
         IDataBaseProvider _dataBaseProvider;
         Thread _workerThread;
-        List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>> _queue = new List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>>();
+        List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>> _queue = new List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>>();
 
         private DataBaseWorkerQueue(string connectionString, IDataBaseProvider dataBaseProvider)
         {
@@ -89,9 +89,9 @@ namespace ObjectStore.OrMapping
             _dataBaseProvider = dataBaseProvider;
         }
 
-        public IAsyncResult EnqueueCommand(object context, DbCommand command, Func<DbDataReader, IAsyncResult, ICommitContext> fillAction)
+        public IAsyncResult EnqueueCommand(object context, DbCommand command, Func<IValueSource, IAsyncResult, ICommitContext> fillAction)
         {
-            Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>> entry = new Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>(new AsyncResult(context), command, fillAction);
+            Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>> entry = new Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>(new AsyncResult(context), command, fillAction);
 
             lock (this)
             {
@@ -119,14 +119,14 @@ namespace ObjectStore.OrMapping
                     connection.Open();
                 while (true)
                 {
-                    List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>> queue;
+                    List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>> queue;
                     lock (this)
                     {
                         if (_queue.Count == 0)
                             return;
 
                         queue = _queue;
-                        _queue = new List<Tuple<AsyncResult, DbCommand, Func<DbDataReader, IAsyncResult, ICommitContext>>>();
+                        _queue = new List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>>();
                     }
 
                     try
@@ -136,12 +136,11 @@ namespace ObjectStore.OrMapping
                         using (DbCommand command = _dataBaseProvider.CombineCommands(queue.Select(x => x.Item2)))
                         {
                             command.Connection = connection;
-                            using (DbDataReader reader = command.ExecuteReader())
+                            using (IValueSource valueSource = _dataBaseProvider.GetValueSource(command))
                             {
                                 for (int i = 0; i < queue.Count; i++)
                                 {
-                                    commitContexts.Add(queue[i].Item3(reader, queue[i].Item1));
-                                    reader.NextResult();
+                                    commitContexts.Add(queue[i].Item3(valueSource, queue[i].Item1));
                                 }
                             }
                         }
@@ -203,7 +202,7 @@ namespace ObjectStore.OrMapping
                 context.PrepareSelectCommand(commandBuilder);
                 context.SetLoaded();
 
-                return _queue.EnqueueCommand(provider, commandBuilder.GetDbCommand(), (reader, result) => _objectProvider._cache.Fill(reader, x => _objectProvider._mappingInfoContainer.GetKeyValues(x), () => (T)_objectProvider._mappingInfoContainer.CreateObject(), ((QueryProvider)result.AsyncState).Context.FillCacheContext));
+                return _queue.EnqueueCommand(provider, commandBuilder.GetDbCommand(), (valueSource, result) => _objectProvider._cache.Fill(valueSource, x => _objectProvider._mappingInfoContainer.GetKeyValues(x), () => (T)_objectProvider._mappingInfoContainer.CreateObject(), ((QueryProvider)result.AsyncState).Context.FillCacheContext));
             }
 
             public void FillCache(QueryContext context)
@@ -220,10 +219,10 @@ namespace ObjectStore.OrMapping
                     try
                     {
                         ICommitContext commitContext;
-                        using (DbDataReader reader = command.ExecuteReader())
+                        using (IValueSource valueSource = _objectProvider._databaseProvider.GetValueSource(command))
                         {
                             MappingInfo mappingInfo = _objectProvider._mappingInfoContainer;
-                            commitContext = _objectProvider._cache.Fill(reader, x => mappingInfo.GetKeyValues(x), () => (T)mappingInfo.CreateObject(), context);
+                            commitContext = _objectProvider._cache.Fill(valueSource, x => mappingInfo.GetKeyValues(x), () => (T)mappingInfo.CreateObject(), context);
                         }
                         if (commitContext != null) commitContext.Commit();
                     }
@@ -238,7 +237,7 @@ namespace ObjectStore.OrMapping
             public void SaveObjects(
                 IEnumerable<IFillAbleObject> items,
                 Func<IFillAbleObject, ICommandBuilder> getBuilder,
-                Action<IFillAbleObject, DbDataReader> refill,
+                Action<IFillAbleObject, IValueSource> refill,
                 Action<IFillAbleObject> afterFill)
             {
                 DbConnection connection = GetConnection();
@@ -256,9 +255,9 @@ namespace ObjectStore.OrMapping
                             using (DbCommand command = commandBuilder.GetDbCommand())
                             {
                                 command.Connection = connection;
-                                using (DbDataReader reader = command.ExecuteReader())
+                                using (IValueSource valueSource = _objectProvider._databaseProvider.GetValueSource(command))
                                 {
-                                    refill(item, reader.Read() ? reader : null);
+                                    refill(item, valueSource.Next() ? valueSource : null);
                                 }
                             }
                             afterFill(item);

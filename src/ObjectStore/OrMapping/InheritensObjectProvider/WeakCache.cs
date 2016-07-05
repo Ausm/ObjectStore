@@ -1,11 +1,6 @@
-﻿#if  NETCOREAPP1_0
-using IDataReader = global::System.Data.Common.DbDataReader;
-#endif
-
-using ObjectStore.Interfaces;
+﻿using ObjectStore.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 
 namespace ObjectStore.OrMapping
@@ -405,16 +400,16 @@ namespace ObjectStore.OrMapping
                     }
                 }
 
-                public ICommitContext Fill(IDataReader reader, Func<IDataReader, MappedObjectKeys> getKeyFunction, Func<T> createObject)
+                public ICommitContext Fill(IValueSource valueSource, Func<IValueSource, MappedObjectKeys> getKeyFunction, Func<T> createObject)
                 {
                     lock (_cache)
                     {
                         Init(true);
 
                         CommitContext commitContext = new CommitContext(this);
-                        while (reader.Read())
+                        while (valueSource.Next())
                         {
-                            MappedObjectKeys keys = getKeyFunction(reader);
+                            MappedObjectKeys keys = getKeyFunction(valueSource);
                             if (_cache._itemsByKey.ContainsKey(keys))
                             {
                                 IFillAbleObject item = _cache._itemsByKey[keys].Value;
@@ -423,13 +418,13 @@ namespace ObjectStore.OrMapping
                                     _cache._itemsByKey[keys] = new WeakReference<IFillAbleObject>(item = (IFillAbleObject)createObject());
                                     ((System.ComponentModel.INotifyPropertyChanged)item).PropertyChanged += _cache.EntryValuePropertyChanged;
                                 }
-                                item.Fill(reader);
+                                item.Fill(valueSource);
                                 commitContext.AddEntryToCommit((T)item);
                             }
                             else
                             {
                                 IFillAbleObject newObject = (IFillAbleObject)createObject();
-                                newObject.Fill(reader);
+                                newObject.Fill(valueSource);
                                 _cache._itemsByKey.Add(keys, new WeakReference<IFillAbleObject>(newObject));
                                 commitContext.AddEntryToCommit((T)newObject);
                                 ((System.ComponentModel.INotifyPropertyChanged)newObject).PropertyChanged += _cache.EntryValuePropertyChanged;
@@ -586,7 +581,7 @@ namespace ObjectStore.OrMapping
 
 #endregion
             }
-#endregion
+            #endregion
 
             public ContextEnumerable CreateEnumerable(QueryContext context)
             {
@@ -642,9 +637,9 @@ namespace ObjectStore.OrMapping
 #endregion
 
 #region ICache Members
-            public ICommitContext Fill(IDataReader reader, Func<IDataReader, MappedObjectKeys> getKeyFunction, Func<T> createObject, QueryContext context)
+            public ICommitContext Fill(IValueSource valueSource, Func<IValueSource, MappedObjectKeys> getKeyFunction, Func<T> createObject, QueryContext context)
             {
-                return CreateEnumerable(context).Fill(reader, getKeyFunction, createObject);
+                return CreateEnumerable(context).Fill(valueSource, getKeyFunction, createObject);
             }
 
             public void AddNew(object item)

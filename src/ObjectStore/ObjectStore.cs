@@ -8,6 +8,7 @@ using System.Reflection;
 #endif
 
 [assembly: InternalsVisibleTo("ObjectStore.SqlClient")]
+[assembly: InternalsVisibleTo("ObjectStore.Sqlite")]
 
 namespace ObjectStore
 {

@@ -8,7 +8,6 @@ using E = ObjectStore.Test.Entities;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.ComponentModel;
-using ObjectStore.Test.Resources;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Specialized;
@@ -18,12 +17,15 @@ namespace ObjectStore.Test.Tests
     public abstract class TestsBase
     {
         #region Fields
-        DatabaseFixture _databaseFixture;
+        IDatabaseFixture _databaseFixture;
         ITestOutputHelper _output;
         IQueryable<E.Test> _queryable;
         IQueryable<E.SubTest> _subQueryable;
 
-        static readonly object[][] _subEntityData = new[] {
+        const string FirstRandomText = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
+        const string SecondRandomText = "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
+
+        protected static readonly object[][] _subEntityData = new[] {
             new object[] { 1, 1, "SubEntity0", 0, 10, DBNull.Value},
             new object[] { 2, 1, "SubEntity2", 1, 9, DBNull.Value},
             new object[] { 3, 1, "SubEntity4", 2, 8, DBNull.Value},
@@ -45,13 +47,13 @@ namespace ObjectStore.Test.Tests
             new object[] { 19, 2, "SubEntity17", 8, 2, DBNull.Value},
             new object[] { 20, 2, "SubEntity19", 9, 1, DBNull.Value}};
 
-        static readonly object[][] _entityData = new[] {
-            new object[] { 1, $"Testname {DateTime.Now:g}", Resource.FirstRandomText },
-            new object[] { 2, $"Testname2 {DateTime.Now:g}", Resource.SecondRandomText }};
+        protected static readonly object[][] _entityData = new[] {
+            new object[] { 1, $"Testname {DateTime.Now:g}", FirstRandomText },
+            new object[] { 2, $"Testname2 {DateTime.Now:g}", SecondRandomText }};
         #endregion
 
         #region Constructor
-        public TestsBase(DatabaseFixture databaseFixture, ITestOutputHelper output)
+        protected TestsBase(IDatabaseFixture databaseFixture, ITestOutputHelper output)
         {
             _databaseFixture = databaseFixture;
             _output = output;
@@ -68,10 +70,10 @@ namespace ObjectStore.Test.Tests
         [Fact]
         public void TestInsert()
         {
-            List<E.Test> cachedItems = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceCache().ToList();
+            List<E.Test> cachedItems = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList());
             int newId = cachedItems.Count == 0 ? 1 : cachedItems.Max(x => x.Id) + 1;
             string name = $"Testname {DateTime.Now:g}";
-            string description = Resource.FirstRandomText;
+            string description = FirstRandomText;
 
             _databaseFixture.SetResult(Query.Insert, new[] { new object[] { newId, name, description } });
 
@@ -92,14 +94,15 @@ namespace ObjectStore.Test.Tests
         [Fact]
         public void TestUpdate()
         {
-            _databaseFixture.SetResult(Query.Select, GetEntitys(1));
+            E.Test entity = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _queryable.ToList().First());
 
-            E.Test entity = Assert.ScriptCalled(_databaseFixture, Query.Select, () => Assert.Single(_queryable));
+            string oldString = entity.Description;
+            string newString = oldString == FirstRandomText ? SecondRandomText : FirstRandomText;
 
-            _databaseFixture.SetResult(Query.Update, new[] { new object[] { entity.Id, entity.Name, Resource.SecondRandomText } });
+            _databaseFixture.SetResult(Query.Update, new[] { new object[] { entity.Id, entity.Name, newString } });
 
             Assert.PropertyChanged((INotifyPropertyChanged)entity, nameof(E.Test.Description),
-                () => entity.Description = Resource.SecondRandomText);
+                () => entity.Description = newString);
 
             Assert.ScriptCalled(_databaseFixture, Query.Update, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity).Save());
         }
@@ -108,6 +111,9 @@ namespace ObjectStore.Test.Tests
         public void TestDeleteSingle()
         {
             E.Test entity = Assert.ScriptCalled(_databaseFixture, Query.Select, () => Assert.Single(_queryable.ToList().Where(x => x.Id == 1)));
+
+            // Quick fix to prevent the test to run in to issue #14 problem, needs to be removed in the future.
+            entity.SubTests.ToList().Select(x => x.Test).ToList();
 
             IQueryable<E.Test> queryable = _databaseFixture.ObjectProvider.GetQueryable<E.Test>().Where(x => x == entity);
             queryable.Delete();
@@ -131,7 +137,7 @@ namespace ObjectStore.Test.Tests
             List<Query> hittedCommands = new List<Query>();
             ManualResetEvent manualResetEvent = new ManualResetEvent(false);
             ManualResetEvent manualResetEvent2 = new ManualResetEvent(false);
-            EventHandler<DatabaseFixture.HitCommandEventArgs> blockHandler = (s, e) =>
+            EventHandler<HitCommandEventArgs> blockHandler = (s, e) =>
             {
                 hittedCommands.Add(e.Key);
                 manualResetEvent2.Set();
@@ -223,7 +229,7 @@ namespace ObjectStore.Test.Tests
             {
 
                 string originalDescription = elements[0].Description;
-                string newDescription = elements[0].Description == Resource.FirstRandomText ? Resource.SecondRandomText : Resource.FirstRandomText;
+                string newDescription = elements[0].Description == FirstRandomText ? SecondRandomText : FirstRandomText;
 
                 Assert.False(_queryable.CheckChanged());
 
@@ -289,9 +295,9 @@ namespace ObjectStore.Test.Tests
             switch (key)
             {
                 case Query.Insert:
-                    return new[] { new object[] { 1, $"Testname {DateTime.Now:g}", Resource.FirstRandomText } };
+                    return new[] { new object[] { 1, $"Testname {DateTime.Now:g}", FirstRandomText } };
                 case Query.Update:
-                    return new[] { new object[] { 1, $"Testname {DateTime.Now:g}", Resource.SecondRandomText } };
+                    return new[] { new object[] { 1, $"Testname {DateTime.Now:g}", SecondRandomText } };
                 case Query.Delete:
                     return Enumerable.Empty<object[]>();
                 case Query.DeleteSub:
@@ -311,7 +317,7 @@ namespace ObjectStore.Test.Tests
                 case Query.SimpleExpressionUnequalToNull:
                     return GetSubEntitys(8, 18);
                 case Query.SimpleExpressionAdd:
-                    return GetSubEntitys(1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
+                    return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
                 case Query.SimpleExpressionSubtract:
                     return GetSubEntitys(7, 17);
                 case Query.SimpleExpressionGreater:

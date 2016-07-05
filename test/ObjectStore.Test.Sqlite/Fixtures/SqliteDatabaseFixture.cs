@@ -1,7 +1,6 @@
 ﻿using ObjectStore.Interfaces;
 using ObjectStore.OrMapping;
-using ObjectStore.Test.Resources;
-using ObjectStore.SqlClient;
+using ObjectStore.Sqlite;
 using System;
 using System.Data.Common;
 using System.Reflection;
@@ -9,23 +8,15 @@ using ObjectStore.Test.Mocks;
 using System.Text.RegularExpressions;
 using ObjectStore.Test.Tests;
 using System.Collections.Generic;
+using System.IO;
+using Microsoft.Data.Sqlite;
+using System.Linq;
+using ObjectStore.Test.Fixtures;
 
-namespace ObjectStore.Test.Fixtures
+namespace ObjectStore.Test.Sqlite
 {
-    public class DatabaseFixture : IDisposable
+    public class SqliteDatabaseFixture : IDisposable, IDatabaseFixture
     {
-        #region Subclasses
-        public class HitCommandEventArgs : EventArgs
-        {
-            public HitCommandEventArgs(Query key)
-            {
-                Key = key;
-            }
-
-            public Query Key { get; }
-        }
-        #endregion
-
         #region Fields
         IObjectProvider _objectProvider;
         ResultManager<Query> _resultManager;
@@ -33,12 +24,12 @@ namespace ObjectStore.Test.Fixtures
         #endregion
 
         #region Constructor
-        public DatabaseFixture()
+        public SqliteDatabaseFixture()
         {
             _isInitialized = false;
 
             if (_objectProvider == null)
-                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore(Resource.MsSqlConnectionString, DataBaseProvider.Instance, true));
+                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("Data Source=file::memory:?cache=shared;Version=3;New=True;", DataBaseProvider.Instance, true));
 
             Func<DbCommand> getCommand = () => new Command(GetReader);
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getCommand", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
@@ -47,7 +38,6 @@ namespace ObjectStore.Test.Fixtures
             Func<string, DbConnection> getConnection = x => new Connection(x);
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getConnection", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
                 .SetValue(null, getConnection);
-
 
             _resultManager = new ResultManager<Query>();
         }
@@ -87,7 +77,7 @@ namespace ObjectStore.Test.Fixtures
         {
         }
 
-        DataReader GetReader(Command command)
+        DbDataReader GetReader(Command command)
         {
             List<Query> keys = new List<Query>();
 
@@ -98,7 +88,18 @@ namespace ObjectStore.Test.Fixtures
                 foreach(Query key in keys)
                     HitCommand(this, new HitCommandEventArgs(key));
 
-            return returnValue;
+            string directory = Path.Combine(Path.GetDirectoryName(typeof(SqliteDatabaseFixture).GetTypeInfo().Assembly.Location), "Resources");
+            File.Copy(Path.Combine(directory, "Test.sqlite3"), Path.Combine(directory, "test.db"), true);
+
+            SqliteConnection connection = new SqliteConnection("Data Source=Resources/test.db");
+            connection.Open();
+
+            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, connection);
+            sqliteCommand.Parameters.AddRange(command.Parameters.Cast<SqliteParameter>());
+
+            return sqliteCommand.ExecuteReader();
+
+            //return returnValue;
         }
         #endregion
 

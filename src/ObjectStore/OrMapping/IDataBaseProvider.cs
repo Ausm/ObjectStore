@@ -11,6 +11,8 @@ namespace ObjectStore.OrMapping
         ICommandBuilder GetUpdateCommandBuilder();
         ICommandBuilder GetDeleteCommandBuilder();
 
+        IValueSource GetValueSource(DbCommand command);
+
         DbConnection GetConnection(string connectionString);
 
         DbCommand CombineCommands(IEnumerable<DbCommand> commands);

@@ -3,11 +3,11 @@ using ObjectStore.OrMapping;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Threading;
 
-namespace ObjectStore.SqlClient
+namespace ObjectStore.Sqlite
 {
     public partial class DataBaseProvider : IDataBaseProvider
     {
@@ -138,7 +138,22 @@ namespace ObjectStore.SqlClient
                 if (_dataReader.IsDBNull(ordinal))
                     return default(T);
 
-                object returnValue = _dataReader.GetValue(ordinal);
+                object returnValue;
+
+                if (typeof(T) == typeof(int) || typeof(T) == typeof(int?))
+                    returnValue = _dataReader.GetInt32(ordinal);
+                else if (typeof(T) == typeof(DateTime) || typeof(T) == typeof(DateTime?))
+                {
+                    string stringValue = _dataReader.GetString(ordinal);
+                    DateTime dateTimeValue;
+
+                    if (!DateTime.TryParseExact(stringValue, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dateTimeValue))
+                        return default(T);
+
+                    returnValue = dateTimeValue;
+                }
+                else
+                    returnValue = _dataReader.GetValue(ordinal);
 
                 return (T)returnValue;
             }
@@ -159,8 +174,8 @@ namespace ObjectStore.SqlClient
         DateTime _lastCleanUpTime = DateTime.Now;
         int _currentUniqe = 0;
         ExpressionParser _expressionParser;
-        static Func<DbCommand> _getCommand = () => new SqlCommand();
-        static Func<string, DbConnection> _getConnection = c => new SqlConnection(c);
+        static Func<DbCommand> _getCommand = () => new SqliteCommand();
+        static Func<string, DbConnection> _getConnection = c => new SqliteConnection(c);
         #endregion
 
         #region Singleton Implementation
