@@ -19,14 +19,5 @@ namespace ObjectStore
                 return _defaultObjectStore;
             }
         }
-
-        [Obsolete]
-        internal static int CurrentUniqe()
-        {
-            if (_currentUniqe == int.MaxValue)
-                _currentUniqe = 0;
-
-            return _currentUniqe++;
-        }
     }
 }

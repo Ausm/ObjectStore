@@ -97,7 +97,7 @@ namespace ObjectStore.OrMapping
                     stringBuilder.AppendFormat("{0};", command.CommandText);
                     foreach (DbParameter parameter in command.Parameters)
                     {
-                        stringBuilder.AppendFormat("{0} = {1},", parameter.ParameterName, parameter.Value);
+                        stringBuilder.Append($"{parameter.ParameterName} = {parameter.Value},");
                     }
                     if (!Context.Load)
                         stringBuilder.Append("(Cache only)");
@@ -108,7 +108,7 @@ namespace ObjectStore.OrMapping
                 }
                 catch (Exception ex)
                 {
-                    return string.Format("Unparseable:{0}", ex);
+                    return $"Unparseable:{ex}";
                 }
             }
             #endregion

@@ -18,13 +18,11 @@ namespace ObjectStore
         public ObjectStore()
         {
             _objectProviders = new Dictionary<Type, IObjectProvider>();
-            _objectOwnerlist = new Dictionary<object, IObjectProvider>();
         }
         #endregion
 
         #region Membervariablen
         Dictionary<Type, IObjectProvider> _objectProviders;
-        Dictionary<object, IObjectProvider> _objectOwnerlist;
         #endregion
 
         #region Funktionen
@@ -81,10 +79,7 @@ namespace ObjectStore
             {
                 T obj = provider.CreateObject<T>();
                 if (obj != null && !obj.Equals(default(T)))
-                {
-                    _objectOwnerlist.Add(obj, provider);
                     return obj;
-                }
             }
             return default(T);
         }
@@ -110,15 +105,6 @@ namespace ObjectStore
                 }
             }
             return returnValue;
-        }
-
-        private IEnumerable<T> SetObjectOwner<T>(IEnumerable<T> list, IObjectProvider provider)
-        {
-            foreach (T item in list)
-            {
-                _objectOwnerlist[item] = provider;
-            }
-            return list;
         }
 #endregion
         #endregion
