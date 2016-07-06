@@ -99,11 +99,11 @@ namespace ObjectStore.Test.Tests
             Assert.Equal(byte.MaxValue, entity.Byte);
             Assert.Equal(short.MaxValue, entity.Short);
             Assert.Equal(long.MaxValue, entity.Long);
-            //Assert.Equal(DateTime.MaxValue, entity.DateTime);
+            Assert.InRange(entity.DateTime, DatabaseMaxDate, DateTime.MaxValue);
             Assert.Equal(FirstRandomGuid, entity.Guid);
             Assert.Equal(FirstRandomGuid.ToByteArray(), entity.Binary);
             Assert.Equal(1234567890.12345m, entity.Decimal);
-            //Assert.Equal(new XElement("root", new XElement("sub1", "Value")), entity.Xml);
+            Assert.NotNull(entity.Xml.Element("sub1"));
 
             entity = Assert.ScriptCalled(_databaseFixture, Query.SelectDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().ForceLoad().ToList().First());
 
@@ -125,11 +125,11 @@ namespace ObjectStore.Test.Tests
             Assert.Equal(byte.MinValue, entity.Byte);
             Assert.Equal(short.MinValue, entity.Short);
             Assert.Equal(long.MinValue, entity.Long);
-            //Assert.Equal(DateTime.MinValue, entity.DateTime);
+            Assert.InRange(entity.DateTime, DateTime.MinValue, DatabaseMinDate);
             Assert.Equal(SecondRandomGuid, entity.Guid);
             Assert.Equal(SecondRandomGuid.ToByteArray(), entity.Binary);
             Assert.Equal(9876543210.54321m, entity.Decimal);
-            //Assert.Equal(new XElement("root", new XElement("sub2", "Value")), entity.Xml);
+            Assert.NotNull(entity.Xml.Element("sub2"));
 
         }
 
@@ -464,6 +464,24 @@ namespace ObjectStore.Test.Tests
                 yield return _entityData[id - 1];
         }
         #endregion
+        #endregion
+
+        #region Properties
+        protected virtual DateTime DatabaseMaxDate
+        {
+            get
+            {
+                return DateTime.MaxValue;
+            }
+        }
+
+        protected virtual DateTime DatabaseMinDate
+        {
+            get
+            {
+                return DateTime.MinValue;
+            }
+        }
         #endregion
 
         #region MemberData Definitions

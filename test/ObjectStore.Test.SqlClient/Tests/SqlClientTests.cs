@@ -100,5 +100,23 @@ namespace ObjectStore.Test.SqlClient
             return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+" + joinPattern + "$";
         }
         #endregion
+
+        #region Properties
+        protected override DateTime DatabaseMaxDate
+        {
+            get
+            {
+                return DateTime.MaxValue.Subtract(new TimeSpan(0,0,1));
+            }
+        }
+
+        protected override DateTime DatabaseMinDate
+        {
+            get
+            {
+                return new DateTime(1753,1,1);
+            }
+        }
+        #endregion
     }
 }
