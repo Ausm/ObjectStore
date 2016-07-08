@@ -22,7 +22,7 @@
     }
   },
   "dependencies": {
-    "Microsoft.Data.Sqlite": "1.0.0-rc2-final",
+    "Microsoft.Data.Sqlite": "1.0.0",
     "ObjectStore": "1.0.0-alpha2"
   }
 }

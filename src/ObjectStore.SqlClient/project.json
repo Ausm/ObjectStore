@@ -17,7 +17,7 @@
         "portable-net45+win8"
       ],
       "dependencies": {
-        "System.Data.SqlClient": "4.1.0-rc2-24027",
+        "System.Data.SqlClient": "4.1.0",
         "System.Xml.XDocument": "4.0.11"
       }
     }

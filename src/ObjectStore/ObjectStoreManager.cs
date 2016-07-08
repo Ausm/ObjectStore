@@ -5,7 +5,6 @@ namespace ObjectStore
     public static class ObjectStoreManager
     {
         static ObjectStore _defaultObjectStore = null;
-        static int _currentUniqe = 0;
 
         public static ObjectStore DefaultObjectStore
         {
