@@ -1,7 +1,13 @@
 {
-  "version": "1.0.0-alpha2",
+  "version": "1.0.0-alpha3-*",
   "description": "ObjectStore.Identity Class Library",
   "authors": [ "Matthias Auswoeger" ],
+  "packOptions": {
+    "owners": [ "Matthias Auswoeger" ],
+    "projectUrl": "https://github.com/Ausm/ObjectStore",
+    "licenseUrl": "https://github.com/Ausm/ObjectStore/blob/master/LICENSE",
+    "tags": [ "ORMapper", "SQL", "SQLite", "ASP.NET", "Identity" ]
+  },
   "frameworks": {
     "net452": {
       "imports": [ "dnx451", "net451" ]
@@ -16,7 +22,7 @@
   },
   "dependencies": {
     "Microsoft.AspNet.Identity": "3.0.0-rc1-final",
-    "ObjectStore": "1.0.0-alpha2",
-    "ObjectStore.Interfaces": "1.0.0-alpha2"
+    "ObjectStore": "1.0.0-alpha3-*",
+    "ObjectStore.Interfaces": "1.0.0-alpha3-*"
   }
 }
