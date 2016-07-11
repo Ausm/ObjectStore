@@ -31,7 +31,7 @@
     }
   },
   "dependencies": {
-    "ObjectStore.Interfaces": "1.0.0-alpha3-*",
+    "ObjectStore.Interfaces": "1.0.0-alpha3",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0"
   }
 }

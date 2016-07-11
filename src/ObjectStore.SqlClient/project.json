@@ -29,6 +29,6 @@
     }
   },
   "dependencies": {
-    "ObjectStore": "1.0.0-alpha3-*"
+    "ObjectStore": "1.0.0-alpha3"
   }
 }
