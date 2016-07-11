@@ -5,7 +5,7 @@ Travis CI:
 Appveyor:
 [![Build status](https://ci.appveyor.com/api/projects/status/9r1b0mfgjskf7gry/branch/master?svg=true)](https://ci.appveyor.com/project/Ausm/objectstore/branch/master)
 MyGet:
-[![MyGet CI](https://img.shields.io/myget/objectstore/v/ObjectStore.svg)](http://myget.org/gallery/acndrewlock-ci)
+[![MyGet CI](https://img.shields.io/myget/objectstore/v/ObjectStore.svg)](https://www.myget.org/feed/objectstore/package/nuget/ObjectStore)
 
 .Net Or-Mapper working with dynamically implemented abstract Classes
 
