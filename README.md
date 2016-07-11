@@ -1,5 +1,11 @@
-ObjectStore [![Build Status](https://travis-ci.org/Ausm/ObjectStore.svg?branch=master)](https://travis-ci.org/Ausm/ObjectStore)
+ObjectStore 
 ===========
+Travis CI:
+[![Build Status](https://travis-ci.org/Ausm/ObjectStore.svg?branch=master)](https://travis-ci.org/Ausm/ObjectStore)
+Appveyor:
+[![Build status](https://ci.appveyor.com/api/projects/status/9r1b0mfgjskf7gry/branch/master?svg=true)](https://ci.appveyor.com/project/Ausm/objectstore/branch/master)
+MyGet:
+[![MyGet CI](https://img.shields.io/myget/objectstore/v/ObjectStore.svg)](http://myget.org/gallery/acndrewlock-ci)
 
 .Net Or-Mapper working with dynamically implemented abstract Classes
 
