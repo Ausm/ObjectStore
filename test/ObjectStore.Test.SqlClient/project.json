@@ -4,9 +4,7 @@
   "description": "ObjectStore.Test.SqlClient Class Library",
   "authors": [ "MatthiasA" ],
   "dependencies": {
-    "xunit": "2.2.0-beta1-build3239",
-    "ObjectStore.Test": "1.0.0",
-    "ObjectStore.SqlClient": "1.0.0-alpha2"
+    "ObjectStore.Test": "1.0.0"
   },
 
   "frameworks": {

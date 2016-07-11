@@ -1,7 +1,13 @@
 {
-  "version": "1.0.0-alpha2",
+  "version": "1.0.0-alpha3-*",
   "description": "SQLite Provider for ObjectStore Class Library",
   "authors": [ "Matthias Auswoeger" ],
+  "packOptions": {
+    "owners": [ "Matthias Auswoeger" ],
+    "projectUrl": "https://github.com/Ausm/ObjectStore",
+    "licenseUrl": "https://github.com/Ausm/ObjectStore/blob/master/LICENSE",
+    "tags": [ "ORMapper", "SQLite" ]
+  },
   "frameworks": {
     "net452": {
       "imports": [ "dnx451", "net451" ],
@@ -23,6 +29,6 @@
   },
   "dependencies": {
     "Microsoft.Data.Sqlite": "1.0.0",
-    "ObjectStore": "1.0.0-alpha2"
+    "ObjectStore": "1.0.0-alpha3-*"
   }
 }

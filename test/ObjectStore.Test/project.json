@@ -3,9 +3,11 @@
   "description": "ObjectStore.Test Class Library",
   "authors": [ "MatthiasA" ],
   "dependencies": {
-    "xunit": "2.2.0-beta1-build3239",
-    "dotnet-test-xunit": "1.0.0-rc2-build10015",
-    "ObjectStore": "1.0.0-alpha2"
+    "xunit": "2.2.0-beta2-build3300",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
+    "ObjectStore": "1.0.0-alpha3-*",
+    "ObjectStore.SqlClient": "1.0.0-alpha3-*",
+    "ObjectStore.Sqlite": "1.0.0-alpha3-*"
   },
 
   "frameworks": {
