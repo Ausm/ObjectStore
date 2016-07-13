@@ -134,6 +134,36 @@ namespace ObjectStore.Test.Tests
         }
 
         [Fact]
+        public virtual void TestDifferentWritabilityLevels()
+        {
+            E.DifferentWritabilityLevels entity = _databaseFixture.ObjectProvider.CreateObject<E.DifferentWritabilityLevels>();
+
+            entity.Writeable = 5;
+            entity.Insertable = 10;
+            entity.Updateable = 15;
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().Save());
+
+            Assert.Equal(5, entity.Writeable);
+            Assert.Equal(10, entity.Insertable);
+            Assert.Equal(1, entity.Updateable);
+            Assert.Equal(1, entity.Readonly);
+
+            entity = Assert.ScriptCalled(_databaseFixture, Query.SelectDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().ToList().First());
+
+            entity.Writeable = 20;
+            entity.Insertable = 25;
+            entity.Updateable = 30;
+
+            Assert.ScriptCalled(_databaseFixture, Query.UpdateDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().Save());
+
+            Assert.Equal(20, entity.Writeable);
+            Assert.Equal(10, entity.Insertable);
+            Assert.Equal(30, entity.Updateable);
+            Assert.Equal(2, entity.Readonly);
+        }
+
+        [Fact]
         public void TestInsert()
         {
             List<E.Test> cachedItems = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList());
@@ -365,6 +395,11 @@ namespace ObjectStore.Test.Tests
                 case Query.SelectDifferentTypesEntity:
                 case Query.InsertDifferentTypesEntity:
                     return new[] { new object[] { 1, FirstRandomText, int.MaxValue, byte.MaxValue, short.MaxValue, long.MaxValue, new DateTime(9999, 12,31,23,59,59,999), FirstRandomGuid, FirstRandomGuid.ToByteArray(), 1234567890.12345m, new XElement("root", new XElement("sub1", "Value")) } };
+                case Query.SelectDifferentWritabilityLevels:
+                case Query.InsertDifferentWritabilityLevels:
+                    return new[] { new object[] { 1, 5, 1, 10, 1 } };
+                case Query.UpdateDifferentWritabilityLevels:
+                    return new[] { new object[] { 1, 20, 30, 10, 2 } };
                 case Query.Update:
                     return new[] { new object[] { 1, $"Testname {DateTime.Now:g}", SecondRandomText } };
                 case Query.UpdateDifferentTypesEntity:
@@ -422,6 +457,10 @@ namespace ObjectStore.Test.Tests
                 case Query.InsertDifferentTypesEntity:
                 case Query.UpdateDifferentTypesEntity:
                     return new string[] { "Id", "Text", "Int", "Byte", "Short", "Long", "DateTime", "Guid", "Binary", "Decimal", "Xml" };
+                case Query.SelectDifferentWritabilityLevels:
+                case Query.InsertDifferentWritabilityLevels:
+                case Query.UpdateDifferentWritabilityLevels:
+                    return new string[] { "Id", "Writeable", "Updateable", "Insertable", "Readonly" };
                 case Query.Insert:
                 case Query.Update:
                 case Query.Select:

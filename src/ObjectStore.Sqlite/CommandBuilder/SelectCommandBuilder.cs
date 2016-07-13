@@ -147,7 +147,7 @@ namespace ObjectStore.Sqlite
             _top = count;
         }
 
-        public DbParameter AddDbParameter(object value)
+        private DbParameter AddDbParameter(object value)
         {
             DbParameter returnValue = DataBaseProvider.GetParameter($"@param{_databaseProvider.GetUniqe()}", value);
             _parameters.Add(returnValue);
@@ -162,7 +162,7 @@ namespace ObjectStore.Sqlite
 
             if(_top > -1) stringBuilder.AppendFormat(" TOP {0}", _top);
 
-            stringBuilder.Append($" {_alias}.{string.Join($", {_alias}.", _selectFields.ToArray())} FROM \"{_tablename}\" {_alias}");
+            stringBuilder.Append($" {string.Join($", ", _selectFields.Select(x => $"{_alias}.{x} {x}").ToArray())} FROM \"{_tablename}\" {_alias}");
 
             string whereClause = null;
 

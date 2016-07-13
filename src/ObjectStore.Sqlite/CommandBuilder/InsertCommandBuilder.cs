@@ -57,7 +57,7 @@ namespace ObjectStore.Sqlite
                     _parameters.Add(param);
                 }
                 else
-                    _whereClausel.Add(keyInitializer.GetWhereClause(fieldname));
+                    _whereClausel.Add(keyInitializer.GetWhereClause(fieldname, _tablename));
             }
             else if (fieldtype == FieldType.WriteableField || fieldtype == FieldType.InsertableField)
             {
