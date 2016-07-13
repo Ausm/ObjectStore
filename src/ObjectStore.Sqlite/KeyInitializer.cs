@@ -53,9 +53,9 @@ namespace ObjectStore.Sqlite
 
         #region Properties
 
-        public string GetWhereClause(string identityFieldname)
+        public string GetWhereClause(string identityFieldname, string tablename)
         {
-            return $"{identityFieldname} = last_insert_rowid()";
+            return $"{identityFieldname} = (SELECT seq FROM  sqlite_sequence WHERE name = \"{tablename}\")";
         }
 
         public Microsoft.Data.Sqlite.SqliteType SqlDbType
