@@ -12,6 +12,7 @@
         DeleteSub,
         Select,
         SelectSub,
+        SelectSubTake10,
         SelectDifferentTypesEntity,
         SelectDifferentWritabilityLevels,
         OrderBy,

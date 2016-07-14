@@ -160,8 +160,6 @@ namespace ObjectStore.Sqlite
 
             StringBuilder stringBuilder = new StringBuilder("SELECT");
 
-            if(_top > -1) stringBuilder.AppendFormat(" TOP {0}", _top);
-
             stringBuilder.Append($" {string.Join($", ", _selectFields.Select(x => $"{_alias}.{x} {x}").ToArray())} FROM \"{_tablename}\" {_alias}");
 
             string whereClause = null;
@@ -193,6 +191,8 @@ namespace ObjectStore.Sqlite
                 stringBuilder.Append(" ORDER BY ").Append(string.Join(", ", _orderbyExpressions.Select(
                         exp => _databaseProvider.ExpressionParser.ParseExpression(exp, this)
                             ).ToArray()));
+
+            if (_top > -1) stringBuilder.AppendFormat(" LIMIT {0}", _top);
 
             DbCommand command = DataBaseProvider.GetCommand();
             command.Parameters.AddRange(_parameters.ToArray());

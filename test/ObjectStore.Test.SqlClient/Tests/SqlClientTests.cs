@@ -57,6 +57,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$";
                 case Query.SelectSub:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s*$";
+                case Query.SelectSubTake10:
+                    return @"^\s*SELECT\s+TOP\s+10\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+ORDER\s+BY\s+\k<T>\.Id\s*$";
                 case Query.SelectDifferentTypesEntity:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.((Id|(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)])))(,\s*|\s+(?=FROM))){11}FROM\s+dbo\.DifferentTypesTable\s+\k<T>\s*$";
                 case Query.SelectDifferentWritabilityLevels:
