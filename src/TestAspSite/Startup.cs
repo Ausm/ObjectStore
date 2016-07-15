@@ -9,7 +9,7 @@ namespace TestEmpty
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddObjectStore("data source=(local);Integrated Security=True;initial catalog=Test");
+            services.AddObjectStoreWithSqlClient("data source=(local);Integrated Security=True;initial catalog=Test");
 
             services.AddIdentity<User, Role>()
                 .AddObjectStoreUserStores();
