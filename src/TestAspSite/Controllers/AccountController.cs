@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using TestEmpty.ViewModels.Account;
-using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity;
 using ObjectStore.Identity;
-using Microsoft.AspNet.Authorization;
+using Microsoft.AspNetCore.Authorization;
 #if DEBUG
 using ObjectStore;
 #endif
@@ -33,7 +33,7 @@ namespace TestEmpty.Controllers
         // GET: /<controller>/
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(string returnUrl = null)
+        public IActionResult Login(string returnUrl = null)
         {
             ViewBag.ReturnUrl = returnUrl;
             return View();
@@ -44,7 +44,7 @@ namespace TestEmpty.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
-            SignInResult result = await _signInManager.PasswordSignInAsync(model.Name, model.Password, false, false);
+            Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(model.Name, model.Password, false, false);
 
             if (result.Succeeded)
                 return Redirect(returnUrl);

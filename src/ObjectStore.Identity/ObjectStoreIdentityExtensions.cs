@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using System.Linq.Expressions;
 using ObjectStore.Interfaces;

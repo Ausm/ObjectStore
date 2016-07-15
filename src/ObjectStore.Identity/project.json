@@ -21,7 +21,7 @@
     }
   },
   "dependencies": {
-    "Microsoft.AspNet.Identity": "3.0.0-rc1-final",
+    "Microsoft.AspNetCore.Identity": "1.0.0",
     "ObjectStore": "1.0.0-alpha3",
     "ObjectStore.Interfaces": "1.0.0-alpha3"
   }
