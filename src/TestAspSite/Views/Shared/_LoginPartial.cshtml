@@ -5,7 +5,7 @@
     <form asp-controller="Account" asp-action="LogOff" method="post" id="logoutForm">
         <ul>
             <li>
-                Hello @User.GetUserName()!
+                Hello @User.Identity.Name!
             </li>
             <li><a href="javascript:document.getElementById('logoutForm').submit()">Log off</a></li>
         </ul>

@@ -75,94 +75,6 @@ namespace ObjectStore.Test.Tests
         #endregion
 
         #region Tests
-
-        [Fact]
-        public virtual void TestUsingDifferentDataTypes()
-        {
-            E.DifferentTypes entity = _databaseFixture.ObjectProvider.CreateObject<E.DifferentTypes>();
-
-            entity.Text = FirstRandomText;
-            entity.Int = int.MaxValue;
-            entity.Byte = byte.MaxValue;
-            entity.Short = short.MaxValue;
-            entity.Long = long.MaxValue;
-            entity.DateTime = DateTime.MaxValue;
-            entity.Guid = FirstRandomGuid;
-            entity.Binary = FirstRandomGuid.ToByteArray();
-            entity.Decimal = 1234567890.12345m;
-            entity.Xml = new XElement("root", new XElement("sub1", "Value"));
-
-            Assert.ScriptCalled(_databaseFixture, Query.InsertDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
-
-            Assert.Equal(FirstRandomText, entity.Text);
-            Assert.Equal(int.MaxValue, entity.Int);
-            Assert.Equal(byte.MaxValue, entity.Byte);
-            Assert.Equal(short.MaxValue, entity.Short);
-            Assert.Equal(long.MaxValue, entity.Long);
-            Assert.InRange(entity.DateTime, DatabaseMaxDate, DateTime.MaxValue);
-            Assert.Equal(FirstRandomGuid, entity.Guid);
-            Assert.Equal(FirstRandomGuid.ToByteArray(), entity.Binary);
-            Assert.Equal(1234567890.12345m, entity.Decimal);
-            Assert.NotNull(entity.Xml.Element("sub1"));
-
-            entity = Assert.ScriptCalled(_databaseFixture, Query.SelectDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().ForceLoad().ToList().First());
-
-            entity.Text = SecondRandomText;
-            entity.Int = int.MinValue;
-            entity.Byte = byte.MinValue;
-            entity.Short = short.MinValue;
-            entity.Long = long.MinValue;
-            entity.DateTime = DateTime.MinValue;
-            entity.Guid = SecondRandomGuid;
-            entity.Binary = SecondRandomGuid.ToByteArray();
-            entity.Decimal = 9876543210.54321m;
-            entity.Xml = new XElement("root", new XElement("sub2", "Value"));
-
-            Assert.ScriptCalled(_databaseFixture, Query.UpdateDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
-
-            Assert.Equal(SecondRandomText, entity.Text);
-            Assert.Equal(int.MinValue, entity.Int);
-            Assert.Equal(byte.MinValue, entity.Byte);
-            Assert.Equal(short.MinValue, entity.Short);
-            Assert.Equal(long.MinValue, entity.Long);
-            Assert.InRange(entity.DateTime, DateTime.MinValue, DatabaseMinDate);
-            Assert.Equal(SecondRandomGuid, entity.Guid);
-            Assert.Equal(SecondRandomGuid.ToByteArray(), entity.Binary);
-            Assert.Equal(9876543210.54321m, entity.Decimal);
-            Assert.NotNull(entity.Xml.Element("sub2"));
-
-        }
-
-        [Fact]
-        public virtual void TestDifferentWritabilityLevels()
-        {
-            E.DifferentWritabilityLevels entity = _databaseFixture.ObjectProvider.CreateObject<E.DifferentWritabilityLevels>();
-
-            entity.Writeable = 5;
-            entity.Insertable = 10;
-            entity.Updateable = 15;
-
-            Assert.ScriptCalled(_databaseFixture, Query.InsertDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().Save());
-
-            Assert.Equal(5, entity.Writeable);
-            Assert.Equal(10, entity.Insertable);
-            Assert.Equal(1, entity.Updateable);
-            Assert.Equal(1, entity.Readonly);
-
-            entity = Assert.ScriptCalled(_databaseFixture, Query.SelectDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().ToList().First());
-
-            entity.Writeable = 20;
-            entity.Insertable = 25;
-            entity.Updateable = 30;
-
-            Assert.ScriptCalled(_databaseFixture, Query.UpdateDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().Save());
-
-            Assert.Equal(20, entity.Writeable);
-            Assert.Equal(10, entity.Insertable);
-            Assert.Equal(30, entity.Updateable);
-            Assert.Equal(2, entity.Readonly);
-        }
-
         [Fact]
         public void TestInsert()
         {
@@ -361,6 +273,111 @@ namespace ObjectStore.Test.Tests
 
         }
 
+        [Fact]
+        public void TestTake()
+        {
+            List<E.SubTest> subResult = Assert.ScriptCalled(_databaseFixture, Query.SelectSubTake10, () => _subQueryable.OrderBy(x => x.Id).Take(10).ToList());
+
+            Assert.Collection(subResult,
+                x => Assert.Equal(1, x.Id),
+                x => Assert.Equal(2, x.Id),
+                x => Assert.Equal(3, x.Id),
+                x => Assert.Equal(4, x.Id),
+                x => Assert.Equal(5, x.Id),
+                x => Assert.Equal(6, x.Id),
+                x => Assert.Equal(7, x.Id),
+                x => Assert.Equal(8, x.Id),
+                x => Assert.Equal(9, x.Id),
+                x => Assert.Equal(10, x.Id));
+        }
+
+        [Fact]
+        public virtual void TestUsingDifferentDataTypes()
+        {
+            E.DifferentTypes entity = _databaseFixture.ObjectProvider.CreateObject<E.DifferentTypes>();
+
+            entity.Text = FirstRandomText;
+            entity.Int = int.MaxValue;
+            entity.Byte = byte.MaxValue;
+            entity.Short = short.MaxValue;
+            entity.Long = long.MaxValue;
+            entity.DateTime = DateTime.MaxValue;
+            entity.Guid = FirstRandomGuid;
+            entity.Binary = FirstRandomGuid.ToByteArray();
+            entity.Decimal = 1234567890.12345m;
+            entity.Xml = new XElement("root", new XElement("sub1", "Value"));
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
+
+            Assert.Equal(FirstRandomText, entity.Text);
+            Assert.Equal(int.MaxValue, entity.Int);
+            Assert.Equal(byte.MaxValue, entity.Byte);
+            Assert.Equal(short.MaxValue, entity.Short);
+            Assert.Equal(long.MaxValue, entity.Long);
+            Assert.InRange(entity.DateTime, DatabaseMaxDate, DateTime.MaxValue);
+            Assert.Equal(FirstRandomGuid, entity.Guid);
+            Assert.Equal(FirstRandomGuid.ToByteArray(), entity.Binary);
+            Assert.Equal(1234567890.12345m, entity.Decimal);
+            Assert.NotNull(entity.Xml.Element("sub1"));
+
+            entity = Assert.ScriptCalled(_databaseFixture, Query.SelectDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().ForceLoad().ToList().First());
+
+            entity.Text = SecondRandomText;
+            entity.Int = int.MinValue;
+            entity.Byte = byte.MinValue;
+            entity.Short = short.MinValue;
+            entity.Long = long.MinValue;
+            entity.DateTime = DateTime.MinValue;
+            entity.Guid = SecondRandomGuid;
+            entity.Binary = SecondRandomGuid.ToByteArray();
+            entity.Decimal = 9876543210.54321m;
+            entity.Xml = new XElement("root", new XElement("sub2", "Value"));
+
+            Assert.ScriptCalled(_databaseFixture, Query.UpdateDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
+
+            Assert.Equal(SecondRandomText, entity.Text);
+            Assert.Equal(int.MinValue, entity.Int);
+            Assert.Equal(byte.MinValue, entity.Byte);
+            Assert.Equal(short.MinValue, entity.Short);
+            Assert.Equal(long.MinValue, entity.Long);
+            Assert.InRange(entity.DateTime, DateTime.MinValue, DatabaseMinDate);
+            Assert.Equal(SecondRandomGuid, entity.Guid);
+            Assert.Equal(SecondRandomGuid.ToByteArray(), entity.Binary);
+            Assert.Equal(9876543210.54321m, entity.Decimal);
+            Assert.NotNull(entity.Xml.Element("sub2"));
+
+        }
+
+        [Fact]
+        public virtual void TestDifferentWritabilityLevels()
+        {
+            E.DifferentWritabilityLevels entity = _databaseFixture.ObjectProvider.CreateObject<E.DifferentWritabilityLevels>();
+
+            entity.Writeable = 5;
+            entity.Insertable = 10;
+            entity.Updateable = 15;
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().Save());
+
+            Assert.Equal(5, entity.Writeable);
+            Assert.Equal(10, entity.Insertable);
+            Assert.Equal(1, entity.Updateable);
+            Assert.Equal(1, entity.Readonly);
+
+            entity = Assert.ScriptCalled(_databaseFixture, Query.SelectDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().ToList().First());
+
+            entity.Writeable = 20;
+            entity.Insertable = 25;
+            entity.Updateable = 30;
+
+            Assert.ScriptCalled(_databaseFixture, Query.UpdateDifferentWritabilityLevels, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentWritabilityLevels>().Save());
+
+            Assert.Equal(20, entity.Writeable);
+            Assert.Equal(10, entity.Insertable);
+            Assert.Equal(30, entity.Updateable);
+            Assert.Equal(2, entity.Readonly);
+        }
+
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression)
         {
@@ -412,6 +429,8 @@ namespace ObjectStore.Test.Tests
                     return GetEntitys(1, 2);
                 case Query.SelectSub:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
+                case Query.SelectSubTake10:
+                    return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                 case Query.OrderBy:
                     return GetSubEntitys(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
                 case Query.SimpleExpressionEqual:
@@ -466,6 +485,7 @@ namespace ObjectStore.Test.Tests
                 case Query.Select:
                     return new string[] { "Id", "Name", "Description" };
                 case Query.SelectSub:
+                case Query.SelectSubTake10:
                 case Query.OrderBy:
                 case Query.SimpleExpressionEqual:
                 case Query.SimpleExpressionUnequal:

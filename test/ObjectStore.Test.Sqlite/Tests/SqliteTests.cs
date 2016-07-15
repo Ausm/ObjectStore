@@ -60,6 +60,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>Id|\[Name]|\[Description]|\[Second]|\[Nullable])\s+\k<C>\s*(,\s*|\s+(?=FROM))){3}FROM\s+""dbo\.TestTable""\s+\k<T>\s*$";
                 case Query.SelectSub:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])\s+\k<C>\s*(,\s*|\s+(?=FROM))){6}FROM\s+""dbo\.SubTestTable""\s+\k<T>\s*$";
+                case Query.SelectSubTake10:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])\s+\k<C>\s*(,\s*|\s+(?=FROM))){6}FROM\s+""dbo\.SubTestTable""\s+\k<T>\s+ORDER\s+BY\s+\k<T>\.Id\s+LIMIT\s+10\s*$";
                 case Query.SelectDifferentTypesEntity:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.((?<C>(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id))\s+\k<C>\s*(,\s*|\s+(?=FROM))){11}FROM\s+""dbo\.DifferentTypesTable""\s+\k<T>\s*$";
                 case Query.SelectDifferentWritabilityLevels:

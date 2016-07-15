@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity;
 using ObjectStore.Interfaces;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 
 namespace ObjectStore.Identity
 {

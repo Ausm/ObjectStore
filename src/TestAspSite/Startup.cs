@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using ObjectStore.SqlClient;
 using ObjectStore.Identity;
