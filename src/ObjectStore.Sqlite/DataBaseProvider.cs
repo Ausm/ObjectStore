@@ -300,7 +300,8 @@ namespace ObjectStore.Sqlite
             while (commandsEnumerator.MoveNext())
             {
                 command.CommandText += ";" + commandsEnumerator.Current.CommandText;
-                command.Parameters.AddRange(commandsEnumerator.Current.Parameters.OfType<DbParameter>().ToArray());
+                foreach (SqliteParameter parameter in commandsEnumerator.Current.Parameters)
+                    command.Parameters.Add(parameter);
             }
 
             return command;

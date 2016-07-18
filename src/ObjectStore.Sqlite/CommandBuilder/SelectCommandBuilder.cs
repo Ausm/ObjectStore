@@ -195,7 +195,9 @@ namespace ObjectStore.Sqlite
             if (_top > -1) stringBuilder.AppendFormat(" LIMIT {0}", _top);
 
             DbCommand command = DataBaseProvider.GetCommand();
-            command.Parameters.AddRange(_parameters.ToArray());
+            foreach (SqliteParameter parameter in _parameters)
+                command.Parameters.Add(parameter);
+
             command.CommandText = stringBuilder.ToString();
             return command;
         }

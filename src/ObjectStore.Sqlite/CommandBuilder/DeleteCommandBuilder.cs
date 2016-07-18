@@ -40,7 +40,10 @@ namespace ObjectStore.Sqlite
         public DbCommand GetDbCommand()
         {
             DbCommand command = DataBaseProvider.GetCommand();
-            command.Parameters.AddRange(_parameters.ToArray());
+
+            foreach(SqliteParameter parameter in _parameters)
+                command.Parameters.Add(parameter);
+
             command.CommandText = _whereClausel.Count == 0 ? $"DELETE FROM \"{_tablename}\"" : $"DELETE FROM \"{_tablename}\" WHERE {string.Join(" AND ", _whereClausel.ToArray())}";
             return command;
         }

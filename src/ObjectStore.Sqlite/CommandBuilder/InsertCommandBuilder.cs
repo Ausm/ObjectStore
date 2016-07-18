@@ -79,7 +79,10 @@ namespace ObjectStore.Sqlite
         public DbCommand GetDbCommand()
         {
             DbCommand command = DataBaseProvider.GetCommand();
-            command.Parameters.AddRange(_parameters.ToArray());
+
+            foreach (SqliteParameter parameter in _parameters)
+                command.Parameters.Add(parameter);
+
             command.CommandText = _insertFields.Count == 0 ? 
                     $"INSERT INTO \"{_tablename}\" DEFAULT VALUES;\r\nSELECT {string.Join(", ", _selectFields.ToArray())} FROM {_tablename} WHERE {string.Join(" AND ", _whereClausel.ToArray())}" :
                     $"INSERT INTO \"{_tablename}\" ({string.Join(", ", _insertFields.ToArray())}) VALUES ({string.Join(", ", _insertValues.ToArray())});\r\nSELECT {string.Join(", ", _selectFields.ToArray())} FROM \"{_tablename}\" WHERE {string.Join(" AND ", _whereClausel.ToArray())}";

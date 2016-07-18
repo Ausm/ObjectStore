@@ -29,7 +29,8 @@ namespace ObjectStore.Test.Mocks
 
         public override int Add(object value)
         {
-            throw new NotImplementedException();
+            _parameters.Add((DbParameter)value);
+            return _parameters.Count - 1;
         }
 
         public override void AddRange(Array values)

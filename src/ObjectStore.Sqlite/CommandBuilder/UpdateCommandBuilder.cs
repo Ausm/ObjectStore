@@ -78,7 +78,10 @@ namespace ObjectStore.Sqlite
             }
 
             DbCommand command = DataBaseProvider.GetCommand();
-            command.Parameters.AddRange(_parameters.ToArray());
+
+            foreach (SqliteParameter parameter in _parameters)
+                command.Parameters.Add(parameter);
+
             command.CommandText = $"UPDATE \"{_tablename}\" SET {string.Join(", ", setStrings)} WHERE {string.Join(" AND ", _whereClausel.ToArray())};\r\nSELECT {string.Join(", ", _selectFields.ToArray())} FROM \"{_tablename}\" WHERE {string.Join(" AND ", _whereClausel.ToArray())}";
             return command;
         }
