@@ -101,18 +101,6 @@ namespace ObjectStore
             }
         }
 
-        public static IAsyncResult BeginFetch<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.Execute<IAsyncResult>(Expression.Call(null, GetMethodInfoOf(() => default(IQueryable<T>).BeginFetch()), new Expression[] { source.Expression }));
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public static IQueryable<T> ForceLoad<T>(this IQueryable<T> source)
         {
             if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
@@ -145,7 +133,8 @@ namespace ObjectStore
 
         public static async Task FetchAsync<T>(this IQueryable<T> source)
         {
-            await Task.Factory.FromAsync(BeginFetch(source), x => x.AsyncWaitHandle.WaitOne());
+            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
+                await source.Provider.Execute<Task>(Expression.Call(null, GetMethodInfoOf(() => default(IQueryable<T>).FetchAsync()), new Expression[] { source.Expression }));
         }
 #else
         public static bool Save<T>(this IQueryable<T> source)
@@ -197,18 +186,6 @@ namespace ObjectStore
             }
         }
 
-        public static IAsyncResult BeginFetch<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.Execute<IAsyncResult>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new Type[] { typeof(T) }), new Expression[] { source.Expression }));
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public static IQueryable<T> ForceLoad<T>(this IQueryable<T> source)
         {
             if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
@@ -237,7 +214,8 @@ namespace ObjectStore
 
         public static async Task FetchAsync<T>(this IQueryable<T> source)
         {
-            await Task.Factory.FromAsync(BeginFetch(source), x => x.AsyncWaitHandle.WaitOne());
+            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
+                await source.Provider.Execute<Task>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new Type[] { typeof(T) }), new Expression[] { source.Expression }));
         }
 #endif
         #endregion

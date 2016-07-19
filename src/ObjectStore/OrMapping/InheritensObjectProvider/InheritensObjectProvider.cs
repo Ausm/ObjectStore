@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ObjectStore.OrMapping
 {
@@ -14,6 +15,25 @@ namespace ObjectStore.OrMapping
 
     internal class DataBaseWorkerQueue
     {
+        #region Subclasses
+        class QueueItem
+        {
+            public QueueItem(object context, DbCommand command, Func<IValueSource, object, ICommitContext> fillAction)
+            {
+                TaskCompletionSource = new TaskCompletionSource<bool>();
+                Context = context;
+                FillAction = fillAction;
+                Command = command;
+            }
+
+            public TaskCompletionSource<bool> TaskCompletionSource { get; private set; }
+            public object Context { get; private set; }
+            public DbCommand Command { get; private set; }
+            public Func<IValueSource, object, ICommitContext> FillAction { get; private set; }
+        }
+        #endregion
+
+        #region Constructors
         public static DataBaseWorkerQueue GetQueue(string connectionStringName, IDataBaseProvider dataBaseProvider)
         {
             lock (_instances)
@@ -30,74 +50,28 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        private class AsyncResult : IAsyncResult
-        {
-            object _context;
-            ManualResetEvent _waitHandle;
-            bool _isCompleted;
-
-            public AsyncResult(object context)
-            {
-                _context = context;
-                _waitHandle = new ManualResetEvent(false);
-                _isCompleted = false;
-            }
-
-            public void SetCompleted()
-            {
-                if (!_isCompleted)
-                {
-                    _waitHandle.Set();
-                    _isCompleted = true;
-                }
-            }
-
-            #region IAsyncResult Members
-
-            object IAsyncResult.AsyncState
-            {
-                get { return _context; }
-            }
-
-            public WaitHandle AsyncWaitHandle
-            {
-                get { return _waitHandle; }
-            }
-
-            public bool CompletedSynchronously
-            {
-                get { return false; }
-            }
-
-            public bool IsCompleted
-            {
-                get { return _isCompleted; }
-            }
-
-            #endregion
-        }
-
-        static Dictionary<IDataBaseProvider, Dictionary<string, DataBaseWorkerQueue>> _instances = new Dictionary<IDataBaseProvider, Dictionary<string, DataBaseWorkerQueue>>();
-        string _connectionStringName;
-        IDataBaseProvider _dataBaseProvider;
-        Thread _workerThread;
-        List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>> _queue = new List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>>();
-
         private DataBaseWorkerQueue(string connectionString, IDataBaseProvider dataBaseProvider)
         {
             _connectionStringName = connectionString;
             _dataBaseProvider = dataBaseProvider;
         }
+        #endregion
 
-        public IAsyncResult EnqueueCommand(object context, DbCommand command, Func<IValueSource, IAsyncResult, ICommitContext> fillAction)
+        static Dictionary<IDataBaseProvider, Dictionary<string, DataBaseWorkerQueue>> _instances = new Dictionary<IDataBaseProvider, Dictionary<string, DataBaseWorkerQueue>>();
+        string _connectionStringName;
+        IDataBaseProvider _dataBaseProvider;
+        Thread _workerThread;
+        List<QueueItem> _queue = new List<QueueItem>();
+
+        public Task EnqueueCommand(object context, DbCommand command, Func<IValueSource, object, ICommitContext> fillAction)
         {
-            Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>> entry = new Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>(new AsyncResult(context), command, fillAction);
+            QueueItem entry = new QueueItem(context, command, fillAction);
 
             lock (this)
             {
                 _queue.Add(entry);
                 StartThread();
-                return entry.Item1;
+                return entry.TaskCompletionSource.Task;
             }
         }
 
@@ -119,28 +93,28 @@ namespace ObjectStore.OrMapping
                     connection.Open();
                 while (true)
                 {
-                    List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>> queue;
+                    List<QueueItem> queue;
                     lock (this)
                     {
                         if (_queue.Count == 0)
                             return;
 
                         queue = _queue;
-                        _queue = new List<Tuple<AsyncResult, DbCommand, Func<IValueSource, IAsyncResult, ICommitContext>>>();
+                        _queue = new List<QueueItem>();
                     }
 
                     try
                     {
                         List<ICommitContext> commitContexts = new List<ICommitContext>(queue.Count);
 
-                        using (DbCommand command = _dataBaseProvider.CombineCommands(queue.Select(x => x.Item2)))
+                        using (DbCommand command = _dataBaseProvider.CombineCommands(queue.Select(x => x.Command)))
                         {
                             command.Connection = connection;
                             using (IValueSource valueSource = _dataBaseProvider.GetValueSource(command))
                             {
                                 for (int i = 0; i < queue.Count; i++)
                                 {
-                                    commitContexts.Add(queue[i].Item3(valueSource, queue[i].Item1));
+                                    commitContexts.Add(queue[i].FillAction(valueSource, queue[i].Context));
                                 }
                             }
                         }
@@ -150,8 +124,8 @@ namespace ObjectStore.OrMapping
                     }
                     finally
                     {
-                        foreach (AsyncResult result in queue.Select(x => x.Item1))
-                            result.SetCompleted();
+                        foreach (TaskCompletionSource<bool> result in queue.Select(x => x.TaskCompletionSource))
+                            result.SetResult(true);
                     }
 
                     lock (this)
@@ -192,17 +166,17 @@ namespace ObjectStore.OrMapping
                 return connection;
             }
 
-            public IAsyncResult FillCacheAsync(QueryProvider provider)
+            public async Task FillCacheAsync(QueryProvider provider)
             {
                 QueryContext context = provider.Context.FillCacheContext;
                 if (context.ForceLoad)
-                    return null;
+                    return;
 
                 IModifyableCommandBuilder commandBuilder = _objectProvider._mappingInfoContainer.FillCommand(_objectProvider._databaseProvider.GetSelectCommandBuilder());
                 context.PrepareSelectCommand(commandBuilder);
                 context.SetLoaded();
 
-                return _queue.EnqueueCommand(provider, commandBuilder.GetDbCommand(), (valueSource, result) => _objectProvider._cache.Fill(valueSource, x => _objectProvider._mappingInfoContainer.GetKeyValues(x), () => (T)_objectProvider._mappingInfoContainer.CreateObject(), ((QueryProvider)result.AsyncState).Context.FillCacheContext));
+                await _queue.EnqueueCommand(context, commandBuilder.GetDbCommand(), (valueSource, result) => _objectProvider._cache.Fill(valueSource, x => _objectProvider._mappingInfoContainer.GetKeyValues(x), () => (T)_objectProvider._mappingInfoContainer.CreateObject(), (QueryContext)result));
             }
 
             public void FillCache(QueryContext context)
