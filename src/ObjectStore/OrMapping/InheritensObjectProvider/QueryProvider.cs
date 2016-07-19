@@ -721,7 +721,7 @@ namespace ObjectStore.OrMapping
 
                 if (_orderExpressions != null)
                     foreach (IOrderItem orderItem in _orderExpressions)
-                        commandBuilder.SetOrderBy(orderItem.Expression);
+                        commandBuilder.SetOrderBy(orderItem.Expression, orderItem.Direction == ListSortDirection.Descending);
 
                 if (_topCount.HasValue)
                     commandBuilder.SetTop(_topCount.Value);

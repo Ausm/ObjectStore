@@ -218,6 +218,19 @@ namespace ObjectStore.Test.Tests
                    x => Assert.Equal(3, x.Id),
                    x => Assert.Equal(2, x.Id),
                    x => Assert.Equal(1, x.Id)));
+
+            Assert.ScriptCalled(_databaseFixture, Query.OrderByDescending, () =>
+               Assert.Collection(_subQueryable.Where(x => x.Test == t).OrderByDescending(x => x.Second),
+                   x => Assert.Equal(1, x.Id),
+                   x => Assert.Equal(2, x.Id),
+                   x => Assert.Equal(3, x.Id),
+                   x => Assert.Equal(4, x.Id),
+                   x => Assert.Equal(5, x.Id),
+                   x => Assert.Equal(6, x.Id),
+                   x => Assert.Equal(7, x.Id),
+                   x => Assert.Equal(8, x.Id),
+                   x => Assert.Equal(9, x.Id),
+                   x => Assert.Equal(10, x.Id)));
         }
 
         [Fact]
@@ -433,6 +446,8 @@ namespace ObjectStore.Test.Tests
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                 case Query.OrderBy:
                     return GetSubEntitys(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
+                case Query.OrderByDescending:
+                    return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                 case Query.SimpleExpressionEqual:
                     return GetSubEntitys(6, 16);
                 case Query.SimpleExpressionUnequal:
@@ -487,6 +502,7 @@ namespace ObjectStore.Test.Tests
                 case Query.SelectSub:
                 case Query.SelectSubTake10:
                 case Query.OrderBy:
+                case Query.OrderByDescending:
                 case Query.SimpleExpressionEqual:
                 case Query.SimpleExpressionUnequal:
                 case Query.SimpleExpressionEqualToNull:

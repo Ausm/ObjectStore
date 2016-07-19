@@ -94,7 +94,7 @@ namespace ObjectStore.Sqlite
         List<DbParameter> _parameters;
         List<LambdaExpression> _whereExpressions;
         List<string> _selectFields;
-        List<LambdaExpression> _orderbyExpressions;
+        List<Tuple<LambdaExpression, bool>> _orderbyExpressions;
         List<Join> _joins;
         int _top;
         DataBaseProvider _databaseProvider;
@@ -106,7 +106,7 @@ namespace ObjectStore.Sqlite
             _databaseProvider = databaseProvider;
             _parameters = new List<DbParameter>();
             _selectFields = new List<string>();
-            _orderbyExpressions = new List<LambdaExpression>();
+            _orderbyExpressions = new List<Tuple<LambdaExpression, bool>>();
             _joins = new List<Join>();
             _top = -1;
             _alias = $"T{_databaseProvider.GetUniqe()}";
@@ -137,9 +137,9 @@ namespace ObjectStore.Sqlite
 
         }
 
-        public void SetOrderBy(LambdaExpression expression)
+        public void SetOrderBy(LambdaExpression expression, bool decending)
         {
-            _orderbyExpressions.Add(expression);
+            _orderbyExpressions.Add(Tuple.Create(expression, decending));
         }
 
         public void SetTop(int count)
@@ -189,8 +189,10 @@ namespace ObjectStore.Sqlite
 
             if (_orderbyExpressions.Count != 0)
                 stringBuilder.Append(" ORDER BY ").Append(string.Join(", ", _orderbyExpressions.Select(
-                        exp => _databaseProvider.ExpressionParser.ParseExpression(exp, this)
-                            ).ToArray()));
+                        exp => exp.Item2 ? 
+                            _databaseProvider.ExpressionParser.ParseExpression(exp.Item1, this) + " DESC": 
+                            _databaseProvider.ExpressionParser.ParseExpression(exp.Item1, this)
+                        ).ToArray()));
 
             if (_top > -1) stringBuilder.AppendFormat(" LIMIT {0}", _top);
 
@@ -216,7 +218,7 @@ namespace ObjectStore.Sqlite
         string IParsingContext.GetAlias(ParameterExpression expression)
         {
             if (_whereExpressions.Any(x => x.Parameters[0] == expression) ||
-                _orderbyExpressions.Any(x => x.Parameters[0] == expression))
+                _orderbyExpressions.Any(x => x.Item1.Parameters[0] == expression))
                 return _alias;
 
             throw new ArgumentException("There is no Alias for this expression.", nameof(expression));

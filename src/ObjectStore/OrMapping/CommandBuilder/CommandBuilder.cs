@@ -19,7 +19,7 @@ namespace ObjectStore.OrMapping
     {
         void SetWhereClausel(LambdaExpression expression);
 
-        void SetOrderBy(LambdaExpression expression);
+        void SetOrderBy(LambdaExpression expression, bool descending);
 
         void SetTop(int count);
     }

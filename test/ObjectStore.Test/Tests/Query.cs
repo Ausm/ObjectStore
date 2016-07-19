@@ -16,6 +16,7 @@
         SelectDifferentTypesEntity,
         SelectDifferentWritabilityLevels,
         OrderBy,
+        OrderByDescending,
         SimpleExpressionEqual,
         SimpleExpressionEqualToNull,
         SimpleExpressionUnequal,
