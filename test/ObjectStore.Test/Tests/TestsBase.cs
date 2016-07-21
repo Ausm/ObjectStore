@@ -76,6 +76,75 @@ namespace ObjectStore.Test.Tests
 
         #region Tests
         [Fact]
+        public void TestSelect()
+        {
+            List<E.Test> result = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _queryable.ToList()).OrderBy(x => x.Id).ToList();
+
+            E.Test t = result.First();
+
+            IQueryable<E.SubTest> queryable = _subQueryable.Where(x => x.Test == t);
+            IQueryable<string> selectQueryable = queryable.Select(x => x.Name);
+
+            List<string> selectResult = selectQueryable.ToList();
+            List<E.SubTest> subResult = queryable.ToList();
+
+            selectResult.Sort();
+
+            Assert.Collection(selectResult,
+                x => Assert.Equal("SubEntity0", x),
+                x => Assert.Equal("SubEntity10", x),
+                x => Assert.Equal("SubEntity12", x),
+                x => Assert.Equal("SubEntity14", x),
+                x => Assert.Equal("SubEntity16", x),
+                x => Assert.Equal("SubEntity18", x),
+                x => Assert.Equal("SubEntity2", x),
+                x => Assert.Equal("SubEntity4", x),
+                x => Assert.Equal("SubEntity6", x),
+                x => Assert.Equal("SubEntity8", x));
+
+            int removeCount = 0;
+
+            NotifyCollectionChangedEventHandler collectionChangedHandler = (s, e) =>
+            {
+                if (e.Action == NotifyCollectionChangedAction.Remove)
+                    removeCount++;
+            };
+
+            try
+            {
+                ((INotifyCollectionChanged)selectQueryable).CollectionChanged += collectionChangedHandler;
+
+                subResult.First().Test = result[1];
+
+                Assert.Equal(1, removeCount);
+
+                selectResult = selectQueryable.ToList();
+                selectResult.Sort();
+
+                Assert.Collection(selectResult,
+                    x => Assert.Equal("SubEntity10", x),
+                    x => Assert.Equal("SubEntity12", x),
+                    x => Assert.Equal("SubEntity14", x),
+                    x => Assert.Equal("SubEntity16", x),
+                    x => Assert.Equal("SubEntity18", x),
+                    x => Assert.Equal("SubEntity2", x),
+                    x => Assert.Equal("SubEntity4", x),
+                    x => Assert.Equal("SubEntity6", x),
+                    x => Assert.Equal("SubEntity8", x));
+
+                _subQueryable.DropChanges();
+
+            }
+            finally
+            {
+                ((INotifyCollectionChanged)selectQueryable).CollectionChanged -= collectionChangedHandler;
+            }
+
+
+
+        }
+
+        [Fact]
         public void TestInsert()
         {
             List<E.Test> cachedItems = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList());
