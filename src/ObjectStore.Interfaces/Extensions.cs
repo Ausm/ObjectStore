@@ -212,10 +212,12 @@ namespace ObjectStore
             throw new InvalidOperationException("Source is not a IStoreQueryable.");
         }
 
-        public static async Task FetchAsync<T>(this IQueryable<T> source)
+        public static Task FetchAsync<T>(this IQueryable<T> source)
         {
             if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-                await source.Provider.Execute<Task>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new Type[] { typeof(T) }), new Expression[] { source.Expression }));
+                return source.Provider.Execute<Task>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new Type[] { typeof(T) }), new Expression[] { source.Expression }));
+            else
+                throw new InvalidOperationException("Source is not a IStoreQueryable.");
         }
 #endif
         #endregion
