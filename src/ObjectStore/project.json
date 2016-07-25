@@ -11,8 +11,10 @@
   "frameworks": {
     "net452": {
       "imports": [ "dnx451", "net451" ],
+      "dependencies": {
+        "System.Runtime": "4.0.10"
+      },
       "frameworkAssemblies": {
-        "System.Runtime": "4.0.10.0",
         "System.Data": "4.0.0.0",
         "System.Transactions": "4.0.0.0"
       }

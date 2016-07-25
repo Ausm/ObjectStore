@@ -56,10 +56,16 @@ namespace ObjectStore.OrMapping
                         try
                         {
                             _contextEnumerable._disableReportEntryValueChanged = true;
-                            foreach (T entry in _entriesToCommit)
-                                ((IFillAbleObject)entry).Commit(false);
-                            foreach (T entry in _entriesToCommit)
-                                _contextEnumerable.AppendEntry(entry);
+                            if (_entriesToCommit.Count > 0)
+                            {
+                                foreach (T entry in _entriesToCommit)
+                                    ((IFillAbleObject)entry).Commit(false);
+
+                                Func<T, bool> predicate = _contextEnumerable._context.GetPredicateCompiled();
+
+                                foreach (T entry in _entriesToCommit.Where(x => ((IFillAbleObject)x).State != State.Changed || predicate(x)))
+                                    _contextEnumerable.AppendEntry(entry);
+                            }
                             foreach (T entry in _entriesCheckExist)
                                 ((IFillAbleObject)entry).Deattach();
                         }

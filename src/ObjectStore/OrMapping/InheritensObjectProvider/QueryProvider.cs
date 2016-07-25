@@ -11,6 +11,7 @@ using System.Linq;
 using System.Transactions;
 using System.ComponentModel;
 using System.Data.Common;
+using System.Threading.Tasks;
 
 #if NETCOREAPP1_0
 namespace System.ComponentModel
@@ -217,11 +218,11 @@ namespace ObjectStore.OrMapping
                     }
                     #endregion
                     #region Invoke BeginFetch
-                    if (callExpression?.Method == typeof(Extensions).GetMethod(nameof(Extensions.BeginFetch)).MakeGenericMethod(typeof(T)) &&
-                            typeof(TResult) == typeof(IAsyncResult))
+                    if (callExpression?.Method == typeof(Extensions).GetMethod(nameof(Extensions.FetchAsync)).MakeGenericMethod(typeof(T)) &&
+                            typeof(TResult) == typeof(Task))
                     {
                         WeakCache.ContextEnumerable enumerable = Enumerable; // Um sicherzustellen das die Enumerable auch bereits erstellt wurde.
-                        return (TResult)_objectProvider._dbWorker.FillCacheAsync(this);
+                        return (TResult)(object)_objectProvider._dbWorker.FillCacheAsync(this);
                     }
 
                     #endregion
@@ -720,7 +721,7 @@ namespace ObjectStore.OrMapping
 
                 if (_orderExpressions != null)
                     foreach (IOrderItem orderItem in _orderExpressions)
-                        commandBuilder.SetOrderBy(orderItem.Expression);
+                        commandBuilder.SetOrderBy(orderItem.Expression, orderItem.Direction == ListSortDirection.Descending);
 
                 if (_topCount.HasValue)
                     commandBuilder.SetTop(_topCount.Value);

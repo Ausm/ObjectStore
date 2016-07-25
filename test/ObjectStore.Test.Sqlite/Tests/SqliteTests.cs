@@ -68,6 +68,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>(Id|Writeable|Updateable|Insertable|Readonly))\s+\k<C>\s*(,\s*|\s+(?=FROM))){5}FROM\s+""dbo\.DifferentWritabilityLevels""\s+\k<T>\s*$";
                 case Query.OrderBy:
                     return GetSimpleExpressionPattern(@"\k<T>\.Test\s*=\s*@param\d+\s+ORDER\s+BY\s+\k<T>\.\[Second]\s*");
+                case Query.OrderByDescending:
+                    return GetSimpleExpressionPattern(@"\k<T>\.Test\s*=\s*@param\d+\s+ORDER\s+BY\s+\k<T>\.\[Second]\s+DESC\s*");
                 case Query.SimpleExpressionEqual:
                     return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*=\s*\k<T>\.\[Second]");
                 case Query.SimpleExpressionUnequal:
