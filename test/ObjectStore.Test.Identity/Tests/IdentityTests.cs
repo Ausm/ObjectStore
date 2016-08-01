@@ -39,7 +39,6 @@ namespace ObjectStore.Test.Identity
         #endregion
 
         #region Tests
-
         [Fact]
         public async Task TestSignInSuccess()
         {
@@ -61,12 +60,39 @@ namespace ObjectStore.Test.Identity
         [Fact()]
         public async Task TestRegister()
         {
-            IdentityResult identityResult = await _fixture.Execute(async (UserManager<User> userManager, IObjectProvider objectProvider) => {
-                UserMock mock = new UserMock() { Name = $"Test{(DateTime.Now - new DateTime(2016, 1, 1)).TotalHours}" };
+            string userName = $"Test{(DateTime.Now - new DateTime(2016, 1, 1)).TotalHours}";
+
+            IdentityResult identityResult = await _fixture.Execute(async (UserManager<User> userManager) => {
+                UserMock mock = new UserMock() { Name = userName };
                 return await userManager.CreateAsync(mock, "Passw0rd!");
             });
 
             Assert.True(identityResult.Succeeded);
+
+            ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().DropChanges();
+            await ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().FetchAsync();
+
+            SignInResult signInResult = await _fixture.Execute((SignInManager<User> signInManager) => signInManager.PasswordSignInAsync(userName, "Passw0rd!", false, false));
+
+            Assert.True(signInResult.Succeeded);
+        }
+
+        [Fact()]
+        public async Task TestChangePassword()
+        {
+            IdentityResult identityResult = await _fixture.Execute(async (UserManager<User> userManager, IObjectProvider objectProvider) => {
+                User user = objectProvider.GetQueryable<User>().Where(x => x.Name == "User1").FirstOrDefault();
+                return await userManager.ChangePasswordAsync(user, "Passw0rd!", "testPassword1!");
+            });
+
+            Assert.True(identityResult.Succeeded);
+
+            ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().DropChanges();
+            await ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().FetchAsync();
+
+            SignInResult signInResult = await _fixture.Execute((SignInManager<User> signInManager) => signInManager.PasswordSignInAsync("User1", "testPassword1!", false, false));
+
+            Assert.True(signInResult.Succeeded);
         }
         #endregion
     }
