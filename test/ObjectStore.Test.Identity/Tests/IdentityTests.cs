@@ -12,6 +12,19 @@ namespace ObjectStore.Test.Identity
 {
     public class IdentityTests : IClassFixture<TestServerFixture>
     {
+        #region Subclasses
+        class UserMock : User
+        {
+            public override int Id => 0;
+
+            public override string Name { get; set; }
+
+            public override string NormalizedUsername { get; set; }
+
+            public override string Password { get; set; }
+        }
+        #endregion
+
         #region Fields
         ITestOutputHelper _output;
         TestServerFixture _fixture;
@@ -49,12 +62,8 @@ namespace ObjectStore.Test.Identity
         public async Task TestRegister()
         {
             IdentityResult identityResult = await _fixture.Execute(async (UserManager<User> userManager, IObjectProvider objectProvider) => {
-                User user = objectProvider.CreateObject<User>();
-                user.Name = $"Test{(DateTime.Now - new DateTime(2016, 1, 1)).TotalHours}";
-                user.Password = string.Empty;
-                user.NormalizedUsername = user.Name;
-                objectProvider.GetQueryable<User>().Where(x => x == user).Save();
-                return await userManager.CreateAsync(user, "Passw0rd!");
+                UserMock mock = new UserMock() { Name = $"Test{(DateTime.Now - new DateTime(2016, 1, 1)).TotalHours}" };
+                return await userManager.CreateAsync(mock, "Passw0rd!");
             });
 
             Assert.True(identityResult.Succeeded);
