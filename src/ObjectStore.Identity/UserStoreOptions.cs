@@ -41,6 +41,32 @@ namespace ObjectStore.Identity
             ParameterExpression nameParameter = Expression.Parameter(typeof(string));
             SetRoleName = Expression.Lambda<Action<TRole, string>>(Expression.Call(roleParameter, property.GetSetMethod(), nameParameter), roleParameter, nameParameter).Compile();
         }
+        public void SetUserPasswordHashProperty(PropertyInfo property)
+        {
+            ParameterExpression userParameter = Expression.Parameter(typeof(TUser));
+            GetUserPasswordHash = Expression.Lambda<Func<TUser, string>>(Expression.Property(userParameter, property), userParameter).Compile();
+
+            userParameter = Expression.Parameter(typeof(TUser));
+            ParameterExpression passwordParameter = Expression.Parameter(typeof(string));
+            SetUserPasswordHash = Expression.Lambda<Action<TUser, string>>(Expression.Call(userParameter, property.GetSetMethod(), passwordParameter), userParameter, passwordParameter).Compile();
+        }
+        public void SetUserPasswordHashProperty<T>(Expression<Func<TUser, T>> expression)
+        {
+            SetUserPasswordHashProperty(GetPropertyInfo(expression));
+        }
+        public void SetUserNormalizedUsernameProperty(PropertyInfo property)
+        {
+            ParameterExpression userParameter = Expression.Parameter(typeof(TUser));
+            GetUserNormalizedUsername = Expression.Lambda<Func<TUser, string>>(Expression.Property(userParameter, property), userParameter).Compile();
+
+            userParameter = Expression.Parameter(typeof(TUser));
+            ParameterExpression normalizedUsernameParameter = Expression.Parameter(typeof(string));
+            SetUserNormalizedUsername = Expression.Lambda<Action<TUser, string>>(Expression.Call(userParameter, property.GetSetMethod(), normalizedUsernameParameter), userParameter, normalizedUsernameParameter).Compile();
+        }
+        public void SetUserNormalizedUsernameProperty<T>(Expression<Func<TUser, T>> expression)
+        {
+            SetUserNormalizedUsernameProperty(GetPropertyInfo(expression));
+        }
 
         public Func<TUser, TUserKey> GetUserKey { get; set; }
         public Func<TRole, TRoleKey> GetRoleKey { get; set; }
@@ -52,6 +78,8 @@ namespace ObjectStore.Identity
         public Action<TUser, string> SetUserName { get; set; }
         public Func<TUser, string> GetUserPasswordHash { get; set; }
         public Action<TUser, string> SetUserPasswordHash { get; set; }
+        public Func<TUser, string> GetUserNormalizedUsername { get; set; }
+        public Action<TUser, string> SetUserNormalizedUsername { get; set; }
         public Func<TUser, TRole, bool> GetIsUserInRole { get; set; }
 
         static PropertyInfo GetPropertyInfo<T, TResult>(Expression<Func<T, TResult>> propertyAccessExpression)

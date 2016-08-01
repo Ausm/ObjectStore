@@ -67,7 +67,8 @@ namespace ObjectStore.Identity
         }
         public Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken)
         {
-            throw new NotSupportedException();
+            _users.Where(x => x == user).Save();
+            return Task.FromResult(IdentityResult.Success);
         }
         public Task<IdentityResult> DeleteAsync(TRole role, CancellationToken cancellationToken)
         {
@@ -90,7 +91,11 @@ namespace ObjectStore.Identity
 
         public Task SetNormalizedUserNameAsync(TUser user, string normalizedName, CancellationToken cancellationToken)
         {
-            throw new NotSupportedException();
+            if (_options.SetUserNormalizedUsername == null)
+                throw new NotSupportedException();
+
+            _options.SetUserNormalizedUsername(user, normalizedName);
+            return Task.FromResult(false);
         }
         #endregion
 
@@ -104,7 +109,7 @@ namespace ObjectStore.Identity
 
         public Task<string> GetNormalizedUserNameAsync(TUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(_options.GetUserId(user));
+            return Task.FromResult(_options.GetUserNormalizedUsername(user));
         }
 
         public Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken)

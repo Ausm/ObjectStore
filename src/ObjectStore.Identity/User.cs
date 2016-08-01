@@ -9,6 +9,9 @@
         [Mapping(FieldName="Name")]
         public abstract string Name { get; set; }
 
+        [Mapping(FieldName="NormalizedUsername")]
+        public abstract string NormalizedUsername { get; set; }
+
         [Mapping(FieldName="Password")]
         public abstract string Password { get; set; }
     }
