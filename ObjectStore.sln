@@ -32,6 +32,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectStore.Test.SqlClient"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectStore.Test.Sqlite", "test\ObjectStore.Test.Sqlite\ObjectStore.Test.Sqlite.xproj", "{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectStore.Test.Identity", "test\ObjectStore.Test.Identity\ObjectStore.Test.Identity.xproj", "{BF111D86-B987-436C-A938-E44777495BA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF111D86-B987-436C-A938-E44777495BA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF111D86-B987-436C-A938-E44777495BA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF111D86-B987-436C-A938-E44777495BA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF111D86-B987-436C-A938-E44777495BA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,5 +94,6 @@ Global
 		{755E331A-6379-495D-BA4D-CC1CEF3A93C7} = {8D221489-B692-4E11-A4AB-6D5898E49575}
 		{D2CDB8E5-6602-45BF-AA0C-93682A9C4C8D} = {3365C7B4-A7BC-4261-9628-45CDE634DA19}
 		{EBA57D58-FF0B-4746-9DD1-65F971EF6C6E} = {3365C7B4-A7BC-4261-9628-45CDE634DA19}
+		{BF111D86-B987-436C-A938-E44777495BA3} = {3365C7B4-A7BC-4261-9628-45CDE634DA19}
 	EndGlobalSection
 EndGlobal

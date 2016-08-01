@@ -9,15 +9,16 @@ namespace ObjectStore.Identity
 {
     public static class ObjectStoreIdentityExtensions
     {
-        public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole>(this IdentityBuilder builder, Expression<Func<TUser, string>> getUserName, Expression<Func<TRole, string>> getRoleName, Func<TUser, string> getPasswordHash, Func<TUser, TRole, bool> getIsUserInRole)
+        public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole>(this IdentityBuilder builder, Expression<Func<TUser, string>> getUserName, Expression<Func<TUser, string>> getNormalizedUserName, Expression<Func<TRole, string>> getRoleName, Expression<Func<TUser, string>> getPasswordHash, Func<TUser, TRole, bool> getIsUserInRole)
             where TUser : class
             where TRole : class
         {
             AddObjectStoreUserStores<TUser, TRole, string, string>(builder, options =>
             {
                 options.SetUserNameProperty(getUserName);
+                options.SetUserNormalizedUsernameProperty(getNormalizedUserName);
                 options.SetRoleNameProperty(getRoleName);
-                options.GetUserPasswordHash = getPasswordHash;
+                options.SetUserPasswordHashProperty(getPasswordHash);
                 options.GetIsUserInRole = getIsUserInRole;
             });
 
@@ -34,7 +35,12 @@ namespace ObjectStore.Identity
 
         public static IdentityBuilder AddObjectStoreUserStores(this IdentityBuilder builder)
         {
-            return AddObjectStoreUserStores<User, Role>(builder, x => x.Name, x => x.Name, x => x.Password, (user, role) => true);
+            return AddObjectStoreUserStores<User, Role>(builder, 
+                x => x.Name, 
+                x => x.NormalizedUsername,
+                x => x.Name, 
+                x => x.Password, 
+                (user, role) => true);
         }
 
         public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole, TUserKey, TRoleKey>(this IdentityBuilder builder, Action<UserStoreOptions<TUser, TRole, TUserKey, TRoleKey>> configure)

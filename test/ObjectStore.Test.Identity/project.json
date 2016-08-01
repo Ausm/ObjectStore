@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0-*",
+  "testRunner": "xunit",
+  "description": "ObjectStore.Test.Identity Class Library",
+  "authors": [ "MatthiasA" ],
+  "dependencies": {
+    "xunit": "2.2.0-beta2-build3300",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
+    "Microsoft.AspNetCore.TestHost": "1.0.0",
+    "ObjectStore.Sqlite": "1.0.0-alpha3",
+    "ObjectStore.Identity": "1.0.0-alpha3"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0"
+        },
+        "Microsoft.CodeCoverage": "1.0.1"
+      },
+      "imports": [
+        "dnxcore50",
+        "dotnet5.6",
+        "portable-net45+win8"
+      ]
+    },
+    "net452": {
+      "dependencies": {
+        "Microsoft.NETCore.Platforms": "1.0.1"
+      },
+      "frameworkAssemblies": {
+        "System.ObjectModel": "4.0.0.0"
+      }
+    }
+  },
+
+  "buildOptions": {
+    "copyToOutput": {
+      "includeFiles": [ "Database/Database.db" ]
+    }
+  }
+}
