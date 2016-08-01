@@ -61,6 +61,7 @@ $revision = "{0:D4}" -f [convert]::ToInt32($revision, 10)
 
 exec { & dotnet test .\test\ObjectStore.Test.SqlClient -c Release }
 exec { & dotnet test .\test\ObjectStore.Test.Sqlite -c Release }
+exec { & dotnet test .\test\ObjectStore.Test.Identity -c Release }
 
 exec { & dotnet pack .\src\ObjectStore -c Release -o .\artifacts --version-suffix=$revision }
 exec { & dotnet pack .\src\ObjectStore.Identity -c Release -o .\artifacts --version-suffix=$revision }
