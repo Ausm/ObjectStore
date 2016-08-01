@@ -37,3 +37,4 @@ script:
   # dotnet test
   - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.SqlClient/project.json
   - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.Sqlite/project.json
+  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.Identity/project.json
