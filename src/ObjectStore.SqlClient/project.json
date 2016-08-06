@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-alpha3-*",
+  "version": "1.0.0-alpha3",
   "description": "MsSql Provider for ObjectStore Class Library",
   "authors": [ "Matthias Auswoeger" ],
   "packOptions": {

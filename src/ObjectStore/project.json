@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-alpha3-*",
+  "version": "1.0.0-alpha3",
   "description": "ObjectStore Class Library",
   "authors": [ "Matthias Auswoeger" ],
   "packOptions": {
