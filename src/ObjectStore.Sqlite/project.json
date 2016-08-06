@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-alpha3",
+  "version": "1.0.0-alpha4-*",
   "description": "SQLite Provider for ObjectStore Class Library",
   "authors": [ "Matthias Auswoeger" ],
   "packOptions": {
@@ -29,6 +29,6 @@
   },
   "dependencies": {
     "Microsoft.Data.Sqlite": "1.0.0",
-    "ObjectStore": "1.0.0-alpha3"
+    "ObjectStore": "1.0.0-alpha4-*"
   }
 }
