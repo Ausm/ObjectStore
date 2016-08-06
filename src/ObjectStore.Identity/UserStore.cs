@@ -21,6 +21,7 @@ namespace ObjectStore.Identity
     {
 
         #region Fields
+        IObjectProvider _objectProvider;
         IQueryable<TUser> _users;
         IQueryable<TRole> _roles;
         UserStoreOptions<TUser, TRole, TUserKey, TRoleKey> _options;
@@ -30,6 +31,7 @@ namespace ObjectStore.Identity
         #region Constructors
         public UserStore(IObjectProvider objectProvider, IOptions<UserStoreOptions<TUser, TRole, TUserKey, TRoleKey>> options)
         {
+            _objectProvider = objectProvider;
             _users = objectProvider.GetQueryable<TUser>();
             _roles = objectProvider.GetQueryable<TRole>();
             _options = options.Value;
@@ -67,7 +69,11 @@ namespace ObjectStore.Identity
         }
         public Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken)
         {
-            _users.Where(x => x == user).Save();
+            TUser newUser = _objectProvider.CreateObject<TUser>();
+            _options.SetUserName(newUser, _options.GetUserName(user));
+            _options.SetUserNormalizedUsername(newUser, _options.GetUserNormalizedUsername(user));
+            _options.SetUserPasswordHash(newUser, _options.GetUserPasswordHash(user));
+            _users.Where(x => x == newUser).Save();
             return Task.FromResult(IdentityResult.Success);
         }
         public Task<IdentityResult> DeleteAsync(TRole role, CancellationToken cancellationToken)

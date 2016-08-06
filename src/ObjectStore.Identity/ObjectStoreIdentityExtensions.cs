@@ -33,7 +33,9 @@ namespace ObjectStore.Identity
             return builder;
         }
 
-        public static IdentityBuilder AddObjectStoreUserStores(this IdentityBuilder builder)
+        public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole>(this IdentityBuilder builder)
+            where TUser : User
+            where TRole : Role
         {
             return AddObjectStoreUserStores<User, Role>(builder, 
                 x => x.Name, 
@@ -42,6 +44,12 @@ namespace ObjectStore.Identity
                 x => x.Password, 
                 (user, role) => true);
         }
+
+        public static IdentityBuilder AddObjectStoreUserStores(this IdentityBuilder builder)
+        {
+            return AddObjectStoreUserStores<User, Role>(builder);
+        }
+
 
         public static IdentityBuilder AddObjectStoreUserStores<TUser, TRole, TUserKey, TRoleKey>(this IdentityBuilder builder, Action<UserStoreOptions<TUser, TRole, TUserKey, TRoleKey>> configure)
             where TUser : class
