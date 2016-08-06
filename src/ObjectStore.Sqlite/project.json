@@ -29,6 +29,6 @@
   },
   "dependencies": {
     "Microsoft.Data.Sqlite": "1.0.0",
-    "ObjectStore": "1.0.0-alpha4-*"
+    "ObjectStore": "1.0.0-alpha4"
   }
 }
