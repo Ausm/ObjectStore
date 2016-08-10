@@ -68,21 +68,23 @@ namespace ObjectStore.Test.Identity
         }
 
         [Fact()]
-        public async Task TestRegister()
+        public async Task TestRegisterAndDeleteUser()
         {
             string userName = $"Test{(DateTime.Now - new DateTime(2016, 1, 1)).TotalHours}";
 
-            IdentityResult identityResult = await _fixture.Execute(async (UserManager<User> userManager) => {
-                UserMock mock = new UserMock() { Name = userName };
-                return await userManager.CreateAsync(mock, "Passw0rd!");
-            });
+            IdentityResult identityResult = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.CreateAsync(new UserMock() { Name = userName }, "Passw0rd!"));
 
             Assert.True(identityResult.Succeeded);
 
-            ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().DropChanges();
-            await ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().FetchAsync();
+            await ResetLocalChanges();
 
             SignInResult signInResult = await _fixture.Execute((SignInManager<User> signInManager) => signInManager.PasswordSignInAsync(userName, "Passw0rd!", false, false));
+
+            Assert.True(signInResult.Succeeded);
+
+            await ResetLocalChanges();
+
+            identityResult = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.DeleteAsync(await userManager.FindByNameAsync(userName)));
 
             Assert.True(signInResult.Succeeded);
         }
@@ -146,7 +148,7 @@ namespace ObjectStore.Test.Identity
 
         }
 
-        [Fact(Skip = "Not yet implemented")]
+        [Fact()]
         public async Task TestCreateAndRemoveRole()
         {
             IdentityResult addRoleResult = await _fixture.Execute(async (RoleManager<Role> roleManager) => await roleManager.CreateAsync(new RoleMock() { Name = "NewRole" }));

@@ -66,23 +66,21 @@ namespace ObjectStore.Identity
         #endregion
 
         #region Methods
-        #region NotSupported
         public Task<IdentityResult> CreateAsync(TRole role, CancellationToken cancellationToken)
         {
-            throw new NotSupportedException();
+            TRole newRole = _objectProvider.CreateObject<TRole>();
+            SetProperty(newRole, _options.RoleNameProperty, GetProperty<TRole, string>(role, _options.RoleNameProperty));
+            SetProperty(newRole, _options.NormalizedRolenameProperty, GetProperty<TRole, string>(role, _options.NormalizedRolenameProperty));
+            _roles.Where(x => x == newRole).Save();
+            return Task.FromResult(IdentityResult.Success);
         }
         public Task<IdentityResult> DeleteAsync(TRole role, CancellationToken cancellationToken)
         {
-            throw new NotSupportedException();
+            IQueryable<TRole> roles = _roles.Where(x => x == role);
+            roles.Delete();
+            roles.Save();
+            return Task.FromResult(IdentityResult.Success);
         }
-
-        public Task<IdentityResult> DeleteAsync(TUser user, CancellationToken cancellationToken)
-        {
-            throw new NotSupportedException();
-        }
-        #endregion
-
-        #region Implementations
         public async Task AddToRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
         {
             TRole role = await ((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
@@ -115,7 +113,13 @@ namespace ObjectStore.Identity
             _users.Where(x => x == newUser).Save();
             return Task.FromResult(IdentityResult.Success);
         }
-
+        public Task<IdentityResult> DeleteAsync(TUser user, CancellationToken cancellationToken)
+        {
+            IQueryable<TUser> users = _users.Where(x => x == user);
+            users.Delete();
+            users.Save();
+            return Task.FromResult(IdentityResult.Success);
+        }
         public Task<string> GetNormalizedRoleNameAsync(TRole role, CancellationToken cancellationToken)
         {
             return Task.FromResult(GetProperty<TRole, string>(role, _options.NormalizedRolenameProperty));
@@ -281,7 +285,6 @@ namespace ObjectStore.Identity
 
             return roles.FirstOrDefault();
         }
-        #endregion
 
         #region Static
         static void SetProperty<TInstance, TValue>(TInstance instance, PropertyInfo propertyInfo, TValue value )
