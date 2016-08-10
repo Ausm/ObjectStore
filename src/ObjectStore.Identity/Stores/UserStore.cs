@@ -67,11 +67,6 @@ namespace ObjectStore.Identity
 
         #region Methods
         #region NotSupported
-        public Task AddToRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<IdentityResult> CreateAsync(TRole role, CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
@@ -85,13 +80,32 @@ namespace ObjectStore.Identity
         {
             throw new NotSupportedException();
         }
-        public Task RemoveFromRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
-        {
-            throw new NotSupportedException();
-        }
         #endregion
 
         #region Implementations
+        public async Task AddToRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        {
+            TRole role = await ((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
+            if (role == null)
+                return;
+
+            TUserInRole userInRole = _objectProvider.CreateObject<TUserInRole>();
+            SetProperty(userInRole, _options.RoleProperty, role);
+            SetProperty(userInRole, _options.UserProperty, user);
+            _usersInRole.Where(x => x == userInRole).Save();
+        }
+        public async Task RemoveFromRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        {
+            TRole role = await((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
+            if (role == null)
+                return;
+
+            IQueryable<TUserInRole> userInRoles = _usersInRole
+                .Where(GetPredicat<TUserInRole, TUser>(_options.UserProperty, user))
+                .Where(GetPredicat<TUserInRole, TRole>(_options.RoleProperty, role));
+            userInRoles.Delete();
+            userInRoles.Save();
+        }
         public Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken)
         {
             TUser newUser = _objectProvider.CreateObject<TUser>();
@@ -167,7 +181,7 @@ namespace ObjectStore.Identity
 
         public async Task<IList<TUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
-            TRole role = _roles.Where(GetPredicat<TRole, string>(_options.NormalizedRolenameProperty, roleName)).FirstOrDefault();
+            TRole role = await ((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
 
             if (role == null)
                 return new List<TUser>();
@@ -189,14 +203,14 @@ namespace ObjectStore.Identity
 
         public async Task<bool> IsInRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
         {
-            TRole role = _roles.Where(GetPredicat<TRole, string>(_options.RoleNameProperty, roleName)).FirstOrDefault();
+            TRole role = await ((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
 
             if (role == null)
                 return false;
 
 
             IQueryable<TUserInRole> userInRoles = _usersInRole.Where(GetPredicat<TUserInRole, TUser>(_options.UserProperty, user))
-                                                    .Where(GetPredicat<TUserInRole, TRole>(_options.UserProperty, role));
+                                                    .Where(GetPredicat<TUserInRole, TRole>(_options.RoleProperty, role));
             await userInRoles.FetchAsync();
 
             return userInRoles.Any();
@@ -262,7 +276,7 @@ namespace ObjectStore.Identity
 
         async Task<TRole> IRoleStore<TRole>.FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
-            IQueryable<TRole> roles = _roles.Where(GetPredicat<TRole, string>(_options.RoleNameProperty, normalizedRoleName));
+            IQueryable<TRole> roles = _roles.Where(GetPredicat<TRole, string>(_options.NormalizedRolenameProperty, normalizedRoleName));
             await roles.FetchAsync();
 
             return roles.FirstOrDefault();

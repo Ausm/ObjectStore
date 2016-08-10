@@ -113,7 +113,7 @@ namespace ObjectStore.Test.Identity
                 x => Assert.Equal("Admin", x.Name));
         }
 
-        [Fact(Skip = "Not yet implemented")]
+        [Fact()]
         public async Task TestAddAndRemoveUserFromRole()
         {
             IdentityResult addToRoleResult = await _fixture.Execute(async (UserManager<User> userManager) =>
