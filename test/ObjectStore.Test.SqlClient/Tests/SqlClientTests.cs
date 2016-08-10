@@ -39,6 +39,8 @@ namespace ObjectStore.Test.SqlClient
             {
                 case Query.Insert:
                     return @"^\s*INSERT\s+dbo\.TestTable\s*\(\[Name],\s*\[Description]\)\s*VALUES\s*\(@param\d+,\s*@param\d+\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+\k<P>\s*=\s*Id$";
+                case Query.InsertNonInitializedKeyEntitiy:
+                    return @"^\s*INSERT\s+dbo\.NonInitializedKey\s*\(\s*Id\s*\)\s*VALUES\s*\((?<P>@param\d+)\)\s*SELECT\s+Id\s+FROM\s+dbo\.NonInitializedKey\s+WHERE\s+\k<P>\s*=\s*Id\s*$";
                 case Query.InsertDifferentTypesEntity:
                     return @"^\s*INSERT\s+dbo\.DifferentTypesTable\s*\((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)](,\s*|\s*(?=\)))){10}\)\s*VALUES\s*\(@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+\s*\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+Id,\s*\[Text],\s*\[Int],\s*\[Byte],\s*\[Short],\s*\[Long],\s*\[DateTime],\s*\[Guid],\s*\[Binary],\s*\[Decimal],\s*\[Xml]\s+FROM\s+dbo\.DifferentTypesTable\s+WHERE\s+\k<P>\s*=\s*Id$";
                 case Query.InsertDifferentWritabilityLevels:
@@ -59,6 +61,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s*$";
                 case Query.SelectSubTake10:
                     return @"^\s*SELECT\s+TOP\s+10\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+ORDER\s+BY\s+\k<T>\.Id\s*$";
+                case Query.SelectNonInitializedKeyEntitiy:
+                    return @"^\s*SELECT\s+(?<T>T\d+)\.Id\s+FROM\s+dbo\.NonInitializedKey\s+\k<T>\s*$";
                 case Query.SelectDifferentTypesEntity:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.((Id|(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)])))(,\s*|\s+(?=FROM))){11}FROM\s+dbo\.DifferentTypesTable\s+\k<T>\s*$";
                 case Query.SelectDifferentWritabilityLevels:
