@@ -57,7 +57,7 @@ namespace ObjectStore.Identity
 
             builder.Services.Add(new ServiceDescriptor(typeof(UserStore<TUser, TRole, TUserInRole>), typeof(UserStore<TUser, TRole, TUserInRole>), ServiceLifetime.Transient));
             builder.Services.Add(new ServiceDescriptor(typeof(IUserStore<TUser>), typeof(UserStore<TUser, TRole, TUserInRole>), ServiceLifetime.Transient));
-            builder.Services.Add(new ServiceDescriptor(typeof(IRoleStore<TRole>), typeof(UserStore<TUser, TRole, TUserInRole>), ServiceLifetime.Transient));
+            builder.Services.Add(new ServiceDescriptor(typeof(IRoleStore<TRole>), typeof(RoleStore<TRole>), ServiceLifetime.Transient));
 
             return builder;
         }

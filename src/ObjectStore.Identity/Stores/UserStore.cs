@@ -14,7 +14,6 @@ namespace ObjectStore.Identity
     public class UserStore<TUser, TRole, TUserInRole> :
         IUserRoleStore<TUser>,
         IUserPasswordStore<TUser>,
-        IQueryableRoleStore<TRole>,
         IQueryableUserStore<TUser>
         where TUser : class
         where TRole : class
@@ -25,8 +24,8 @@ namespace ObjectStore.Identity
         static Dictionary<PropertyInfo, Delegate> _getPropertyFunctions;
 
         IObjectProvider _objectProvider;
+        IRoleStore<TRole> _roleStore;
         IQueryable<TUser> _users;
-        IQueryable<TRole> _roles;
         IQueryable<TUserInRole> _usersInRole;
         UserStoreOptions _options;
         #endregion
@@ -37,25 +36,17 @@ namespace ObjectStore.Identity
             _setPropertyFunctions = new Dictionary<PropertyInfo, Delegate>();
             _getPropertyFunctions = new Dictionary<PropertyInfo, Delegate>();
         }
-        public UserStore(IObjectProvider objectProvider, IOptions<UserStoreOptions> options)
+        public UserStore(IObjectProvider objectProvider, IOptions<UserStoreOptions> options, IRoleStore<TRole> roleStore)
         {
             _objectProvider = objectProvider;
             _users = objectProvider.GetQueryable<TUser>();
-            _roles = objectProvider.GetQueryable<TRole>();
+            _roleStore = roleStore;
             _usersInRole = objectProvider.GetQueryable<TUserInRole>();
             _options = options.Value;
         }
         #endregion
 
         #region Properties
-        public IQueryable<TRole> Roles
-        {
-            get
-            {
-                return _roles;
-            }
-        }
-
         public IQueryable<TUser> Users
         {
             get
@@ -66,24 +57,9 @@ namespace ObjectStore.Identity
         #endregion
 
         #region Methods
-        public Task<IdentityResult> CreateAsync(TRole role, CancellationToken cancellationToken)
-        {
-            TRole newRole = _objectProvider.CreateObject<TRole>();
-            SetProperty(newRole, _options.RoleNameProperty, GetProperty<TRole, string>(role, _options.RoleNameProperty));
-            SetProperty(newRole, _options.NormalizedRolenameProperty, GetProperty<TRole, string>(role, _options.NormalizedRolenameProperty));
-            _roles.Where(x => x == newRole).Save();
-            return Task.FromResult(IdentityResult.Success);
-        }
-        public Task<IdentityResult> DeleteAsync(TRole role, CancellationToken cancellationToken)
-        {
-            IQueryable<TRole> roles = _roles.Where(x => x == role);
-            roles.Delete();
-            roles.Save();
-            return Task.FromResult(IdentityResult.Success);
-        }
         public async Task AddToRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
         {
-            TRole role = await ((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
+            TRole role = await _roleStore.FindByNameAsync(roleName, cancellationToken);
             if (role == null)
                 return;
 
@@ -94,7 +70,7 @@ namespace ObjectStore.Identity
         }
         public async Task RemoveFromRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
         {
-            TRole role = await((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
+            TRole role = await _roleStore.FindByNameAsync(roleName, cancellationToken);
             if (role == null)
                 return;
 
@@ -120,43 +96,19 @@ namespace ObjectStore.Identity
             users.Save();
             return Task.FromResult(IdentityResult.Success);
         }
-        public Task<string> GetNormalizedRoleNameAsync(TRole role, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(GetProperty<TRole, string>(role, _options.NormalizedRolenameProperty));
-        }
-
-        public Task SetNormalizedRoleNameAsync(TRole role, string normalizedName, CancellationToken cancellationToken)
-        {
-            SetProperty(role, _options.NormalizedRolenameProperty, normalizedName);
-            return Task.FromResult(true);
-        }
-
         public Task<string> GetNormalizedUserNameAsync(TUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(GetProperty<TUser, string>(user, _options.NormalizedUsernameProperty));
         }
-
         public Task SetNormalizedUserNameAsync(TUser user, string normalizedName, CancellationToken cancellationToken)
         {
             SetProperty(user, _options.NormalizedUsernameProperty, normalizedName);
             return Task.FromResult(true);
         }
-
         public Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(GetProperty<TUser, string>(user, _options.PasswordHashProperty));
         }
-
-        public Task<string> GetRoleIdAsync(TRole role, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(_options.ConvertIdToString(GetProperty<TRole, object>(role, _options.RoleIdProperty)));
-        }
-
-        public Task<string> GetRoleNameAsync(TRole role, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(GetProperty<TRole, string>(role, _options.RoleNameProperty));
-        }
-
         public async Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken)
         {
             IQueryable<TUserInRole> userInRoles = _usersInRole.Where(GetPredicat<TUserInRole, TUser>(_options.UserProperty, user));
@@ -172,20 +124,17 @@ namespace ObjectStore.Identity
 
             return returnValue;
         }
-
         public Task<string> GetUserIdAsync(TUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(_options.ConvertIdToString(GetProperty<TUser, object>(user, _options.UserIdProperty)));
         }
-
         public Task<string> GetUserNameAsync(TUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(GetProperty<TUser, string>(user, _options.UserNameProperty));
         }
-
         public async Task<IList<TUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
-            TRole role = await ((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
+            TRole role = await _roleStore.FindByNameAsync(roleName, cancellationToken);
 
             if (role == null)
                 return new List<TUser>();
@@ -199,15 +148,13 @@ namespace ObjectStore.Identity
 
             return returnValue;
         }
-
         public Task<bool> HasPasswordAsync(TUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(!string.IsNullOrWhiteSpace(GetProperty<TUser, string>(user, _options.PasswordHashProperty)));
         }
-
         public async Task<bool> IsInRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
         {
-            TRole role = await ((IRoleStore<TRole>)this).FindByNameAsync(roleName, cancellationToken);
+            TRole role = await _roleStore.FindByNameAsync(roleName, cancellationToken);
 
             if (role == null)
                 return false;
@@ -219,38 +166,22 @@ namespace ObjectStore.Identity
 
             return userInRoles.Any();
         }
-
         public Task SetPasswordHashAsync(TUser user, string passwordHash, CancellationToken cancellationToken)
         {
             SetProperty(user, _options.PasswordHashProperty, passwordHash);
             return Task.FromResult(true);
         }
-
-        public Task SetRoleNameAsync(TRole role, string roleName, CancellationToken cancellationToken)
-        {
-            SetProperty(role, _options.RoleNameProperty, roleName);
-            return Task.FromResult(true);
-        }
-
         public Task SetUserNameAsync(TUser user, string userName, CancellationToken cancellationToken)
         {
             SetProperty(user, _options.UserNameProperty, userName);
             return Task.FromResult(true);
         }
-
-        public Task<IdentityResult> UpdateAsync(TRole role, CancellationToken cancellationToken)
-        {
-            _roles.Where(x => x == role).Save();
-            return Task.FromResult(IdentityResult.Success);
-        }
-
         public Task<IdentityResult> UpdateAsync(TUser user, CancellationToken cancellationToken)
         {
             _users.Where(x => x == user).Save();
             return Task.FromResult(IdentityResult.Success);
         }
-
-        async Task<TUser> IUserStore<TUser>.FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public async Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             object convertedId = _options.ConvertStringToId(userId);
 
@@ -259,31 +190,12 @@ namespace ObjectStore.Identity
 
             return users.FirstOrDefault();
         }
-
-        async Task<TUser> IUserStore<TUser>.FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public async Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             IQueryable<TUser> users = _users.Where(GetPredicat<TUser, string>(_options.NormalizedUsernameProperty, normalizedUserName));
             await users.FetchAsync();
 
             return users.FirstOrDefault();
-        }
-
-        async Task<TRole> IRoleStore<TRole>.FindByIdAsync(string roleId, CancellationToken cancellationToken)
-        {
-            object convertedId = _options.ConvertStringToId(roleId);
-
-            IQueryable<TRole> roles = _roles.Where(GetPredicat<TRole, object>(_options.RoleIdProperty, convertedId));
-            await roles.FetchAsync();
-
-            return roles.FirstOrDefault();
-        }
-
-        async Task<TRole> IRoleStore<TRole>.FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
-        {
-            IQueryable<TRole> roles = _roles.Where(GetPredicat<TRole, string>(_options.NormalizedRolenameProperty, normalizedRoleName));
-            await roles.FetchAsync();
-
-            return roles.FirstOrDefault();
         }
 
         #region Static
@@ -347,10 +259,11 @@ namespace ObjectStore.Identity
         {
             if (disposing)
             {
-                //_users = null;
-                //_roles = null;
-                //_getRoleKey = null;
-                //_getUserKey = null;
+                _objectProvider = null;
+                _options = null;
+                _roleStore = null;
+                _users = null;
+                _usersInRole = null;
             }
         }
 
