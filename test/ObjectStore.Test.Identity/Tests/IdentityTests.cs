@@ -7,6 +7,7 @@ using ObjectStore.Test.Identity.Fixtures;
 using Microsoft.AspNetCore.Identity;
 using ObjectStore.Identity;
 using ObjectStore.Interfaces;
+using System.Collections.Generic;
 
 namespace ObjectStore.Test.Identity
 {
@@ -22,6 +23,15 @@ namespace ObjectStore.Test.Identity
             public override string NormalizedUsername { get; set; }
 
             public override string Password { get; set; }
+        }
+
+        class RoleMock : Role
+        {
+            public override int Id => 0;
+
+            public override string Name { get; set; }
+
+            public override string NormalizedRolename { get; set; }
         }
         #endregion
 
@@ -87,12 +97,82 @@ namespace ObjectStore.Test.Identity
 
             Assert.True(identityResult.Succeeded);
 
-            ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().DropChanges();
-            await ObjectStoreManager.DefaultObjectStore.GetQueryable<User>().FetchAsync();
+            await ResetLocalChanges();
 
             SignInResult signInResult = await _fixture.Execute((SignInManager<User> signInManager) => signInManager.PasswordSignInAsync("User1", "testPassword1!", false, false));
 
             Assert.True(signInResult.Succeeded);
+        }
+
+        [Fact()]
+        public async Task TestUserInRole()
+        {
+            IList<User> result = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.GetUsersInRoleAsync("Admin"));
+
+            Assert.Collection(result,
+                x => Assert.Equal("Admin", x.Name));
+        }
+
+        [Fact(Skip = "Not yet implemented")]
+        public async Task TestAddAndRemoveUserFromRole()
+        {
+            IdentityResult addToRoleResult = await _fixture.Execute(async (UserManager<User> userManager) =>
+            {
+                User user = await userManager.FindByIdAsync("2");
+                return await userManager.AddToRoleAsync(user, "Test");
+            });
+
+            Assert.True(addToRoleResult.Succeeded);
+
+            await ResetLocalChanges();
+
+            IList<User> users = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.GetUsersInRoleAsync("Test"));
+
+            Assert.True(users.Any(x => x.Id == 2));
+
+            IdentityResult removeFromRoleResult = await _fixture.Execute(async (UserManager<User> userManager) =>
+            {
+                User user = await userManager.FindByIdAsync("2");
+                return await userManager.RemoveFromRoleAsync(user, "Test");
+            });
+
+            Assert.True(removeFromRoleResult.Succeeded);
+
+            await ResetLocalChanges();
+
+            users = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.GetUsersInRoleAsync("Test"));
+
+            Assert.False(users.Any(x => x.Id == 2));
+
+        }
+
+        [Fact(Skip = "Not yet implemented")]
+        public async Task TestCreateAndRemoveRole()
+        {
+            IdentityResult addRoleResult = await _fixture.Execute(async (RoleManager<Role> roleManager) => await roleManager.CreateAsync(new RoleMock() { Name = "NewRole" }));
+
+            Assert.True(addRoleResult.Succeeded);
+
+            await ResetLocalChanges();
+
+            IdentityResult deleteRoleResult = await _fixture.Execute(async (RoleManager<Role> roleManager) => await roleManager.DeleteAsync(await roleManager.FindByNameAsync("NewRole")));
+
+            Assert.True(deleteRoleResult.Succeeded);
+        }
+        #endregion
+
+        #region Methods
+        static async Task ResetLocalChanges(IObjectProvider objectProvider = null)
+        {
+            if (objectProvider == null)
+                objectProvider = ObjectStoreManager.DefaultObjectStore;
+
+            objectProvider.GetQueryable<User>().DropChanges();
+            objectProvider.GetQueryable<Role>().DropChanges();
+            objectProvider.GetQueryable<UserInRole<User, Role>>().DropChanges();
+            await objectProvider.GetQueryable<User>().FetchAsync();
+            await objectProvider.GetQueryable<Role>().FetchAsync();
+            await objectProvider.GetQueryable<UserInRole<User, Role>>().FetchAsync();
         }
         #endregion
     }
