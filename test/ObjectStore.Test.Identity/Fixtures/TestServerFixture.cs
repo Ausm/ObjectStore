@@ -32,8 +32,6 @@ namespace ObjectStore.Test.Identity.Fixtures
             _client = _server.CreateClient();
         }
 
-        public SignInManager<User> SignInManager => _server.Host.Services.GetService(typeof(SignInManager<User>)) as SignInManager<User>;
-
         public async Task<T> Execute<T>(Func<HttpContext, Task<T>> func)
         {
             try

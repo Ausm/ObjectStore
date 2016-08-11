@@ -3,6 +3,7 @@
     public enum Query
     {
         Insert,
+        InsertNonInitializedKeyEntitiy,
         InsertDifferentTypesEntity,
         InsertDifferentWritabilityLevels,
         Update,
@@ -13,6 +14,7 @@
         Select,
         SelectSub,
         SelectSubTake10,
+        SelectNonInitializedKeyEntitiy,
         SelectDifferentTypesEntity,
         SelectDifferentWritabilityLevels,
         OrderBy,

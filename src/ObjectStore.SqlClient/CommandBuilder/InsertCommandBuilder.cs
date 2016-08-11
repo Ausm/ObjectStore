@@ -51,7 +51,7 @@ namespace ObjectStore.SqlClient
 
             if (fieldtype == FieldType.KeyField)
             {
-                KeyInitializer keyInitializer = KeyInitializer.GetInitializer(keyInitializerType);
+                KeyInitializer keyInitializer = keyInitializerType != null ? KeyInitializer.GetInitializer(keyInitializerType) : null;
                 if (keyInitializer == null || !keyInitializer.CheckEmpty(value))
                 {
                     SqlParameter param = DataBaseProvider.GetParameter($"@param{_parameters.Count}", value);

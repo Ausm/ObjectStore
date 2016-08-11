@@ -169,6 +169,22 @@ namespace ObjectStore.Test.Tests
         }
 
         [Fact]
+        public void TestInsertNonAutoInitializedKey()
+        {
+            List<E.NonInitializedKey> cachedItems = Assert.ScriptCalled(_databaseFixture, Query.SelectNonInitializedKeyEntitiy, () => _databaseFixture.ObjectProvider.GetQueryable<E.NonInitializedKey>().ForceLoad().ToList());
+            int newId = cachedItems.Count == 0 ? 1 : cachedItems.Max(x => x.Id) + 1;
+
+            _databaseFixture.SetResult(Query.InsertNonInitializedKeyEntitiy, new[] { new object[] { newId } });
+
+            E.NonInitializedKey entity = _databaseFixture.ObjectProvider.CreateObject<E.NonInitializedKey>();
+            Assert.NotNull(entity);
+            entity.Id = newId;
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertNonInitializedKeyEntitiy, () => _databaseFixture.ObjectProvider.GetQueryable<E.NonInitializedKey>().Where(x => x == entity).Save());
+            Assert.Equal(entity.Id, newId);
+        }
+
+        [Fact]
         public void TestUpdate()
         {
             E.Test entity = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _queryable.ToList().First());
@@ -564,6 +580,9 @@ namespace ObjectStore.Test.Tests
                 case Query.InsertDifferentWritabilityLevels:
                 case Query.UpdateDifferentWritabilityLevels:
                     return new string[] { "Id", "Writeable", "Updateable", "Insertable", "Readonly" };
+                case Query.SelectNonInitializedKeyEntitiy:
+                case Query.InsertNonInitializedKeyEntitiy:
+                    return new string[] { "Id" };
                 case Query.Insert:
                 case Query.Update:
                 case Query.Select:
