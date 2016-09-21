@@ -75,6 +75,7 @@ namespace ObjectStore.Test.Tests
         #endregion
 
         #region Tests
+        #region Facts
         [Fact]
         public void TestSelect()
         {
@@ -476,6 +477,35 @@ namespace ObjectStore.Test.Tests
             Assert.Equal(2, entity.Readonly);
         }
 
+        [Fact]
+        public void TestInsertForeignObjectKeyEntity()
+        {
+            E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id != 1).First();
+            string text = FirstRandomText;
+
+            _databaseFixture.SetResult(Query.InsertForeignObjectKeyEntity, new[] { new object[] { testKey.Id, text } });
+
+            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.CreateObject<E.ForeignObjectKey>();
+            Assert.NotNull(entity);
+            entity.Id = testKey;
+            entity.Value = text;
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
+        }
+
+        [Fact(Skip ="Not yet implemented")]
+        public void TestUpdateForeignObjectKeyEntities()
+        {
+        }
+
+        [Fact(Skip = "Not yet implemented")]
+        public void TestDeleteForeignObjectKeyEntities()
+        {
+        }
+
+        #endregion
+
+        #region ExtTheories
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression)
         {
@@ -496,6 +526,7 @@ namespace ObjectStore.Test.Tests
             Assert.Equal(values.Count(), subResult.Count);
             _output.WriteLine("... Done");
         }
+        #endregion
         #endregion
 
         #region Methods
@@ -572,6 +603,8 @@ namespace ObjectStore.Test.Tests
         {
             switch (key)
             {
+                case Query.InsertForeignObjectKeyEntity:
+                    return new string[] { "Id", "Value" };
                 case Query.SelectDifferentTypesEntity:
                 case Query.InsertDifferentTypesEntity:
                 case Query.UpdateDifferentTypesEntity:

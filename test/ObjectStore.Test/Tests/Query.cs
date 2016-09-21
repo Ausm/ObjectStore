@@ -6,6 +6,7 @@
         InsertNonInitializedKeyEntitiy,
         InsertDifferentTypesEntity,
         InsertDifferentWritabilityLevels,
+        InsertForeignObjectKeyEntity,
         Update,
         UpdateDifferentTypesEntity,
         UpdateDifferentWritabilityLevels,

@@ -48,6 +48,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*INSERT\s+INTO\s+""dbo\.DifferentTypesTable""\s*\(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])(,\s|\s*(?=\)))){10}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){10}\);\s*SELECT\s+(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){11}FROM\s+""dbo\.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*\(SELECT\s+seq\s+FROM\s+sqlite_sequence\s+WHERE\s+name\s*=\s*""dbo\.DifferentTypesTable""\)\s*$";
                 case Query.InsertDifferentWritabilityLevels:
                     return @"^\s*INSERT\s+INTO\s+""dbo\.DifferentWritabilityLevels""\s*\(((Writeable|Insertable)(,\s|\s*(?=\)))){2}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){2}\);\s*SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+""dbo.DifferentWritabilityLevels""\s+WHERE\s+Id\s*=\s*\(SELECT\s+seq\s+FROM\s+sqlite_sequence\s+WHERE\s+name\s*=\s*""dbo\.DifferentWritabilityLevels""\)\s*$";
+                case Query.InsertForeignObjectKeyEntity:
+                    return @"^\s*INSERT\s+INTO\s+""dbo\.ForeignObjectKeyTable""\s*\(((Id|Value)(,\s|\s*(?=\)))){2}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){2}\);\s*SELECT\s+((Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+""dbo.ForeignObjectKeyTable""\s+WHERE\s+@param\d+\s*=\s*Id\s*$";
                 case Query.Update:
                     return @"^\s*UPDATE\s+""dbo\.TestTable""\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s*;\s*SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+""dbo\.TestTable""\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.UpdateDifferentTypesEntity:
