@@ -501,16 +501,23 @@ namespace ObjectStore.Test.Tests
 
             _databaseFixture.SetResult(Query.UpdateForeignObjectKeyEntity, new[] { new object[] { testKey.Id, text } });
 
-            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x.Test == testKey).FirstOrDefault();
+            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x.Test == testKey).ForceLoad().FirstOrDefault();
             Assert.NotNull(entity);
             entity.Value = text;
 
             Assert.ScriptCalled(_databaseFixture, Query.UpdateForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
         }
 
-        [Fact(Skip = "Not yet implemented")]
+        [Fact]
         public void TestDeleteForeignObjectKeyEntities()
         {
+            E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id == 1).First();
+
+            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x.Test == testKey).FirstOrDefault();
+            Assert.NotNull(entity);
+            _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Delete();
+
+            Assert.ScriptCalled(_databaseFixture, Query.DeleteForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
         }
 
         #endregion

@@ -59,6 +59,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.DeleteSub:
                     return @"^\s*DELETE\s+dbo\.SubTestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
+                case Query.DeleteForeignObjectKeyEntity:
+                    return @"^\s*DELETE\s+dbo\.ForeignObjectKeyTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.Select:
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$";
                 case Query.SelectSub:

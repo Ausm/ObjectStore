@@ -13,6 +13,7 @@
         UpdateForeignObjectKeyEntity,
         Delete,
         DeleteSub,
+        DeleteForeignObjectKeyEntity,
         Select,
         SelectSub,
         SelectSubTake10,
@@ -36,6 +37,6 @@
         SimpleExpressionContains,
         SimpleExpressionAnd,
         ForeignObjectEqual,
-        ForeignObjectPropertyEqualTo        
+        ForeignObjectPropertyEqualTo
     }
 }
