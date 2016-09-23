@@ -53,6 +53,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*UPDATE\s+dbo\.DifferentTypesTable\s+SET\s+(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)]\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){10}WHERE\s+Id\s*=\s*(?<P>@param\d+)\s+SELECT\s+((Id|(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)]))(,\s*|\s+(?=FROM))){11}FROM\s+dbo\.DifferentTypesTable\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.UpdateDifferentWritabilityLevels:
                     return @"^\s*UPDATE\s+dbo\.DifferentWritabilityLevels\s+SET\s+((Writeable|Updateable)\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){2}WHERE\s+Id\s*=\s*(?<P>@param\d+)\s+SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+dbo\.DifferentWritabilityLevels\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
+                case Query.UpdateForeignObjectKeyEntity:
+                    return @"^\s*UPDATE\s+dbo\.ForeignObjectKeyTable\s+SET\s+Value\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*(?<P>@param\d+)\s+SELECT\s+((Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyTable\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.Delete:
                     return @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.DeleteSub:
@@ -61,6 +63,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$";
                 case Query.SelectSub:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s*$";
+                case Query.SelectForeignObjectKeyEntity:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyTable\s+\k<T>\s+WHERE\s+\k<T>\.Id\s*=\s*@param\d+\s*$";
                 case Query.SelectSubTake10:
                     return @"^\s*SELECT\s+TOP\s+10\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+ORDER\s+BY\s+\k<T>\.Id\s*$";
                 case Query.SelectNonInitializedKeyEntitiy:

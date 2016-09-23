@@ -56,6 +56,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*UPDATE\s+""dbo\.DifferentTypesTable""\s+SET\s+(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\]\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){10}WHERE\s+Id\s*=\s*(?<P>@param\d+);\s*SELECT\s+(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){11}FROM\s+""dbo.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.UpdateDifferentWritabilityLevels:
                     return @"^\s*UPDATE\s+""dbo\.DifferentWritabilityLevels""\s+SET\s+((Writeable|Updateable)\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){2}WHERE\s+Id\s*=\s*(?<P>@param\d+);\s*SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+""dbo.DifferentWritabilityLevels""\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
+                case Query.UpdateForeignObjectKeyEntity:
+                    return @"^\s*UPDATE\s+""dbo\.ForeignObjectKeyTable""\s+SET\s+Value\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*(?<P>@param\d+);\s*SELECT\s+((Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+""dbo\.ForeignObjectKeyTable""\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.Delete:
                     return @"^\s*DELETE\s+FROM\s+""dbo\.TestTable""\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.DeleteSub:
@@ -72,6 +74,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.((?<C>(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id))\s+\k<C>\s*(,\s*|\s+(?=FROM))){11}FROM\s+""dbo\.DifferentTypesTable""\s+\k<T>\s*$";
                 case Query.SelectDifferentWritabilityLevels:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>(Id|Writeable|Updateable|Insertable|Readonly))\s+\k<C>\s*(,\s*|\s+(?=FROM))){5}FROM\s+""dbo\.DifferentWritabilityLevels""\s+\k<T>\s*$";
+                case Query.SelectForeignObjectKeyEntity:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>(Id|Value))\s+\k<C>\s*(,\s*|\s+(?=FROM))){2}FROM\s+""dbo\.ForeignObjectKeyTable""\s+\k<T>\s+WHERE\s+\k<T>\.Id\s*=\s*@param\d+\s*$";
                 case Query.OrderBy:
                     return GetSimpleExpressionPattern(@"\k<T>\.Test\s*=\s*@param\d+\s+ORDER\s+BY\s+\k<T>\.\[Second]\s*");
                 case Query.OrderByDescending:

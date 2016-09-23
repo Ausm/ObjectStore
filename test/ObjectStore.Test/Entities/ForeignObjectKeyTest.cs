@@ -6,7 +6,7 @@ namespace ObjectStore.Test.Entities
     public abstract class ForeignObjectKey
     {
         [ForeignObjectMapping("Id"), IsPrimaryKey]
-        public abstract Test Id { get; set; }
+        public abstract Test Test { get; set; }
 
         [Mapping(FieldName ="Value")]
         public abstract string Value { get; set; }

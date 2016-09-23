@@ -10,6 +10,7 @@
         Update,
         UpdateDifferentTypesEntity,
         UpdateDifferentWritabilityLevels,
+        UpdateForeignObjectKeyEntity,
         Delete,
         DeleteSub,
         Select,
@@ -18,6 +19,7 @@
         SelectNonInitializedKeyEntitiy,
         SelectDifferentTypesEntity,
         SelectDifferentWritabilityLevels,
+        SelectForeignObjectKeyEntity,
         OrderBy,
         OrderByDescending,
         SimpleExpressionEqual,
@@ -34,6 +36,6 @@
         SimpleExpressionContains,
         SimpleExpressionAnd,
         ForeignObjectEqual,
-        ForeignObjectPropertyEqualTo
+        ForeignObjectPropertyEqualTo        
     }
 }

@@ -487,15 +487,25 @@ namespace ObjectStore.Test.Tests
 
             E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.CreateObject<E.ForeignObjectKey>();
             Assert.NotNull(entity);
-            entity.Id = testKey;
+            entity.Test = testKey;
             entity.Value = text;
 
             Assert.ScriptCalled(_databaseFixture, Query.InsertForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
         }
 
-        [Fact(Skip ="Not yet implemented")]
+        [Fact]
         public void TestUpdateForeignObjectKeyEntities()
         {
+            E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id == 1).First();
+            string text = FirstRandomText;
+
+            _databaseFixture.SetResult(Query.UpdateForeignObjectKeyEntity, new[] { new object[] { testKey.Id, text } });
+
+            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x.Test == testKey).FirstOrDefault();
+            Assert.NotNull(entity);
+            entity.Value = text;
+
+            Assert.ScriptCalled(_databaseFixture, Query.UpdateForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
         }
 
         [Fact(Skip = "Not yet implemented")]
@@ -560,6 +570,8 @@ namespace ObjectStore.Test.Tests
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
                 case Query.SelectSubTake10:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+                case Query.SelectForeignObjectKeyEntity:
+                    return new[] { new object[] { 1, "Testentry" } };
                 case Query.OrderBy:
                     return GetSubEntitys(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
                 case Query.OrderByDescending:
@@ -603,7 +615,9 @@ namespace ObjectStore.Test.Tests
         {
             switch (key)
             {
+                case Query.SelectForeignObjectKeyEntity:
                 case Query.InsertForeignObjectKeyEntity:
+                case Query.UpdateForeignObjectKeyEntity:
                     return new string[] { "Id", "Value" };
                 case Query.SelectDifferentTypesEntity:
                 case Query.InsertDifferentTypesEntity:
