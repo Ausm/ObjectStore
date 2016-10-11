@@ -14,7 +14,7 @@
           "type": "platform",
           "version": "1.0.1"
         },
-        "Microsoft.CodeCoverage": "1.0.1"
+        "Microsoft.CodeCoverage": "1.0.2"
       },
       "imports": [
         "dnxcore50",

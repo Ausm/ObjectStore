@@ -4,7 +4,7 @@
   "description": "ObjectStore.Test Class Library",
   "authors": [ "MatthiasA" ],
   "dependencies": {
-    "xunit": "2.2.0-beta2-build3300",
+    "xunit": "2.2.0-beta3-build3402",
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "ObjectStore": "1.0.0-alpha4",
     "ObjectStore.SqlClient": "1.0.0-alpha4",
@@ -18,7 +18,7 @@
           "type": "platform",
           "version": "1.0.1"
         },
-        "Microsoft.CodeCoverage": "1.0.1"
+        "Microsoft.CodeCoverage": "1.0.2"
       },
       "imports": [
         "dnxcore50",
