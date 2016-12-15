@@ -14,6 +14,7 @@ namespace ObjectStore.Sqlite
             _expressionParser = new ExpressionParser()
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} + {args.ParseChild(exp.Right)}", ExpressionType.Add, ExpressionType.AddChecked)
                         .AddRule<BinaryExpression>((exp, args) => $"({args.ParseChild(exp.Left)}) AND ({args.ParseChild(exp.Right)})", ExpressionType.And, ExpressionType.AndAlso)
+                        .AddRule<BinaryExpression>((exp, args) => $"({args.ParseChild(exp.Left)}) OR ({args.ParseChild(exp.Right)})", ExpressionType.Or, ExpressionType.OrElse)
                         .AddRule<ConstantExpression>((exp, args) => args.GetService<IParsingContext>().GetParameter(((IFillAbleObject)exp.Value).Keys.Single()),
                             e => e.Value is IFillAbleObject, ExpressionType.Constant)
                         .AddRule<ConstantExpression>((exp, args) =>

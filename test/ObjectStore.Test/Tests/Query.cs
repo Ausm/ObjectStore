@@ -36,6 +36,7 @@
         SimpleExpressionConstantValue,
         SimpleExpressionContains,
         SimpleExpressionAnd,
+        SimpleExpressionOr,
         ForeignObjectEqual,
         ForeignObjectPropertyEqualTo
     }

@@ -108,6 +108,8 @@ namespace ObjectStore.Test.Sqlite
                     return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*IN\s*\(@param\d+,\s*@param\d+,\s*@param\d+\)");
                 case Query.SimpleExpressionAnd:
                     return GetSimpleExpressionPattern(@"\(\k<T>\.\[First]\s*=\s*@param\d+\s*\)\s*AND\s*\(\s*\k<T>\.\[Second]\s*=\s*@param\d+\)\s*");
+                case Query.SimpleExpressionOr:
+                    return GetSimpleExpressionPattern(@"\(\k<T>\.\[First]\s*=\s*@param\d+\s*\)\s*OR\s*\(\s*\k<T>\.\[First]\s*=\s*@param\d+\)\s*");
                 case Query.ForeignObjectEqual:
                     return GetForeignObjectExpressionPattern(@"WHERE\s+\k<T>\.Test\s*=\s*@param\d+");
                 case Query.ForeignObjectPropertyEqualTo:

@@ -609,6 +609,8 @@ namespace ObjectStore.Test.Tests
                     return GetSubEntitys(3, 6, 8, 13, 16, 18);
                 case Query.SimpleExpressionAnd:
                     return GetSubEntitys(4, 14);
+                case Query.SimpleExpressionOr:
+                    return GetSubEntitys(4, 8, 14, 18);
                 case Query.ForeignObjectEqual:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                 case Query.ForeignObjectPropertyEqualTo:
@@ -658,6 +660,7 @@ namespace ObjectStore.Test.Tests
                 case Query.SimpleExpressionConstantValue:
                 case Query.SimpleExpressionContains:
                 case Query.SimpleExpressionAnd:
+                case Query.SimpleExpressionOr:
                 case Query.ForeignObjectEqual:
                 case Query.ForeignObjectPropertyEqualTo:
                     return new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" };
@@ -722,6 +725,7 @@ namespace ObjectStore.Test.Tests
                 returnValue.Add(Query.SimpleExpressionConstantValue, x => x.First == 5);
                 returnValue.Add(Query.SimpleExpressionContains, x => new int[] { 2, 5, 7 }.Contains(x.First));
                 returnValue.Add(Query.SimpleExpressionAnd, x => x.First == 3 && x.Second == 7);
+                returnValue.Add(Query.SimpleExpressionOr, x => x.First == 3 || x.First == 7);
                 return returnValue;
             }
         }
