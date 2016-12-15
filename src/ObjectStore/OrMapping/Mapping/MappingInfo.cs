@@ -168,20 +168,11 @@ namespace ObjectStore.OrMapping
             }
 #endregion
 
-#region MappingInfos erstellen
-            _mappingInfos = new List<Mapping>();
-            foreach (PropertyInfo item in Type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty).Where(x =>
-            {
-                MethodInfo methodInfo = x.GetGetMethod();
-                return methodInfo != null && methodInfo.IsAbstract;
-            }))
-            {
-                Mapping mappingInfo = Mapping.GetMapping(item);
-                if (mappingInfo != null)
-                {
-                    _mappingInfos.Add(mappingInfo);
-                }
-            }
+#region Create property mappings
+            _mappingInfos = Type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty)
+                                    .Where(x => x.GetGetMethod()?.IsAbstract == true)
+                                    .Select(x => Mapping.GetMapping(x))
+                                    .Where(x => x != null).ToList();
 #endregion
 
 #region Initialize GetKeyFromReader

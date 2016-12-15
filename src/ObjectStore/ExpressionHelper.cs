@@ -71,7 +71,13 @@ namespace ObjectStore
             }
             else if (expression is MemberInitExpression)
             {
-                return GetFilteredExpression((expression as MemberInitExpression).NewExpression, predicate);
+                MemberInitExpression initExpression = (MemberInitExpression)expression;
+                List<Expression> returnValue = GetFilteredExpression(initExpression.NewExpression, predicate);
+
+                foreach (MemberAssignment exp in initExpression.Bindings.OfType<MemberAssignment>())
+                    returnValue.AddRange(GetFilteredExpression(exp.Expression, predicate));
+
+                return returnValue;
             }
             else if (expression is MethodCallExpression)
             {
@@ -187,7 +193,15 @@ namespace ObjectStore
             }
             else if (expression is MemberInitExpression)
             {
-                return ContainsAny((expression as MemberInitExpression).NewExpression, predicate);
+                MemberInitExpression initExpression = expression as MemberInitExpression;
+                if (ContainsAny(initExpression.NewExpression, predicate))
+                    return true;
+
+                foreach (MemberAssignment exp in initExpression.Bindings.OfType<MemberAssignment>())
+                    if (ContainsAny(exp.Expression, predicate))
+                        return true;
+
+                return false;
             }
             else if (expression is MethodCallExpression)
             {

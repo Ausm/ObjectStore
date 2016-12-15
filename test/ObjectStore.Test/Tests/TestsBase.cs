@@ -75,6 +75,7 @@ namespace ObjectStore.Test.Tests
         #endregion
 
         #region Tests
+        #region Facts
         [Fact]
         public void TestSelect()
         {
@@ -476,6 +477,52 @@ namespace ObjectStore.Test.Tests
             Assert.Equal(2, entity.Readonly);
         }
 
+        [Fact]
+        public void TestInsertForeignObjectKeyEntity()
+        {
+            E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id != 1).First();
+            string text = FirstRandomText;
+
+            _databaseFixture.SetResult(Query.InsertForeignObjectKeyEntity, new[] { new object[] { testKey.Id, text } });
+
+            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.CreateObject<E.ForeignObjectKey>();
+            Assert.NotNull(entity);
+            entity.Test = testKey;
+            entity.Value = text;
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
+        }
+
+        [Fact]
+        public void TestUpdateForeignObjectKeyEntities()
+        {
+            E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id == 1).First();
+            string text = FirstRandomText;
+
+            _databaseFixture.SetResult(Query.UpdateForeignObjectKeyEntity, new[] { new object[] { testKey.Id, text } });
+
+            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x.Test == testKey).ForceLoad().FirstOrDefault();
+            Assert.NotNull(entity);
+            entity.Value = text;
+
+            Assert.ScriptCalled(_databaseFixture, Query.UpdateForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
+        }
+
+        [Fact]
+        public void TestDeleteForeignObjectKeyEntities()
+        {
+            E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id == 1).First();
+
+            E.ForeignObjectKey entity = _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x.Test == testKey).FirstOrDefault();
+            Assert.NotNull(entity);
+            _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Delete();
+
+            Assert.ScriptCalled(_databaseFixture, Query.DeleteForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x == entity).Save());
+        }
+
+        #endregion
+
+        #region ExtTheories
         [ExtTheory, MemberData(nameof(SimpleExpressions))]
         public void TestSimpleExpression(Query query, Expression<Func<E.SubTest, bool>> expression)
         {
@@ -496,6 +543,7 @@ namespace ObjectStore.Test.Tests
             Assert.Equal(values.Count(), subResult.Count);
             _output.WriteLine("... Done");
         }
+        #endregion
         #endregion
 
         #region Methods
@@ -529,6 +577,8 @@ namespace ObjectStore.Test.Tests
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
                 case Query.SelectSubTake10:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+                case Query.SelectForeignObjectKeyEntity:
+                    return new[] { new object[] { 1, "Testentry" } };
                 case Query.OrderBy:
                     return GetSubEntitys(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
                 case Query.OrderByDescending:
@@ -559,6 +609,8 @@ namespace ObjectStore.Test.Tests
                     return GetSubEntitys(3, 6, 8, 13, 16, 18);
                 case Query.SimpleExpressionAnd:
                     return GetSubEntitys(4, 14);
+                case Query.SimpleExpressionOr:
+                    return GetSubEntitys(4, 8, 14, 18);
                 case Query.ForeignObjectEqual:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                 case Query.ForeignObjectPropertyEqualTo:
@@ -572,6 +624,10 @@ namespace ObjectStore.Test.Tests
         {
             switch (key)
             {
+                case Query.SelectForeignObjectKeyEntity:
+                case Query.InsertForeignObjectKeyEntity:
+                case Query.UpdateForeignObjectKeyEntity:
+                    return new string[] { "Id", "Value" };
                 case Query.SelectDifferentTypesEntity:
                 case Query.InsertDifferentTypesEntity:
                 case Query.UpdateDifferentTypesEntity:
@@ -604,6 +660,7 @@ namespace ObjectStore.Test.Tests
                 case Query.SimpleExpressionConstantValue:
                 case Query.SimpleExpressionContains:
                 case Query.SimpleExpressionAnd:
+                case Query.SimpleExpressionOr:
                 case Query.ForeignObjectEqual:
                 case Query.ForeignObjectPropertyEqualTo:
                     return new string[] { "Id", "Test", "Name", "First", "Second", "Nullable" };
@@ -668,6 +725,7 @@ namespace ObjectStore.Test.Tests
                 returnValue.Add(Query.SimpleExpressionConstantValue, x => x.First == 5);
                 returnValue.Add(Query.SimpleExpressionContains, x => new int[] { 2, 5, 7 }.Contains(x.First));
                 returnValue.Add(Query.SimpleExpressionAnd, x => x.First == 3 && x.Second == 7);
+                returnValue.Add(Query.SimpleExpressionOr, x => x.First == 3 || x.First == 7);
                 return returnValue;
             }
         }

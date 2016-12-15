@@ -45,20 +45,28 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*INSERT\s+dbo\.DifferentTypesTable\s*\((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)](,\s*|\s*(?=\)))){10}\)\s*VALUES\s*\(@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+,\s*@param\d+\s*\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+Id,\s*\[Text],\s*\[Int],\s*\[Byte],\s*\[Short],\s*\[Long],\s*\[DateTime],\s*\[Guid],\s*\[Binary],\s*\[Decimal],\s*\[Xml]\s+FROM\s+dbo\.DifferentTypesTable\s+WHERE\s+\k<P>\s*=\s*Id$";
                 case Query.InsertDifferentWritabilityLevels:
                     return @"^\s*INSERT\s+dbo\.DifferentWritabilityLevels\s*\(((Writeable|Insertable)(,\s*|\s*(?=\)))){0,2}\)\s*VALUES\s*\(@param\d+,\s*@param\d+\s*\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+dbo\.DifferentWritabilityLevels\s+WHERE\s+\k<P>\s*=\s*Id$";
+                case Query.InsertForeignObjectKeyEntity:
+                    return @"^\s*INSERT\s+dbo\.ForeignObjectKeyTable\s*\(\s*Id\s*,\s*Value\s*\)\s*VALUES\s*\(\s*(?<P>@param\d+)\s*,\s*@param\d+\s*\)\s*SELECT\s+((Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyTable\s+WHERE\s+\k<P>\s*=\s*Id\s*$";
                 case Query.Update:
                     return @"^\s*UPDATE\s+dbo\.TestTable\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s+SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.UpdateDifferentTypesEntity:
                     return @"^\s*UPDATE\s+dbo\.DifferentTypesTable\s+SET\s+(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)]\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){10}WHERE\s+Id\s*=\s*(?<P>@param\d+)\s+SELECT\s+((Id|(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)]))(,\s*|\s+(?=FROM))){11}FROM\s+dbo\.DifferentTypesTable\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.UpdateDifferentWritabilityLevels:
                     return @"^\s*UPDATE\s+dbo\.DifferentWritabilityLevels\s+SET\s+((Writeable|Updateable)\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){2}WHERE\s+Id\s*=\s*(?<P>@param\d+)\s+SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+dbo\.DifferentWritabilityLevels\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
+                case Query.UpdateForeignObjectKeyEntity:
+                    return @"^\s*UPDATE\s+dbo\.ForeignObjectKeyTable\s+SET\s+Value\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*(?<P>@param\d+)\s+SELECT\s+((Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyTable\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.Delete:
                     return @"^\s*DELETE\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.DeleteSub:
                     return @"^\s*DELETE\s+dbo\.SubTestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
+                case Query.DeleteForeignObjectKeyEntity:
+                    return @"^\s*DELETE\s+dbo\.ForeignObjectKeyTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.Select:
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id,\s*\k<T>\.\[Name],\s*\k<T>\.\[Description]\s+FROM\s+dbo\.TestTable\s+\k<T>\s*$";
                 case Query.SelectSub:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s*$";
+                case Query.SelectForeignObjectKeyEntity:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyTable\s+\k<T>\s+WHERE\s+\k<T>\.Id\s*=\s*@param\d+\s*$";
                 case Query.SelectSubTake10:
                     return @"^\s*SELECT\s+TOP\s+10\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+ORDER\s+BY\s+\k<T>\.Id\s*$";
                 case Query.SelectNonInitializedKeyEntitiy:
@@ -97,6 +105,8 @@ namespace ObjectStore.Test.SqlClient
                     return GetSimpleExpressionPattern(@"\k<T>\.\[First]\s*IN\s*\(@param\d+,\s*@param\d+,\s*@param\d+\)");
                 case Query.SimpleExpressionAnd:
                     return GetSimpleExpressionPattern(@"\(\k<T>\.\[First]\s*=\s*@param\d+\s*\)\s*AND\s*\(\s*\k<T>\.\[Second]\s*=\s*@param\d+\)\s*");
+                case Query.SimpleExpressionOr:
+                    return GetSimpleExpressionPattern(@"\(\k<T>\.\[First]\s*=\s*@param\d+\s*\)\s*OR\s*\(\s*\k<T>\.\[First]\s*=\s*@param\d+\)\s*");
                 case Query.ForeignObjectEqual:
                     return GetForeignObjectExpressionPattern(@"WHERE\s+\k<T>\.Test\s*=\s*@param\d+");
                 case Query.ForeignObjectPropertyEqualTo:
