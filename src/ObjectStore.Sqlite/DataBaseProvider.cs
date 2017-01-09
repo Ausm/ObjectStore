@@ -141,7 +141,9 @@ namespace ObjectStore.Sqlite
 
                 object returnValue;
 
-                if (typeof(T) == typeof(int) || typeof(T) == typeof(int?))
+                if (typeof(T) == typeof(bool) || typeof(T) == typeof(bool?))
+                    returnValue = _dataReader.GetBoolean(ordinal);
+                else if (typeof(T) == typeof(int) || typeof(T) == typeof(int?))
                     returnValue = _dataReader.GetInt32(ordinal);
                 else if (typeof(T) == typeof(byte) || typeof(T) == typeof(byte?))
                     returnValue = _dataReader.GetByte(ordinal);
@@ -154,15 +156,7 @@ namespace ObjectStore.Sqlite
                 else if (typeof(T) == typeof(decimal) || typeof(T) == typeof(decimal?))
                     returnValue = _dataReader.GetDecimal(ordinal);
                 else if (typeof(T) == typeof(DateTime) || typeof(T) == typeof(DateTime?))
-                {
-                    string stringValue = _dataReader.GetString(ordinal);
-                    DateTime dateTimeValue;
-
-                    if (!DateTime.TryParseExact(stringValue, "yyyy-MM-dd HH:mm:ss.FFFFFFF", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dateTimeValue))
-                        return default(T);
-
-                    returnValue = dateTimeValue;
-                }
+                    returnValue = _dataReader.GetDateTime(ordinal);
                 else if (typeof(T) == typeof(XElement))
                     returnValue = XElement.Parse(_dataReader.GetString(ordinal));
                 else

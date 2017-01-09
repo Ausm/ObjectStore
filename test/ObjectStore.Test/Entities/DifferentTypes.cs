@@ -12,6 +12,9 @@ namespace ObjectStore.Test.Entities
         [Mapping(FieldName = "[Text]")]
         public abstract string Text { get; set; }
 
+        [Mapping(FieldName = "[Boolean]")]
+        public abstract bool Boolean { get; set; }
+
         [Mapping(FieldName = "[Int]")]
         public abstract int Int { get; set; }
 

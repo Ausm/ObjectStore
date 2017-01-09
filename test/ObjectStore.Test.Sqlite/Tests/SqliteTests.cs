@@ -45,7 +45,7 @@ namespace ObjectStore.Test.Sqlite
                 case Query.InsertNonInitializedKeyEntitiy:
                     return @"^\s*INSERT\s+INTO\s+""dbo\.NonInitializedKey""\s*\(\s*Id\s*\)\s*VALUES\s*\((?<P>@param\d+)\);\s*SELECT\s+Id\s+FROM\s+""dbo\.NonInitializedKey""\s+WHERE\s+\k<P>\s*=\s*Id\s*$";
                 case Query.InsertDifferentTypesEntity:
-                    return @"^\s*INSERT\s+INTO\s+""dbo\.DifferentTypesTable""\s*\(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])(,\s|\s*(?=\)))){10}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){10}\);\s*SELECT\s+(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){11}FROM\s+""dbo\.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*\(SELECT\s+seq\s+FROM\s+sqlite_sequence\s+WHERE\s+name\s*=\s*""dbo\.DifferentTypesTable""\)\s*$";
+                    return @"^\s*INSERT\s+INTO\s+""dbo\.DifferentTypesTable""\s*\(((\[(Text|Boolean|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])(,\s|\s*(?=\)))){11}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){11}\);\s*SELECT\s+(((\[(Text|Boolean|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){12}FROM\s+""dbo\.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*\(SELECT\s+seq\s+FROM\s+sqlite_sequence\s+WHERE\s+name\s*=\s*""dbo\.DifferentTypesTable""\)\s*$";
                 case Query.InsertDifferentWritabilityLevels:
                     return @"^\s*INSERT\s+INTO\s+""dbo\.DifferentWritabilityLevels""\s*\(((Writeable|Insertable)(,\s|\s*(?=\)))){2}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){2}\);\s*SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+""dbo.DifferentWritabilityLevels""\s+WHERE\s+Id\s*=\s*\(SELECT\s+seq\s+FROM\s+sqlite_sequence\s+WHERE\s+name\s*=\s*""dbo\.DifferentWritabilityLevels""\)\s*$";
                 case Query.InsertForeignObjectKeyEntity:
@@ -53,7 +53,7 @@ namespace ObjectStore.Test.Sqlite
                 case Query.Update:
                     return @"^\s*UPDATE\s+""dbo\.TestTable""\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s*;\s*SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+""dbo\.TestTable""\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.UpdateDifferentTypesEntity:
-                    return @"^\s*UPDATE\s+""dbo\.DifferentTypesTable""\s+SET\s+(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\]\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){10}WHERE\s+Id\s*=\s*(?<P>@param\d+);\s*SELECT\s+(((\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){11}FROM\s+""dbo.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
+                    return @"^\s*UPDATE\s+""dbo\.DifferentTypesTable""\s+SET\s+(\[(Text|Boolean|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\]\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){11}WHERE\s+Id\s*=\s*(?<P>@param\d+);\s*SELECT\s+(((\[(Text|Boolean|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id)(,\s*|\s+(?=FROM))){12}FROM\s+""dbo.DifferentTypesTable""\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.UpdateDifferentWritabilityLevels:
                     return @"^\s*UPDATE\s+""dbo\.DifferentWritabilityLevels""\s+SET\s+((Writeable|Updateable)\s*=\s*@param\d+(,\s*|\s+(?=WHERE))){2}WHERE\s+Id\s*=\s*(?<P>@param\d+);\s*SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+""dbo.DifferentWritabilityLevels""\s+WHERE\s+Id\s*=\s*\k<P>\s*$";
                 case Query.UpdateForeignObjectKeyEntity:
@@ -73,7 +73,7 @@ namespace ObjectStore.Test.Sqlite
                 case Query.SelectNonInitializedKeyEntitiy:
                     return @"^\s*SELECT\s+(?<T>T\d+)\.Id\s+Id\s+FROM\s+""dbo\.NonInitializedKey""\s+\k<T>\s*$";
                 case Query.SelectDifferentTypesEntity:
-                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.((?<C>(\[(Text|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id))\s+\k<C>\s*(,\s*|\s+(?=FROM))){11}FROM\s+""dbo\.DifferentTypesTable""\s+\k<T>\s*$";
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.((?<C>(\[(Text|Boolean|Int|Byte|Short|Long|DateTime|Guid|Binary|Decimal|Xml)\])|Id))\s+\k<C>\s*(,\s*|\s+(?=FROM))){12}FROM\s+""dbo\.DifferentTypesTable""\s+\k<T>\s*$";
                 case Query.SelectDifferentWritabilityLevels:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>(Id|Writeable|Updateable|Insertable|Readonly))\s+\k<C>\s*(,\s*|\s+(?=FROM))){5}FROM\s+""dbo\.DifferentWritabilityLevels""\s+\k<T>\s*$";
                 case Query.SelectForeignObjectKeyEntity:
