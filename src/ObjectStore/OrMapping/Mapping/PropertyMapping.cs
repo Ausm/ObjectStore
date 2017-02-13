@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ObjectStore.OrMapping
 {
-    internal class PropertyMapping : Mapping
+    internal class PropertyMapping : MemberMapping
     {
         MappingAttribute _mappingAttribute;
         protected FieldBuilder _internalField;

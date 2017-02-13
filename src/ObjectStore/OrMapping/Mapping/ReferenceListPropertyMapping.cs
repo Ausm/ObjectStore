@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace ObjectStore.OrMapping
 {
-    internal class ReferenceListPropertyMapping : Mapping
+    internal class ReferenceListPropertyMapping : MemberMapping
     {
         ReferenceListMappingAttribute _listMappingAttribute;
         Dictionary<PropertyInfo, object> _conditions;

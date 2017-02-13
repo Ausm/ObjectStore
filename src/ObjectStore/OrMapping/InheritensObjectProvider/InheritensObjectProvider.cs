@@ -195,7 +195,7 @@ namespace ObjectStore.OrMapping
                         ICommitContext commitContext;
                         using (IValueSource valueSource = _objectProvider._databaseProvider.GetValueSource(command))
                         {
-                            MappingInfo mappingInfo = _objectProvider._mappingInfoContainer;
+                            TypeMapping mappingInfo = _objectProvider._mappingInfoContainer;
                             commitContext = _objectProvider._cache.Fill(valueSource, x => mappingInfo.GetKeyValues(x), () => (T)mappingInfo.CreateObject(), context);
                         }
                         if (commitContext != null) commitContext.Commit();
@@ -256,7 +256,7 @@ namespace ObjectStore.OrMapping
         #region Membervariablen
         string _connectionString;
 
-        MappingInfo _mappingInfoContainer;
+        TypeMapping _mappingInfoContainer;
         WeakCache _cache;
         DataBaseWorker _dbWorker;
         IDataBaseProvider _databaseProvider;
@@ -277,7 +277,7 @@ namespace ObjectStore.OrMapping
         {
             if (_mappingInfoContainer == null)
             {
-                _mappingInfoContainer = MappingInfo.GetMappingInfo(typeof(T));
+                _mappingInfoContainer = TypeMapping.GetMappingInfo(typeof(T));
                 _dbWorker = new DataBaseWorker(_connectionString, this);
                 _cache = new WeakCache(_mappingInfoContainer.LoadBehavior == LoadBehavior.OnFirstAccessFullLoad);
             }

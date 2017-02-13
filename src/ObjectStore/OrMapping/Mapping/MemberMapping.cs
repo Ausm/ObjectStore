@@ -6,12 +6,12 @@ using System.Reflection.Emit;
 
 namespace ObjectStore.OrMapping
 {
-    internal abstract class Mapping
+    internal abstract class MemberMapping
     {
         #region Erstellfunktion
-        static Dictionary<PropertyInfo, Mapping> _mappings = new Dictionary<PropertyInfo, Mapping>();
+        static Dictionary<PropertyInfo, MemberMapping> _mappings = new Dictionary<PropertyInfo, MemberMapping>();
 
-        public static Mapping GetMapping(PropertyInfo propertyInfo)
+        public static MemberMapping GetMapping(PropertyInfo propertyInfo)
         {
             if (_mappings.ContainsKey(propertyInfo))
             {
@@ -43,7 +43,7 @@ namespace ObjectStore.OrMapping
         #endregion
 
         #region Konstruktoren
-        protected Mapping(MemberInfo memberInfo)
+        protected MemberMapping(MemberInfo memberInfo)
         {
             _isPrimaryKey = memberInfo.GetCustomAttributes(typeof(IsPrimaryKeyAttribute), true).Any();
             
