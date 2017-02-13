@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.OrMapping
 {
@@ -75,14 +76,14 @@ namespace ObjectStore.OrMapping
 
         public static TypeMapping GetMappingInfo(Type type)
         {
-            return GetMappingInfo(type, false);
+            return mappingInfos[type];
         }
 
-        public static TypeMapping GetMappingInfo(Type type, bool existingOnly)
+        public static TypeMapping GetMappingInfo(TypeMappingOptions typeMappingOptions, bool existingOnly = false)
         {
-            if (mappingInfos.ContainsKey(type))
+            if (mappingInfos.ContainsKey(typeMappingOptions.Type))
             {
-                return mappingInfos[type];
+                return mappingInfos[typeMappingOptions.Type];
             }
             else if(existingOnly)
             {
@@ -90,25 +91,22 @@ namespace ObjectStore.OrMapping
             }
             else
             {
-                TypeMapping mappingInfo = new TypeMapping(type);
+                TypeMapping mappingInfo = new TypeMapping(typeMappingOptions);
                 mappingInfos.Add(mappingInfo.DynamicType, mappingInfo);
-                return mappingInfos[type] = mappingInfo;
+                return mappingInfos[typeMappingOptions.Type] = mappingInfo;
             }
         }
         #endregion
 
         #region Membervariablen
-        protected Type _type;
+        TypeMappingOptions _typeMappingOptions;
         protected List<MemberMapping> _mappingInfos;
 
         private List<MemberMapping> _keyMappingInfos;
-        private string _tableName;
 
         protected Type _dynamicType;
         Func<object> _constructor;
         protected Func<IValueSource, MappedObjectKeys> _getKeyObjectFromReader;
-        protected LoadBehavior _loadBehavior;
-
         #endregion
 
         #region GetTypeBuilder
@@ -131,16 +129,17 @@ namespace ObjectStore.OrMapping
 		#endregion
 
         #region Konstruktoren
-        public TypeMapping(Type type)
+        public TypeMapping(TypeMappingOptions typeMappingOptions)
         {
-        #if  NETCOREAPP1_0
+            Type type = typeMappingOptions.Type;
+#if NETCOREAPP1_0
             if (!type.GetTypeInfo().IsAbstract)
-        #else
+#else
             if (!type.IsAbstract)
-        #endif
+#endif
                 throw new NotSupportedException("InheritedPropertyMapping supports abstract classes and interfaces only.");
 
-            _type = type;
+            _typeMappingOptions = typeMappingOptions;
             Initialize();
         }
         #endregion
@@ -148,26 +147,6 @@ namespace ObjectStore.OrMapping
         #region Funktionen
         protected virtual void Initialize()
         {
-        #region Tabellennamen bestimmen
-            {
-        #if  NETCOREAPP1_0
-                TableAttribute attribute = Type.GetTypeInfo().GetCustomAttribute(typeof(TableAttribute), true) as TableAttribute;
-        #else
-                TableAttribute attribute = Type.GetCustomAttributes(typeof(TableAttribute), true).FirstOrDefault() as TableAttribute;
-        #endif
-                if (attribute == null)
-                {
-                    TableName = Type.Name;
-                    _loadBehavior = LoadBehavior.OnDemandPartialLoad;
-                }
-                else
-                {
-                    TableName = ((TableAttribute)attribute).TableName;
-                    _loadBehavior = ((TableAttribute)attribute).LoadBehavior;
-                }
-            }
-        #endregion
-
 		#region Create property mappings
             _mappingInfos = Type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty)
                                     .Where(x => x.GetGetMethod()?.IsAbstract == true)
@@ -705,7 +684,7 @@ namespace ObjectStore.OrMapping
 
         public virtual T FillCommand<T>(T commandBuilder) where T : ICommandBuilder
         {
-            commandBuilder.SetTablename(_tableName);
+            commandBuilder.SetTablename(TableName);
             foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.FillCommandBuilder(commandBuilder);
@@ -718,13 +697,10 @@ namespace ObjectStore.OrMapping
         {
             return _getKeyObjectFromReader(valueSource); 
         }
-		#endregion
+        #endregion
 
-		#region Properties
-        public virtual string TableName { 
-            get { return _tableName; }
-            set { _tableName = value; }
-        }
+        #region Properties
+        public string TableName => _typeMappingOptions.TableName;
 
         public virtual ReadOnlyCollection<MemberMapping> KeyMappingInfos
         {
@@ -738,13 +714,7 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        protected Type Type
-        {
-            get
-            {
-                return _type;
-            }
-        }
+        protected Type Type => _typeMappingOptions.Type;
 
         protected Type DynamicType
         {
@@ -754,13 +724,7 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        public virtual LoadBehavior LoadBehavior
-        {
-            get
-            {
-                return _loadBehavior;
-            }
-        }
+        public LoadBehavior LoadBehavior => _typeMappingOptions.LoadBehavior;
 		#endregion
     }
 }

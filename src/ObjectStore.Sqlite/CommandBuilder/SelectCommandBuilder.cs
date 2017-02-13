@@ -52,7 +52,7 @@ namespace ObjectStore.Sqlite
             {
                 get
                 {
-                    return TypeMapping.GetMappingInfo(_expression.Type, true).TableName;
+                    return TypeMapping.GetMappingInfo(_expression.Type).TableName;
                 }
             }
 
@@ -60,7 +60,7 @@ namespace ObjectStore.Sqlite
             {
                 get
                 {
-                    return TypeMapping.GetMappingInfo(_expression.Type, true).KeyMappingInfos.First().FieldName;
+                    return TypeMapping.GetMappingInfo(_expression.Type).KeyMappingInfos.First().FieldName;
                 }
             }
 

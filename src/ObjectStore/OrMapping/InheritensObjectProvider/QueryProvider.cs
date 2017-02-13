@@ -471,7 +471,7 @@ namespace ObjectStore.OrMapping
                     _topCount = _innerQueryContext._topCount;
                     _forceCache = _innerQueryContext._forceCache;
                     _forceLoad = _innerQueryContext._forceLoad;
-                    _orderExpressions = _innerQueryContext._orderExpressions == null ? null : new List<IOrderItem>(_innerQueryContext._orderExpressions);
+                    _orderExpressions = _innerQueryContext._orderExpressions?.ToList();
                 }
             }
             #endregion

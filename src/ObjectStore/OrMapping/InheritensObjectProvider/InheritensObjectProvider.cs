@@ -1,4 +1,5 @@
 ﻿using ObjectStore.Interfaces;
+using ObjectStore.MappingOptions;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -260,11 +261,13 @@ namespace ObjectStore.OrMapping
         WeakCache _cache;
         DataBaseWorker _dbWorker;
         IDataBaseProvider _databaseProvider;
+        MappingOptionsSet _mappingOptionSet;
         #endregion
 
         #region Konstruktoren
-        public InheritensObjectProvider(string connectionString, IDataBaseProvider databaseProvider)
+        public InheritensObjectProvider(string connectionString, IDataBaseProvider databaseProvider, MappingOptionsSet mappingOptionSet)
         {
+            _mappingOptionSet = mappingOptionSet;
             _databaseProvider = databaseProvider;
             _connectionString = connectionString;
             InitializeMapping();
@@ -277,7 +280,7 @@ namespace ObjectStore.OrMapping
         {
             if (_mappingInfoContainer == null)
             {
-                _mappingInfoContainer = TypeMapping.GetMappingInfo(typeof(T));
+                _mappingInfoContainer = TypeMapping.GetMappingInfo(_mappingOptionSet.GetTypeMappingOptions(typeof(T)));
                 _dbWorker = new DataBaseWorker(_connectionString, this);
                 _cache = new WeakCache(_mappingInfoContainer.LoadBehavior == LoadBehavior.OnFirstAccessFullLoad);
             }
