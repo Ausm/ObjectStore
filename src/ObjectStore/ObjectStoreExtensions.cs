@@ -28,13 +28,59 @@ namespace ObjectStore
                     o.LoadBehavior = attribute.LoadBehavior;
                 });
 
+            mappingOptionsSet.AddMemberTypeRule(x => x.GetCustomAttribute<ForeignObjectMappingAttribute>() != null, x => { x.MappingType = MappingType.ForeignObjectMapping; });
+            mappingOptionsSet.AddMemberTypeRule(x => x.GetCustomAttribute<ReferenceListMappingAttribute>() != null, x => { x.MappingType = MappingType.ReferenceListMapping; });
+
+            mappingOptionsSet.AddMemberMappingRule(x => x.GetCustomAttribute<ForeignObjectMappingAttribute>() != null, o => {
+                ForeignObjectMappingOptions options = (ForeignObjectMappingOptions)o;
+                ForeignObjectMappingAttribute attribute = options.Member.GetCustomAttribute<ForeignObjectMappingAttribute>();
+                options.DatabaseFieldName = attribute.Fieldname;
+
+                if(attribute.ForeignObjectType != null)
+                    options.ForeignObjectType = attribute.ForeignObjectType;
+
+                if (attribute.ReadOnly)
+                    options.IsReadonly = true;
+                else
+                {
+                    options.IsInsertable = attribute.Insertable;
+                    options.IsUpdateable = attribute.Updateable;
+                }
+                options.IsPrimaryKey = options.Member.GetCustomAttribute<IsPrimaryKeyAttribute>() != null;
+            });
+
+            mappingOptionsSet.AddMemberMappingRule(x => x.GetCustomAttribute<ReferenceListMappingAttribute>() != null, o => { });
+
+            mappingOptionsSet.AddMemberMappingRule(x => x.GetCustomAttribute<ForeignObjectMappingAttribute>() == null && x.GetCustomAttribute<ReferenceListMappingAttribute>() == null, o => {
+                FieldMappingOptions options = (FieldMappingOptions)o;
+                MappingAttribute attribute = options.Member.GetCustomAttribute<MappingAttribute>();
+                if (attribute != null)
+                {
+                    options.DatabaseFieldName = attribute.FieldName ?? options.DatabaseFieldName;
+                    if (attribute.ReadOnly)
+                        options.IsReadonly = true;
+                    else
+                    {
+                        options.IsInsertable = attribute.Insertable;
+                        options.IsUpdateable = attribute.Updateable;
+                    }
+                }
+                options.IsPrimaryKey = options.Member.GetCustomAttribute<IsPrimaryKeyAttribute>() != null;
+            });
+
             return mappingOptionsSet;
         }
 
 
-        internal static T GetCustomAttribute<T>(this Type type) where T : Attribute
+        static T GetCustomAttribute<T>(this Type type) where T : Attribute
         {
-            return type.GetTypeInfo().GetCustomAttribute(typeof(TableAttribute), true) as T;
+            return type.GetTypeInfo().GetCustomAttribute(typeof(T), true) as T;
         }
+
+        static T GetCustomAttribute<T>(this MemberInfo memberInfo) where T : Attribute
+        {
+            return memberInfo.GetCustomAttribute(typeof(T), true) as T;
+        }
+
     }
 }

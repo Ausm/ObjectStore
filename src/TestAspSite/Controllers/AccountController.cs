@@ -67,14 +67,16 @@ namespace TestEmpty.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> CreateUser(string returnUrl = null)
         {
-            ViewBag.ReturnUrl = returnUrl;
+            return await Task.Run(() => {
+                ViewBag.ReturnUrl = returnUrl;
 
-            User newUser = _objectProvider.CreateObject<User>();
-            newUser.Name = "User";
-            newUser.Password = _passwordHasher.HashPassword(newUser, "test");
-            _objectProvider.GetQueryable<User>().Save();
+                User newUser = _objectProvider.CreateObject<User>();
+                newUser.Name = "User";
+                newUser.Password = _passwordHasher.HashPassword(newUser, "test");
+                _objectProvider.GetQueryable<User>().Save();
 
-            return View("Login");
+                return View("Login");
+            });
         }
 #endif
     }

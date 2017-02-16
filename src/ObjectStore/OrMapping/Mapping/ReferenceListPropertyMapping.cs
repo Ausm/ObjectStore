@@ -8,27 +8,30 @@ using System.Linq.Expressions;
 using System.Reflection.Emit;
 using System.Collections.Generic;
 using System.Linq;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.OrMapping
 {
     internal class ReferenceListPropertyMapping : MemberMapping
     {
+        ReferenceListMappingOptions _options;
         ReferenceListMappingAttribute _listMappingAttribute;
         Dictionary<PropertyInfo, object> _conditions;
 
         FieldBuilder _internalField;
         PropertyInfo _propertyInfo;
 
-        public ReferenceListPropertyMapping(PropertyInfo info)
-            : base(info)
+        public ReferenceListPropertyMapping(ReferenceListMappingOptions options)
+            : base(options)
         {
-            _propertyInfo = info;
+            _options = options;
+            _propertyInfo = options.Member;
 
             object[] attributes =
 #if  NETCOREAPP1_0
-                info.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true).ToArray();
+                _propertyInfo.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true).ToArray();
 #else
-                info.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true);
+                _propertyInfo.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true);
 #endif
             if (attributes.Length > 0)
             {
@@ -41,7 +44,7 @@ namespace ObjectStore.OrMapping
 
 #region Conditions ermitteln
             _conditions = new Dictionary<PropertyInfo, object>();
-            foreach (EqualsObjectConditionAttribute attribute in info.GetCustomAttributes(typeof(EqualsObjectConditionAttribute), true))
+            foreach (EqualsObjectConditionAttribute attribute in _propertyInfo.GetCustomAttributes(typeof(EqualsObjectConditionAttribute), true))
             {
                 _conditions.Add(_listMappingAttribute.ForeignType.GetProperty(attribute.PropertyName), attribute.Value);
             }

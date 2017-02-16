@@ -3,57 +3,48 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.OrMapping
 {
     internal abstract class MemberMapping
     {
-        #region Erstellfunktion
-        static Dictionary<PropertyInfo, MemberMapping> _mappings = new Dictionary<PropertyInfo, MemberMapping>();
+        #region Create functions
+        static Dictionary<MemberInfo, MemberMapping> _mappings = new Dictionary<MemberInfo, MemberMapping>();
 
-        public static MemberMapping GetMapping(PropertyInfo propertyInfo)
+        public static MemberMapping GetMapping(MemberMappingOptions memberMappingOptions)
         {
-            if (_mappings.ContainsKey(propertyInfo))
-            {
-                return _mappings[propertyInfo];
-            }
+            if (_mappings.ContainsKey(memberMappingOptions.Member))
+                return _mappings[memberMappingOptions.Member];
 
-            if (propertyInfo.GetCustomAttributes(typeof(DisableMappingAttribute), true).Any())
-            {
-                return _mappings[propertyInfo] = null;
-            }
-            else if (propertyInfo.GetCustomAttributes(typeof(ForeignObjectMappingAttribute), true).Any())
-            {
-                return _mappings[propertyInfo] = new ForeignObjectPropertyMapping(propertyInfo);
-            }
-            else if (propertyInfo.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true).Any())
-            {
-                return _mappings[propertyInfo] = new ReferenceListPropertyMapping(propertyInfo);
-            }
+            if (memberMappingOptions is ForeignObjectMappingOptions)
+                return _mappings[memberMappingOptions.Member] = new ForeignObjectPropertyMapping((ForeignObjectMappingOptions)memberMappingOptions);
+            else if (memberMappingOptions is ReferenceListMappingOptions)
+                return _mappings[memberMappingOptions.Member] = new ReferenceListPropertyMapping((ReferenceListMappingOptions)memberMappingOptions);
             else
-            {
-                return _mappings[propertyInfo] = new PropertyMapping(propertyInfo);
-            }
+                return _mappings[memberMappingOptions.Member] = new PropertyMapping((FieldMappingOptions)memberMappingOptions);
+        }
+
+        public static MemberMapping GetMappingFromMemberInfo(MemberInfo memberInfo)
+        {
+            return _mappings[memberInfo];
         }
         #endregion
-        
+
         #region Membervariablen
-        bool _isPrimaryKey;
-        MemberInfo _memberInfo;
+        MemberMappingOptions _memberMappingOptions;
         #endregion
 
         #region Konstruktoren
-        protected MemberMapping(MemberInfo memberInfo)
+        protected MemberMapping(MemberMappingOptions memberMappingOptions)
         {
-            _isPrimaryKey = memberInfo.GetCustomAttributes(typeof(IsPrimaryKeyAttribute), true).Any();
-            
-            _memberInfo = memberInfo;
+            _memberMappingOptions = memberMappingOptions;
         }
         #endregion
 
         #region Abstrakte Funktionen
         #region Dynamische CodeGenerierung
-        public abstract void AddDynamicGetKeyCode(System.Reflection.Emit.ILGenerator dynamicMethod, int index, LocalBuilder array);
+        public abstract void AddDynamicGetKeyCode(ILGenerator dynamicMethod, int index, LocalBuilder array);
         public abstract void AddDynamicGetKeyFromReaderCode(ILGenerator dynamicMethod, int index, LocalBuilder array);
         public virtual void AddInhertiedProperty(TypeBuilder typeBuilder, MethodInfo notifyChangeMethode){}
         public virtual void AddConstructorCode(ILGenerator generator) { }
@@ -76,8 +67,8 @@ namespace ObjectStore.OrMapping
 
         #region Properties
 
-        public virtual bool IsPrimaryKey { get { return _isPrimaryKey; } }
-        public virtual MemberInfo MemberInfo { get { return _memberInfo; } }
+        public virtual bool IsPrimaryKey => _memberMappingOptions.IsPrimaryKey;
+        public virtual MemberInfo MemberInfo => _memberMappingOptions.Member;
 
         public abstract string FieldName { get; }
 

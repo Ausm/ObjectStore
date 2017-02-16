@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
 using ObjectStore.MappingOptions;
+using System.ComponentModel;
 
 namespace ObjectStore.OrMapping
 {
@@ -128,7 +129,7 @@ namespace ObjectStore.OrMapping
         }
 		#endregion
 
-        #region Konstruktoren
+        #region Constructors
         public TypeMapping(TypeMappingOptions typeMappingOptions)
         {
             Type type = typeMappingOptions.Type;
@@ -144,15 +145,14 @@ namespace ObjectStore.OrMapping
         }
         #endregion
 
-        #region Funktionen
+        #region Methods
         protected virtual void Initialize()
         {
-		#region Create property mappings
-            _mappingInfos = Type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty)
-                                    .Where(x => x.GetGetMethod()?.IsAbstract == true)
+            #region Create property mappings
+            _mappingInfos = _typeMappingOptions.MemberMappingOptions
                                     .Select(x => MemberMapping.GetMapping(x))
                                     .Where(x => x != null).ToList();
-		#endregion
+    		#endregion
 
 		#region Initialize GetKeyFromReader
             {
@@ -179,14 +179,10 @@ namespace ObjectStore.OrMapping
             }
 		#endregion
 
-		#region Dynamischen Type erstellen
+		#region Create Dynamic type
 
-            TypeBuilder typeBuilder = GetTypeBuilder(string.Format("{1}.Dynamic.{0}", Type.Name, Type.Namespace));
-#if  NETCOREAPP1_0
+            TypeBuilder typeBuilder = GetTypeBuilder($"{Type.Namespace}.Dynamic.{Type.Name}");
             if (Type.GetTypeInfo().IsInterface)
-#else
-            if (Type.IsInterface)
-#endif
                 typeBuilder.AddInterfaceImplementation(Type);
             else
                 typeBuilder.SetParent(Type);
@@ -204,25 +200,25 @@ namespace ObjectStore.OrMapping
 		#region INotifyPropertyChanged implementieren
             MethodBuilder raiseMethode = typeBuilder.DefineMethod("OnPropertyChanged", MethodAttributes.Private, null, new Type[] { typeof(string) });
             MethodBuilder raiseStateChangedMethode = typeBuilder.DefineMethod("OnStateChanged", MethodAttributes.Private, null, new Type[] { typeof(State), typeof(State) });
-            if (!Type.GetInterfaces().Contains(typeof(System.ComponentModel.INotifyPropertyChanged)))
+            if (!Type.GetInterfaces().Contains(typeof(INotifyPropertyChanged)))
             {
-                typeBuilder.AddInterfaceImplementation(typeof(System.ComponentModel.INotifyPropertyChanged));
+                typeBuilder.AddInterfaceImplementation(typeof(INotifyPropertyChanged));
 
-                EventBuilder propertyChangedEvent = typeBuilder.DefineEvent("PropertyChanged", EventAttributes.None, typeof(System.ComponentModel.PropertyChangedEventHandler));
-                FieldBuilder propertyChangedField = typeBuilder.DefineField("PropertyChanged", typeof(System.ComponentModel.PropertyChangedEventHandler), FieldAttributes.Private);
-                MethodBuilder addMethode = typeBuilder.DefineMethod("add_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(System.ComponentModel.PropertyChangedEventHandler) });
-                MethodBuilder removeMethode = typeBuilder.DefineMethod("remove_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(System.ComponentModel.PropertyChangedEventHandler) });
+                EventBuilder propertyChangedEvent = typeBuilder.DefineEvent(nameof(INotifyPropertyChanged.PropertyChanged), EventAttributes.None, typeof(PropertyChangedEventHandler));
+                FieldBuilder propertyChangedField = typeBuilder.DefineField(nameof(INotifyPropertyChanged.PropertyChanged), typeof(PropertyChangedEventHandler), FieldAttributes.Private);
+                MethodBuilder addMethode = typeBuilder.DefineMethod("add_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(PropertyChangedEventHandler) });
+                MethodBuilder removeMethode = typeBuilder.DefineMethod("remove_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(PropertyChangedEventHandler) });
 
                 generator = addMethode.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldfld, propertyChangedField);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Call, typeof(System.Delegate).GetMethod("Combine", new Type[] { typeof(System.Delegate), typeof(System.Delegate) }));
-                generator.Emit(OpCodes.Castclass, typeof(System.ComponentModel.PropertyChangedEventHandler));
+                generator.Emit(OpCodes.Call, typeof(Delegate).GetMethod(nameof(Delegate.Combine), new Type[] { typeof(Delegate), typeof(Delegate) }));
+                generator.Emit(OpCodes.Castclass, typeof(PropertyChangedEventHandler));
                 generator.Emit(OpCodes.Stfld, propertyChangedField);
                 generator.Emit(OpCodes.Ret);
-                typeBuilder.DefineMethodOverride(addMethode, typeof(System.ComponentModel.INotifyPropertyChanged).GetEvent("PropertyChanged").GetAddMethod());
+                typeBuilder.DefineMethodOverride(addMethode, typeof(INotifyPropertyChanged).GetEvent(nameof(INotifyPropertyChanged.PropertyChanged)).GetAddMethod());
 
 
                 generator = removeMethode.GetILGenerator();
@@ -230,11 +226,11 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldfld, propertyChangedField);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Call, typeof(System.Delegate).GetMethod("Remove", new Type[] { typeof(System.Delegate), typeof(System.Delegate) }));
-                generator.Emit(OpCodes.Castclass, typeof(System.ComponentModel.PropertyChangedEventHandler));
+                generator.Emit(OpCodes.Call, typeof(Delegate).GetMethod(nameof(Delegate.Remove), new Type[] { typeof(Delegate), typeof(Delegate) }));
+                generator.Emit(OpCodes.Castclass, typeof(PropertyChangedEventHandler));
                 generator.Emit(OpCodes.Stfld, propertyChangedField);
                 generator.Emit(OpCodes.Ret);
-                typeBuilder.DefineMethodOverride(removeMethode, typeof(System.ComponentModel.INotifyPropertyChanged).GetEvent("PropertyChanged").GetRemoveMethod());
+                typeBuilder.DefineMethodOverride(removeMethode, typeof(INotifyPropertyChanged).GetEvent(nameof(INotifyPropertyChanged.PropertyChanged)).GetRemoveMethod());
 
 
                 generator = raiseMethode.GetILGenerator();
@@ -248,8 +244,8 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Ldfld, propertyChangedField);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Newobj, typeof(System.ComponentModel.PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
-                generator.Emit(OpCodes.Callvirt, typeof(System.ComponentModel.PropertyChangedEventHandler).GetMethod("Invoke", new Type[] { typeof(object), typeof(System.ComponentModel.PropertyChangedEventArgs) }));
+                generator.Emit(OpCodes.Newobj, typeof(PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
+                generator.Emit(OpCodes.Callvirt, typeof(PropertyChangedEventHandler).GetMethod(nameof(PropertyChangedEventHandler.Invoke), new Type[] { typeof(object), typeof(PropertyChangedEventArgs) }));
                 generator.MarkLabel(end);
                 generator.Emit(OpCodes.Ret);
 
@@ -270,7 +266,7 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Ldarg_2);
                 generator.Emit(OpCodes.Newobj, typeof(StateChangedEventArgs).GetConstructor(new Type[] { typeof(State), typeof(State) }));
-                generator.Emit(OpCodes.Callvirt, typeof(System.ComponentModel.PropertyChangedEventHandler).GetMethod("Invoke", new Type[] { typeof(object), typeof(System.ComponentModel.PropertyChangedEventArgs) }));
+                generator.Emit(OpCodes.Callvirt, typeof(PropertyChangedEventHandler).GetMethod(nameof(PropertyChangedEventHandler.Invoke), new Type[] { typeof(object), typeof(PropertyChangedEventArgs) }));
                 generator.MarkLabel(end);
                 generator.Emit(OpCodes.Ret);
 
@@ -281,7 +277,7 @@ namespace ObjectStore.OrMapping
             {
                 MethodInfo raiseMethodeInfo = Type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Where(x =>
                         x.GetParameters().Length == 1 &&
-                        x.GetParameters()[0].ParameterType == typeof(System.ComponentModel.PropertyChangedEventArgs) &&
+                        x.GetParameters()[0].ParameterType == typeof(PropertyChangedEventArgs) &&
                         x.GetCustomAttributes(typeof(IsRaisePropertyChangeMethodAttribute), true).Any()).FirstOrDefault();
 
                 if (raiseMethode == null)
@@ -290,7 +286,7 @@ namespace ObjectStore.OrMapping
                 generator = raiseMethode.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Newobj, typeof(System.ComponentModel.PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
+                generator.Emit(OpCodes.Newobj, typeof(PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
                 generator.Emit(OpCodes.Callvirt, raiseMethodeInfo);
                 generator.Emit(OpCodes.Ret);
 

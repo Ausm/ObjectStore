@@ -82,7 +82,7 @@ namespace ObjectStore.SqlClient
             {
                 get
                 {
-                    return MemberMapping.GetMapping((PropertyInfo)_expression.Member).FieldName;
+                    return MemberMapping.GetMappingFromMemberInfo(_expression.Member).FieldName;
                 }
             }
         }

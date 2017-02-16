@@ -2,19 +2,22 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Linq;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.OrMapping
 {
     internal class PropertyMapping : MemberMapping
     {
+        FieldMappingOptions _options;
         MappingAttribute _mappingAttribute;
         protected FieldBuilder _internalField;
         protected PropertyInfo _propertyInfo;
 
-        public PropertyMapping(PropertyInfo propertyInfo) : base(propertyInfo)
+        public PropertyMapping(FieldMappingOptions options) : base(options)
         {
+            _options = options;
             _internalField = null;
-            _propertyInfo = propertyInfo;
+            _propertyInfo = options.Member as PropertyInfo;
 
             MappingAttribute attribute =
 #if  NETCOREAPP1_0

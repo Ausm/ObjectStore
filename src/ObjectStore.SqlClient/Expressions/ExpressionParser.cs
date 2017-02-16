@@ -34,10 +34,10 @@ namespace ObjectStore.SqlClient
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} < {args.ParseChild(exp.Right)}", ExpressionType.LessThan)
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} <= {args.ParseChild(exp.Right)}", ExpressionType.LessThanOrEqual)
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} - {args.ParseChild(exp.Right)}", ExpressionType.Subtract, ExpressionType.SubtractChecked)
-                        .AddRule<MemberExpression>((exp, args) => $"{args.ParseChild(exp.Expression)}.{MemberMapping.GetMapping((PropertyInfo)exp.Member).FieldName}",
+                        .AddRule<MemberExpression>((exp, args) => $"{args.ParseChild(exp.Expression)}.{MemberMapping.GetMappingFromMemberInfo(exp.Member).FieldName}",
                             e => e.Member.MemberType == MemberTypes.Property && e.Expression.NodeType == ExpressionType.Parameter,
                             ExpressionType.MemberAccess)
-                        .AddRule<MemberExpression>((exp, args) => $"{args.GetService<IParsingContext>().GetJoin((MemberExpression)exp.Expression)}.{MemberMapping.GetMapping((PropertyInfo)exp.Member).FieldName}",
+                        .AddRule<MemberExpression>((exp, args) => $"{args.GetService<IParsingContext>().GetJoin((MemberExpression)exp.Expression)}.{MemberMapping.GetMappingFromMemberInfo(exp.Member).FieldName}",
                             e => e.Member.MemberType == MemberTypes.Property && 
                             e.Expression is MemberExpression &&
                             ((MemberExpression)e.Expression).Member.MemberType == MemberTypes.Property &&

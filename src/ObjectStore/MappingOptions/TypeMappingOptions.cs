@@ -10,6 +10,7 @@ namespace ObjectStore.MappingOptions
         #region Fields
         MappingOptionsSet _parent;
         Type _forType;
+        List<MemberMappingOptions> _memberMappingOptions;
         #endregion
 
         #region Constructor
@@ -18,6 +19,7 @@ namespace ObjectStore.MappingOptions
             _parent = parent;
             _forType = forType;
             TableName = forType.Name;
+            _memberMappingOptions = null;
         }
         #endregion
 
@@ -27,6 +29,19 @@ namespace ObjectStore.MappingOptions
         public string TableName { get; set; }
 
         public LoadBehavior LoadBehavior { get; set; } = LoadBehavior.OnDemandPartialLoad;
+
+        internal IEnumerable<MemberMappingOptions> MemberMappingOptions
+        {
+            get
+            {
+                if (_memberMappingOptions == null)
+                {
+                    _memberMappingOptions = _parent.GetMemberMappingOptions(_forType).ToList();
+                }
+                return _memberMappingOptions.AsReadOnly();
+            }
+        }
+
         #endregion
 
     }
