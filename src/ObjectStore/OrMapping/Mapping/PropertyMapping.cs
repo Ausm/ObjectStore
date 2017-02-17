@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Linq;
 using ObjectStore.MappingOptions;
 
 namespace ObjectStore.OrMapping
@@ -9,26 +8,15 @@ namespace ObjectStore.OrMapping
     internal class PropertyMapping : MemberMapping
     {
         FieldMappingOptions _options;
-        MappingAttribute _mappingAttribute;
         protected FieldBuilder _internalField;
-        protected PropertyInfo _propertyInfo;
 
         public PropertyMapping(FieldMappingOptions options) : base(options)
         {
             _options = options;
             _internalField = null;
-            _propertyInfo = options.Member as PropertyInfo;
-
-            MappingAttribute attribute =
-#if  NETCOREAPP1_0
-                _propertyInfo.GetCustomAttribute(typeof(MappingAttribute), true) as MappingAttribute;
-#else
-                _propertyInfo.GetCustomAttributes(typeof(MappingAttribute), true).FirstOrDefault() as MappingAttribute;
-#endif
-            _mappingAttribute = attribute ?? new MappingAttribute();
         }
 
-#region Dynamic Code
+        #region Dynamic Code
         public override void AddDynamicGetKeyCode(ILGenerator dynamicMethod, int index, LocalBuilder array)
         {
             if (!IsPrimaryKey)
@@ -85,17 +73,17 @@ namespace ObjectStore.OrMapping
 #endif
                 throw new NotSupportedException("Inherited properties are only possible for Interfaces and abstract classes.");
 
-            if(!_propertyInfo.CanWrite)
-                _mappingAttribute.ReadOnly = true;
+            if(!_options.Member.CanWrite)
+                _options.IsReadonly = true;
 
 #region Member Definieren
             Type backingStoreType =
                  IsReadOnly ? 
-                    typeof(ReadOnlyBackingStore<>).MakeGenericType(_propertyInfo.PropertyType) :
-                    typeof(BackingStore<>).MakeGenericType(_propertyInfo.PropertyType);
+                    typeof(ReadOnlyBackingStore<>).MakeGenericType(_options.Member.PropertyType) :
+                    typeof(BackingStore<>).MakeGenericType(_options.Member.PropertyType);
             _internalField = typeBuilder.DefineField("__field" + MemberInfo.Name, backingStoreType, FieldAttributes.Private);
-            MethodBuilder getMethod = typeBuilder.DefineMethod("get_" + MemberInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, _propertyInfo.PropertyType, Type.EmptyTypes);
-            MethodBuilder setMethod = _propertyInfo.CanWrite ? typeBuilder.DefineMethod("set_" + MemberInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, null, new Type[] { _propertyInfo.PropertyType }) : null;
+            MethodBuilder getMethod = typeBuilder.DefineMethod("get_" + MemberInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, _options.Member.PropertyType, Type.EmptyTypes);
+            MethodBuilder setMethod = _options.Member.CanWrite ? typeBuilder.DefineMethod("set_" + MemberInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, null, new Type[] { _options.Member.PropertyType }) : null;
 #endregion
 
 #region Get und Set-Code schreiben
@@ -117,7 +105,7 @@ namespace ObjectStore.OrMapping
                     ilGenerator.Emit(OpCodes.Ldarg_1);
                     ilGenerator.Emit(OpCodes.Call, backingStoreType.GetProperty("Value").GetSetMethod());
                     ilGenerator.Emit(OpCodes.Ldarg_0);
-                    ilGenerator.Emit(OpCodes.Ldstr, _propertyInfo.Name);
+                    ilGenerator.Emit(OpCodes.Ldstr, _options.Member.Name);
                     ilGenerator.Emit(OpCodes.Callvirt, notifyPropertyChangedMethode);
                     ilGenerator.Emit(OpCodes.Ret);
                 }
@@ -125,9 +113,9 @@ namespace ObjectStore.OrMapping
 #endregion
 
 #region Member zuweisen
-            typeBuilder.DefineMethodOverride(getMethod, _propertyInfo.GetGetMethod());
+            typeBuilder.DefineMethodOverride(getMethod, _options.Member.GetGetMethod());
             if (setMethod != null)
-                typeBuilder.DefineMethodOverride(setMethod, _propertyInfo.GetSetMethod());
+                typeBuilder.DefineMethodOverride(setMethod, _options.Member.GetSetMethod());
 #endregion
         }
 
@@ -154,11 +142,7 @@ namespace ObjectStore.OrMapping
             else
                 generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.GetChangedValue)));
 
-#if NETCOREAPP1_0
             if (DataBaseValueType.GetTypeInfo().IsValueType)
-#else
-            if (DataBaseValueType.IsValueType)
-#endif
                 generator.Emit(OpCodes.Box, DataBaseValueType);
             
             generator.Emit(OpCodes.Ldc_I4, (int)
@@ -194,10 +178,10 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldflda, _internalField);
             generator.Emit(OpCodes.Ldarg_1);
-            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("Commit"));
+            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.Commit)));
             generator.Emit(OpCodes.Brfalse_S, label);
             generator.Emit(OpCodes.Ldarg_0);
-            generator.Emit(OpCodes.Ldstr, _propertyInfo.Name);
+            generator.Emit(OpCodes.Ldstr, _options.Member.Name);
             generator.Emit(OpCodes.Callvirt, raisePropertyChanged);
             generator.MarkLabel(label);
         }
@@ -206,7 +190,7 @@ namespace ObjectStore.OrMapping
         {
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldflda, _internalField);
-            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("Rollback"));
+            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.Rollback)));
         }
 
         public override void AddDropChangesCode(ILGenerator generator)
@@ -216,7 +200,7 @@ namespace ObjectStore.OrMapping
 
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldflda, _internalField);
-            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod("Undo"));
+            generator.Emit(OpCodes.Call, _internalField.FieldType.GetMethod(nameof(BackingStore<object>.Undo)));
         }
 
         public override void AddModifiedCode(ILGenerator generator, Label returnTrueLabel)
@@ -226,22 +210,14 @@ namespace ObjectStore.OrMapping
 
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldflda, _internalField);
-            generator.Emit(OpCodes.Call, _internalField.FieldType.GetProperty("IsChanged").GetGetMethod());
+            generator.Emit(OpCodes.Call, _internalField.FieldType.GetProperty(nameof(BackingStore<object>.IsChanged)).GetGetMethod());
             generator.Emit(OpCodes.Brtrue, returnTrueLabel);
         }
-#endregion
+        #endregion
 
-        private static string RemoveBrackets(string value)
-        {
-            return (value.StartsWith("[") && value.EndsWith("]")) ? value.Substring(1, value.Length - 2) : value;
-        }
-        protected virtual Type DataBaseValueType
-        {
-            get
-            {
-                return _propertyInfo.PropertyType;
-            }
-        }
+        static string RemoveBrackets(string value) => (value.StartsWith("[") && value.EndsWith("]")) ? value.Substring(1, value.Length - 2) : value;
+
+        protected virtual Type DataBaseValueType => _options.Member.PropertyType;
 
         public override void FillCommandBuilder(ICommandBuilder commandBuilder)
         {
@@ -255,48 +231,14 @@ namespace ObjectStore.OrMapping
             commandBuilder.AddField(FieldName, fieldType);
         }
 
-        public override Type FieldType
-        {
-            get { return _propertyInfo.PropertyType; }
-        }
+        public override Type FieldType => _options.Member.PropertyType; 
 
-        public override string FieldName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_mappingAttribute.FieldName))
-                {
-                    return _propertyInfo.Name;
-                }
-                else
-                {
-                    return _mappingAttribute.FieldName;
-                }
-            }
-        }
+        public override string FieldName => _options.DatabaseFieldName;
 
-        public virtual bool IsInsertable
-        {
-            get
-            {
-                return _mappingAttribute.Insertable;
-            }
-        }
+        public virtual bool IsInsertable => _options.IsInsertable;
 
-        public virtual bool IsUpdateAble
-        {
-            get
-            {
-                return _mappingAttribute.Updateable;
-            }
-        }
+        public virtual bool IsUpdateAble => _options.IsUpdateable;
 
-        public virtual bool IsReadOnly
-        {
-            get
-            {
-                return _mappingAttribute.ReadOnly;
-            }
-        }
+        public virtual bool IsReadOnly => _options.IsReadonly;
     }
 }

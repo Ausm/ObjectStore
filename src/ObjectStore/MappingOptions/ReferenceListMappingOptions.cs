@@ -8,9 +8,16 @@ namespace ObjectStore.MappingOptions
 {
     public class ReferenceListMappingOptions : MemberMappingOptions
     {
-        internal ReferenceListMappingOptions(MappingOptionsSet mappingOptionsSet, PropertyInfo member) : base(mappingOptionsSet, member) { }
+        internal ReferenceListMappingOptions(MappingOptionsSet mappingOptionsSet, PropertyInfo member) : base(mappingOptionsSet, member)
+        {
+            Conditions = new Dictionary<PropertyInfo, object>();
+        }
 
         public override MappingType Type => MappingType.ReferenceListMapping;
+
+        public Dictionary<PropertyInfo, object> Conditions { get; private set; }
+
+        public PropertyInfo ForeignProperty { get; set; }
 
         public override bool IsUpdateable
         {
@@ -45,5 +52,9 @@ namespace ObjectStore.MappingOptions
 
             set { }
         }
+
+        public bool SaveCascade { get; set; } = true;
+        public bool DeleteCascade { get; set; } = true;
+        public bool DropChangesCascade { get; set; } = true;
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ObjectStore.MappingOptions;
 using System.Reflection;
 using System;
+using System.Linq;
 
 namespace ObjectStore
 {
@@ -49,7 +50,18 @@ namespace ObjectStore
                 options.IsPrimaryKey = options.Member.GetCustomAttribute<IsPrimaryKeyAttribute>() != null;
             });
 
-            mappingOptionsSet.AddMemberMappingRule(x => x.GetCustomAttribute<ReferenceListMappingAttribute>() != null, o => { });
+            mappingOptionsSet.AddMemberMappingRule(x => x.GetCustomAttribute<ReferenceListMappingAttribute>() != null, o => {
+                ReferenceListMappingOptions options = (ReferenceListMappingOptions)o;
+                ReferenceListMappingAttribute attribute = options.Member.GetCustomAttribute<ReferenceListMappingAttribute>();
+
+                options.SaveCascade = attribute.SaveCascade;
+                options.DeleteCascade = attribute.DeleteCascade;
+                options.DropChangesCascade = attribute.DropChangesCascade;
+
+                options.ForeignProperty = attribute.ForeignProperty ?? attribute.ForeignType.GetProperties().Where(x => x.PropertyType == options.Member.DeclaringType).Single();
+                foreach (EqualsObjectConditionAttribute equalsObjectAttribute in options.Member.GetCustomAttributes<EqualsObjectConditionAttribute>())
+                    options.Conditions.Add(attribute.ForeignType.GetProperty(equalsObjectAttribute.PropertyName), equalsObjectAttribute.Value);
+            });
 
             mappingOptionsSet.AddMemberMappingRule(x => x.GetCustomAttribute<ForeignObjectMappingAttribute>() == null && x.GetCustomAttribute<ReferenceListMappingAttribute>() == null, o => {
                 FieldMappingOptions options = (FieldMappingOptions)o;

@@ -42,8 +42,8 @@ namespace ObjectStore.OrMapping
         }
         #endregion
 
-        #region Abstrakte Funktionen
-        #region Dynamische CodeGenerierung
+        #region Abstract Methods
+        #region Dynamic code generation
         public abstract void AddDynamicGetKeyCode(ILGenerator dynamicMethod, int index, LocalBuilder array);
         public abstract void AddDynamicGetKeyFromReaderCode(ILGenerator dynamicMethod, int index, LocalBuilder array);
         public virtual void AddInhertiedProperty(TypeBuilder typeBuilder, MethodInfo notifyChangeMethode){}
@@ -60,7 +60,7 @@ namespace ObjectStore.OrMapping
         public virtual void AddDropChangesCode(ILGenerator generator) { }
         #endregion
 
-        #region CommandFunktionen
+        #region Command methods
         public abstract void FillCommandBuilder(ICommandBuilder updateCommandBuilder);
         #endregion
         #endregion
@@ -72,7 +72,7 @@ namespace ObjectStore.OrMapping
 
         public abstract string FieldName { get; }
 
-        #region Abstrakte Properties
+        #region Abstract properties
         public abstract Type FieldType { get; }
         #endregion
         #endregion

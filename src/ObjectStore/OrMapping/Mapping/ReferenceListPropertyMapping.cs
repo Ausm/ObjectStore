@@ -15,40 +15,13 @@ namespace ObjectStore.OrMapping
     internal class ReferenceListPropertyMapping : MemberMapping
     {
         ReferenceListMappingOptions _options;
-        ReferenceListMappingAttribute _listMappingAttribute;
-        Dictionary<PropertyInfo, object> _conditions;
 
         FieldBuilder _internalField;
-        PropertyInfo _propertyInfo;
 
         public ReferenceListPropertyMapping(ReferenceListMappingOptions options)
             : base(options)
         {
             _options = options;
-            _propertyInfo = options.Member;
-
-            object[] attributes =
-#if  NETCOREAPP1_0
-                _propertyInfo.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true).ToArray();
-#else
-                _propertyInfo.GetCustomAttributes(typeof(ReferenceListMappingAttribute), true);
-#endif
-            if (attributes.Length > 0)
-            {
-                _listMappingAttribute = attributes[0] as ReferenceListMappingAttribute;
-            }
-            else
-            {
-                throw new ApplicationException("PropertyInfo has no ReferenceListMappingAttribute set.");
-            }
-
-#region Conditions ermitteln
-            _conditions = new Dictionary<PropertyInfo, object>();
-            foreach (EqualsObjectConditionAttribute attribute in _propertyInfo.GetCustomAttributes(typeof(EqualsObjectConditionAttribute), true))
-            {
-                _conditions.Add(_listMappingAttribute.ForeignType.GetProperty(attribute.PropertyName), attribute.Value);
-            }
-#endregion
         }
 
 #region Dynamic Code
@@ -69,12 +42,12 @@ namespace ObjectStore.OrMapping
 #endif
                 throw new NotSupportedException("Inherited properties are only possible for Interfaces and abstract Classes.");
 
-            if (_propertyInfo.CanWrite)
+            if (_options.Member.CanWrite)
                 throw new NotSupportedException("Inherited referencelist properties must not be writeable."); 
 
 #region Member Definieren
-            _internalField = typeBuilder.DefineField("__field" + MemberInfo.Name, _propertyInfo.PropertyType, FieldAttributes.Private);
-            MethodBuilder getMethod = typeBuilder.DefineMethod("get_" + MemberInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, _propertyInfo.PropertyType, Type.EmptyTypes);
+            _internalField = typeBuilder.DefineField("__field" + MemberInfo.Name, _options.Member.PropertyType, FieldAttributes.Private);
+            MethodBuilder getMethod = typeBuilder.DefineMethod("get_" + MemberInfo.Name, MethodAttributes.Public | MethodAttributes.Virtual, _options.Member.PropertyType, Type.EmptyTypes);
 #endregion
 
 #region Get-Code schreiben
@@ -91,20 +64,20 @@ namespace ObjectStore.OrMapping
             ilGenerator.Emit(OpCodes.Newobj, typeof(Dictionary<PropertyInfo, object>).GetConstructor(Type.EmptyTypes));
             ilGenerator.Emit(OpCodes.Stloc, conditions);
             ilGenerator.Emit(OpCodes.Ldloc, conditions);
-            ilGenerator.Emit(OpCodes.Ldtoken, _listMappingAttribute.ForeignType);
-            ilGenerator.Emit(OpCodes.Call, typeof(System.Type).GetMethod("GetTypeFromHandle", new Type[]{typeof(System.RuntimeTypeHandle)}));
-            ilGenerator.Emit(OpCodes.Ldstr, _listMappingAttribute.ForeignProperty.Name);
-            ilGenerator.Emit(OpCodes.Call, typeof(System.Type).GetMethod("GetProperty", new Type[] { typeof(string) }));
+            ilGenerator.Emit(OpCodes.Ldtoken, _options.ForeignProperty.DeclaringType);
+            ilGenerator.Emit(OpCodes.Call, typeof(Type).GetMethod("GetTypeFromHandle", new Type[]{typeof(RuntimeTypeHandle) }));
+            ilGenerator.Emit(OpCodes.Ldstr, _options.ForeignProperty.Name);
+            ilGenerator.Emit(OpCodes.Call, typeof(Type).GetMethod("GetProperty", new Type[] { typeof(string) }));
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Callvirt, typeof(Dictionary<PropertyInfo, object>).GetMethod("Add", new Type[] { typeof(PropertyInfo), typeof(object) }));
 
-            foreach (KeyValuePair<PropertyInfo,object> item in _conditions)
+            foreach (KeyValuePair<PropertyInfo,object> item in _options.Conditions)
             {
                 ilGenerator.Emit(OpCodes.Ldloc, conditions);
                 ilGenerator.Emit(OpCodes.Ldtoken, item.Key.DeclaringType);
-                ilGenerator.Emit(OpCodes.Call, typeof(System.Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(System.RuntimeTypeHandle) }));
+                ilGenerator.Emit(OpCodes.Call, typeof(Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) }));
                 ilGenerator.Emit(OpCodes.Ldstr, item.Key.Name);
-                ilGenerator.Emit(OpCodes.Call, typeof(System.Type).GetMethod("GetProperty", new Type[] { typeof(string) }));
+                ilGenerator.Emit(OpCodes.Call, typeof(Type).GetMethod("GetProperty", new Type[] { typeof(string) }));
 
                 if (item.Value is byte ||
                     item.Value is int ||
@@ -133,7 +106,7 @@ namespace ObjectStore.OrMapping
             //Reference-List erstellen und Feld zuweisen
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldloc, conditions);
-            ilGenerator.Emit(OpCodes.Newobj, typeof(ReferenceList<>).MakeGenericType(_listMappingAttribute.ForeignType).GetConstructor(new Type[] { typeof(Dictionary<PropertyInfo, object>)}));
+            ilGenerator.Emit(OpCodes.Newobj, typeof(ReferenceList<>).MakeGenericType(_options.ForeignProperty.DeclaringType).GetConstructor(new Type[] { typeof(Dictionary<PropertyInfo, object>)}));
             ilGenerator.Emit(OpCodes.Stfld, _internalField);
 
             //Feld zurückgeben
@@ -144,55 +117,55 @@ namespace ObjectStore.OrMapping
 #endregion
 
 #region Member zuweisen
-            typeBuilder.DefineMethodOverride(getMethod, _propertyInfo.GetGetMethod());
+            typeBuilder.DefineMethodOverride(getMethod, _options.Member.GetGetMethod());
 #endregion
         }
 
         public override void AddSaveChildObjectsCode(ILGenerator generator)
         {
-            if (_listMappingAttribute.SaveCascade)
+            if (_options.SaveCascade)
             {
                 generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Callvirt, _propertyInfo.GetGetMethod());
-                generator.Emit(OpCodes.Castclass, typeof(System.Linq.IQueryable<>).MakeGenericType(_listMappingAttribute.ForeignType));
-                generator.Emit(OpCodes.Call, typeof(Extensions).GetMethods().Where(x => x.Name == "Save" && x.GetParameters().Length == 1).First().MakeGenericMethod(_listMappingAttribute.ForeignType));
+                generator.Emit(OpCodes.Callvirt, _options.Member.GetGetMethod());
+                generator.Emit(OpCodes.Castclass, typeof(System.Linq.IQueryable<>).MakeGenericType(_options.ForeignProperty.DeclaringType));
+                generator.Emit(OpCodes.Call, typeof(Extensions).GetMethods().Where(x => x.Name == "Save" && x.GetParameters().Length == 1).First().MakeGenericMethod(_options.ForeignProperty.DeclaringType));
                 generator.Emit(OpCodes.Pop);
             }
         }
 
         public override void AddDeleteChildObjectsCode(ILGenerator generator)
         {
-            if (_listMappingAttribute.DeleteCascade)
+            if (_options.DeleteCascade)
             {
                 generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Callvirt, _propertyInfo.GetGetMethod());
-                generator.Emit(OpCodes.Castclass, typeof(System.Linq.IQueryable<>).MakeGenericType(_listMappingAttribute.ForeignType));
-                generator.Emit(OpCodes.Call, typeof(Extensions).GetMethod("Delete", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(_listMappingAttribute.ForeignType));
+                generator.Emit(OpCodes.Callvirt, _options.Member.GetGetMethod());
+                generator.Emit(OpCodes.Castclass, typeof(IQueryable<>).MakeGenericType(_options.ForeignProperty.DeclaringType));
+                generator.Emit(OpCodes.Call, typeof(Extensions).GetMethod("Delete", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(_options.ForeignProperty.DeclaringType));
                 generator.Emit(OpCodes.Pop);
             }
         }
 
         public override void AddDropChangesCodeChildObjects(ILGenerator generator)
         {
-            if (_listMappingAttribute.DropChangesCascade)
+            if (_options.DropChangesCascade)
             {
                 generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Callvirt, _propertyInfo.GetGetMethod());
-                generator.Emit(OpCodes.Castclass, typeof(System.Linq.IQueryable<>).MakeGenericType(_listMappingAttribute.ForeignType));
-                generator.Emit(OpCodes.Call, typeof(Extensions).GetMethod("DropChanges", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(_listMappingAttribute.ForeignType));
+                generator.Emit(OpCodes.Callvirt, _options.Member.GetGetMethod());
+                generator.Emit(OpCodes.Castclass, typeof(IQueryable<>).MakeGenericType(_options.ForeignProperty.DeclaringType));
+                generator.Emit(OpCodes.Call, typeof(Extensions).GetMethod("DropChanges", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(_options.ForeignProperty.DeclaringType));
                 generator.Emit(OpCodes.Pop);
             }
         }
 
         public override void AddCheckChildObjectsChangedCode(ILGenerator generator) 
         {
-            if (_listMappingAttribute.SaveCascade)
+            if (_options.SaveCascade)
             {
                 generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Callvirt, _propertyInfo.GetGetMethod());
-                generator.Emit(OpCodes.Castclass, typeof(System.Linq.IQueryable<>).MakeGenericType(_listMappingAttribute.ForeignType));
+                generator.Emit(OpCodes.Callvirt, _options.Member.GetGetMethod());
+                generator.Emit(OpCodes.Castclass, typeof(IQueryable<>).MakeGenericType(_options.ForeignProperty.DeclaringType));
                 generator.Emit(OpCodes.Call, typeof(Extensions).GetMethods()
-                    .Where(x => x.Name == "CheckChanged" && x.GetParameters().Length == 1).First().MakeGenericMethod(_listMappingAttribute.ForeignType));
+                    .Where(x => x.Name == "CheckChanged" && x.GetParameters().Length == 1).First().MakeGenericMethod(_options.ForeignProperty.DeclaringType));
                 Label label = generator.DefineLabel();
                 generator.Emit(OpCodes.Brfalse_S, label);
                 generator.Emit(OpCodes.Ldc_I4_1);
@@ -207,8 +180,8 @@ namespace ObjectStore.OrMapping
 
         public Dictionary<PropertyInfo, object> GetConditions(Expression expression)
         {
-            Dictionary<PropertyInfo, object> returnValue = new Dictionary<PropertyInfo, object>(_conditions);
-            returnValue[_listMappingAttribute.ForeignProperty] = expression;
+            Dictionary<PropertyInfo, object> returnValue = new Dictionary<PropertyInfo, object>(_options.Conditions);
+            returnValue[_options.ForeignProperty] = expression;
             return returnValue;
         }
 
