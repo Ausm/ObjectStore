@@ -462,7 +462,7 @@ namespace ObjectStore.OrMapping
             private QueryContext(QueryContext innerQueryContext)
             {
                 _whereExpressions = new List<Expression<Func<T, bool>>>();
-                _loadBehavior = MappingInfo.GetMappingInfo(typeof(T)).LoadBehavior;
+                _loadBehavior = TypeMapping.GetMappingInfo(typeof(T)).LoadBehavior;
                 _loaded = false;
                 _isCached = false;
                 if (innerQueryContext != null)
@@ -471,7 +471,7 @@ namespace ObjectStore.OrMapping
                     _topCount = _innerQueryContext._topCount;
                     _forceCache = _innerQueryContext._forceCache;
                     _forceLoad = _innerQueryContext._forceLoad;
-                    _orderExpressions = _innerQueryContext._orderExpressions == null ? null : new List<IOrderItem>(_innerQueryContext._orderExpressions);
+                    _orderExpressions = _innerQueryContext._orderExpressions?.ToList();
                 }
             }
             #endregion
@@ -786,7 +786,7 @@ namespace ObjectStore.OrMapping
 
                     if (_whereExpressions == null || _whereExpressions.Count == 0)
                         return _innerQueryContext == null ?
-                            (_predicateRelatedProperties = new List<string>(MappingInfo.GetMappingInfo(typeof(T)).KeyMappingInfos.Select(x => x.MemberInfo.Name))).AsReadOnly() :
+                            (_predicateRelatedProperties = new List<string>(TypeMapping.GetMappingInfo(typeof(T)).KeyMappingInfos.Select(x => x.MemberInfo.Name))).AsReadOnly() :
                             (_predicateRelatedProperties = new List<string>(_innerQueryContext.PredicateRelatedProperties)).AsReadOnly();
 
                     foreach (Expression<Func<T, bool>> expression in _whereExpressions)

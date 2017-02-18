@@ -6,6 +6,8 @@ using System.Reflection.Emit;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
+using ObjectStore.MappingOptions;
+using System.ComponentModel;
 
 namespace ObjectStore.OrMapping
 {
@@ -68,21 +70,21 @@ namespace ObjectStore.OrMapping
         void DropChangesChildObjects();
     }
 
-    internal class MappingInfo
+    internal class TypeMapping
     {
         #region PerType-SingeltonImplementierung
-        private static Dictionary<Type, MappingInfo> mappingInfos = new Dictionary<Type, MappingInfo>();
+        private static Dictionary<Type, TypeMapping> mappingInfos = new Dictionary<Type, TypeMapping>();
 
-        public static MappingInfo GetMappingInfo(Type type)
+        public static TypeMapping GetMappingInfo(Type type)
         {
-            return GetMappingInfo(type, false);
+            return mappingInfos[type];
         }
 
-        public static MappingInfo GetMappingInfo(Type type, bool existingOnly)
+        public static TypeMapping GetMappingInfo(TypeMappingOptions typeMappingOptions, bool existingOnly = false)
         {
-            if (mappingInfos.ContainsKey(type))
+            if (mappingInfos.ContainsKey(typeMappingOptions.Type))
             {
-                return mappingInfos[type];
+                return mappingInfos[typeMappingOptions.Type];
             }
             else if(existingOnly)
             {
@@ -90,25 +92,22 @@ namespace ObjectStore.OrMapping
             }
             else
             {
-                MappingInfo mappingInfo = new MappingInfo(type);
+                TypeMapping mappingInfo = new TypeMapping(typeMappingOptions);
                 mappingInfos.Add(mappingInfo.DynamicType, mappingInfo);
-                return mappingInfos[type] = mappingInfo;
+                return mappingInfos[typeMappingOptions.Type] = mappingInfo;
             }
         }
         #endregion
 
         #region Membervariablen
-        protected Type _type;
-        protected List<Mapping> _mappingInfos;
+        TypeMappingOptions _typeMappingOptions;
+        protected List<MemberMapping> _mappingInfos;
 
-        private List<Mapping> _keyMappingInfos;
-        private string _tableName;
+        private List<MemberMapping> _keyMappingInfos;
 
         protected Type _dynamicType;
         Func<object> _constructor;
         protected Func<IValueSource, MappedObjectKeys> _getKeyObjectFromReader;
-        protected LoadBehavior _loadBehavior;
-
         #endregion
 
         #region GetTypeBuilder
@@ -128,54 +127,34 @@ namespace ObjectStore.OrMapping
             }
             return _moduleBuilder.DefineType(name);
         }
-#endregion
+		#endregion
 
-#region Konstruktoren
-        public MappingInfo(Type type)
+        #region Constructors
+        public TypeMapping(TypeMappingOptions typeMappingOptions)
         {
-#if  NETCOREAPP1_0
+            Type type = typeMappingOptions.Type;
+#if NETCOREAPP1_0
             if (!type.GetTypeInfo().IsAbstract)
 #else
             if (!type.IsAbstract)
 #endif
                 throw new NotSupportedException("InheritedPropertyMapping supports abstract classes and interfaces only.");
 
-            _type = type;
+            _typeMappingOptions = typeMappingOptions;
             Initialize();
         }
-#endregion
+        #endregion
 
-#region Funktionen
+        #region Methods
         protected virtual void Initialize()
         {
-#region Tabellennamen bestimmen
-            {
-#if  NETCOREAPP1_0
-                TableAttribute attribute = Type.GetTypeInfo().GetCustomAttribute(typeof(TableAttribute), true) as TableAttribute;
-#else
-                TableAttribute attribute = Type.GetCustomAttributes(typeof(TableAttribute), true).FirstOrDefault() as TableAttribute;
-#endif
-                if (attribute == null)
-                {
-                    TableName = Type.Name;
-                    _loadBehavior = LoadBehavior.OnDemandPartialLoad;
-                }
-                else
-                {
-                    TableName = ((TableAttribute)attribute).TableName;
-                    _loadBehavior = ((TableAttribute)attribute).LoadBehavior;
-                }
-            }
-#endregion
-
-#region Create property mappings
-            _mappingInfos = Type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty)
-                                    .Where(x => x.GetGetMethod()?.IsAbstract == true)
-                                    .Select(x => Mapping.GetMapping(x))
+            #region Create property mappings
+            _mappingInfos = _typeMappingOptions.MemberMappingOptions
+                                    .Select(x => MemberMapping.GetMapping(x))
                                     .Where(x => x != null).ToList();
-#endregion
+    		#endregion
 
-#region Initialize GetKeyFromReader
+		#region Initialize GetKeyFromReader
             {
                 DynamicMethod method = new DynamicMethod("getKey", typeof(MappedObjectKeys), new Type[] { typeof(IValueSource) }, true);
                 ILGenerator getKeyGenerator = method.GetILGenerator();
@@ -188,7 +167,7 @@ namespace ObjectStore.OrMapping
                 getKeyGenerator.Emit(OpCodes.Stloc, keyArray);
 
                 int i = 0;
-                foreach (Mapping mapping in KeyMappingInfos)
+                foreach (MemberMapping mapping in KeyMappingInfos)
                 {
                     mapping.AddDynamicGetKeyFromReaderCode(getKeyGenerator, i++, keyArray);
                 }
@@ -198,52 +177,48 @@ namespace ObjectStore.OrMapping
                 getKeyGenerator.Emit(OpCodes.Ret);
                 _getKeyObjectFromReader = (Func<IValueSource, MappedObjectKeys>)method.CreateDelegate(typeof(Func<IValueSource, MappedObjectKeys>));
             }
-#endregion
+		#endregion
 
-#region Dynamischen Type erstellen
+		#region Create Dynamic type
 
-            TypeBuilder typeBuilder = GetTypeBuilder(string.Format("{1}.Dynamic.{0}", Type.Name, Type.Namespace));
-#if  NETCOREAPP1_0
+            TypeBuilder typeBuilder = GetTypeBuilder($"{Type.Namespace}.Dynamic.{Type.Name}");
             if (Type.GetTypeInfo().IsInterface)
-#else
-            if (Type.IsInterface)
-#endif
                 typeBuilder.AddInterfaceImplementation(Type);
             else
                 typeBuilder.SetParent(Type);
 
             typeBuilder.AddInterfaceImplementation(typeof(IFillAbleObject));
 
-#region Fields für Object-State Definieren
+		#region Fields für Object-State Definieren
             FieldBuilder isDeattachedField = typeBuilder.DefineField("___isDeattached", typeof(bool), FieldAttributes.Private);
             FieldBuilder isDeletedField = typeBuilder.DefineField("___isDeleted", typeof(bool), FieldAttributes.Private);
             FieldBuilder isNewField = typeBuilder.DefineField("___isNew", typeof(bool), FieldAttributes.Private);
-#endregion
+		#endregion
 
             ILGenerator generator;
 
-#region INotifyPropertyChanged implementieren
+		#region INotifyPropertyChanged implementieren
             MethodBuilder raiseMethode = typeBuilder.DefineMethod("OnPropertyChanged", MethodAttributes.Private, null, new Type[] { typeof(string) });
             MethodBuilder raiseStateChangedMethode = typeBuilder.DefineMethod("OnStateChanged", MethodAttributes.Private, null, new Type[] { typeof(State), typeof(State) });
-            if (!Type.GetInterfaces().Contains(typeof(System.ComponentModel.INotifyPropertyChanged)))
+            if (!Type.GetInterfaces().Contains(typeof(INotifyPropertyChanged)))
             {
-                typeBuilder.AddInterfaceImplementation(typeof(System.ComponentModel.INotifyPropertyChanged));
+                typeBuilder.AddInterfaceImplementation(typeof(INotifyPropertyChanged));
 
-                EventBuilder propertyChangedEvent = typeBuilder.DefineEvent("PropertyChanged", EventAttributes.None, typeof(System.ComponentModel.PropertyChangedEventHandler));
-                FieldBuilder propertyChangedField = typeBuilder.DefineField("PropertyChanged", typeof(System.ComponentModel.PropertyChangedEventHandler), FieldAttributes.Private);
-                MethodBuilder addMethode = typeBuilder.DefineMethod("add_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(System.ComponentModel.PropertyChangedEventHandler) });
-                MethodBuilder removeMethode = typeBuilder.DefineMethod("remove_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(System.ComponentModel.PropertyChangedEventHandler) });
+                EventBuilder propertyChangedEvent = typeBuilder.DefineEvent(nameof(INotifyPropertyChanged.PropertyChanged), EventAttributes.None, typeof(PropertyChangedEventHandler));
+                FieldBuilder propertyChangedField = typeBuilder.DefineField(nameof(INotifyPropertyChanged.PropertyChanged), typeof(PropertyChangedEventHandler), FieldAttributes.Private);
+                MethodBuilder addMethode = typeBuilder.DefineMethod("add_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(PropertyChangedEventHandler) });
+                MethodBuilder removeMethode = typeBuilder.DefineMethod("remove_PropertyChanged", MethodAttributes.Private | MethodAttributes.Virtual, null, new Type[] { typeof(PropertyChangedEventHandler) });
 
                 generator = addMethode.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldfld, propertyChangedField);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Call, typeof(System.Delegate).GetMethod("Combine", new Type[] { typeof(System.Delegate), typeof(System.Delegate) }));
-                generator.Emit(OpCodes.Castclass, typeof(System.ComponentModel.PropertyChangedEventHandler));
+                generator.Emit(OpCodes.Call, typeof(Delegate).GetMethod(nameof(Delegate.Combine), new Type[] { typeof(Delegate), typeof(Delegate) }));
+                generator.Emit(OpCodes.Castclass, typeof(PropertyChangedEventHandler));
                 generator.Emit(OpCodes.Stfld, propertyChangedField);
                 generator.Emit(OpCodes.Ret);
-                typeBuilder.DefineMethodOverride(addMethode, typeof(System.ComponentModel.INotifyPropertyChanged).GetEvent("PropertyChanged").GetAddMethod());
+                typeBuilder.DefineMethodOverride(addMethode, typeof(INotifyPropertyChanged).GetEvent(nameof(INotifyPropertyChanged.PropertyChanged)).GetAddMethod());
 
 
                 generator = removeMethode.GetILGenerator();
@@ -251,11 +226,11 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldfld, propertyChangedField);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Call, typeof(System.Delegate).GetMethod("Remove", new Type[] { typeof(System.Delegate), typeof(System.Delegate) }));
-                generator.Emit(OpCodes.Castclass, typeof(System.ComponentModel.PropertyChangedEventHandler));
+                generator.Emit(OpCodes.Call, typeof(Delegate).GetMethod(nameof(Delegate.Remove), new Type[] { typeof(Delegate), typeof(Delegate) }));
+                generator.Emit(OpCodes.Castclass, typeof(PropertyChangedEventHandler));
                 generator.Emit(OpCodes.Stfld, propertyChangedField);
                 generator.Emit(OpCodes.Ret);
-                typeBuilder.DefineMethodOverride(removeMethode, typeof(System.ComponentModel.INotifyPropertyChanged).GetEvent("PropertyChanged").GetRemoveMethod());
+                typeBuilder.DefineMethodOverride(removeMethode, typeof(INotifyPropertyChanged).GetEvent(nameof(INotifyPropertyChanged.PropertyChanged)).GetRemoveMethod());
 
 
                 generator = raiseMethode.GetILGenerator();
@@ -269,8 +244,8 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Ldfld, propertyChangedField);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Newobj, typeof(System.ComponentModel.PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
-                generator.Emit(OpCodes.Callvirt, typeof(System.ComponentModel.PropertyChangedEventHandler).GetMethod("Invoke", new Type[] { typeof(object), typeof(System.ComponentModel.PropertyChangedEventArgs) }));
+                generator.Emit(OpCodes.Newobj, typeof(PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
+                generator.Emit(OpCodes.Callvirt, typeof(PropertyChangedEventHandler).GetMethod(nameof(PropertyChangedEventHandler.Invoke), new Type[] { typeof(object), typeof(PropertyChangedEventArgs) }));
                 generator.MarkLabel(end);
                 generator.Emit(OpCodes.Ret);
 
@@ -291,7 +266,7 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Ldarg_2);
                 generator.Emit(OpCodes.Newobj, typeof(StateChangedEventArgs).GetConstructor(new Type[] { typeof(State), typeof(State) }));
-                generator.Emit(OpCodes.Callvirt, typeof(System.ComponentModel.PropertyChangedEventHandler).GetMethod("Invoke", new Type[] { typeof(object), typeof(System.ComponentModel.PropertyChangedEventArgs) }));
+                generator.Emit(OpCodes.Callvirt, typeof(PropertyChangedEventHandler).GetMethod(nameof(PropertyChangedEventHandler.Invoke), new Type[] { typeof(object), typeof(PropertyChangedEventArgs) }));
                 generator.MarkLabel(end);
                 generator.Emit(OpCodes.Ret);
 
@@ -302,7 +277,7 @@ namespace ObjectStore.OrMapping
             {
                 MethodInfo raiseMethodeInfo = Type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Where(x =>
                         x.GetParameters().Length == 1 &&
-                        x.GetParameters()[0].ParameterType == typeof(System.ComponentModel.PropertyChangedEventArgs) &&
+                        x.GetParameters()[0].ParameterType == typeof(PropertyChangedEventArgs) &&
                         x.GetCustomAttributes(typeof(IsRaisePropertyChangeMethodAttribute), true).Any()).FirstOrDefault();
 
                 if (raiseMethode == null)
@@ -311,7 +286,7 @@ namespace ObjectStore.OrMapping
                 generator = raiseMethode.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Newobj, typeof(System.ComponentModel.PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
+                generator.Emit(OpCodes.Newobj, typeof(PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
                 generator.Emit(OpCodes.Callvirt, raiseMethodeInfo);
                 generator.Emit(OpCodes.Ret);
 
@@ -330,16 +305,16 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Callvirt, raiseMethodeInfo);
                 generator.Emit(OpCodes.Ret);
             }
-#endregion
+		#endregion
 
-#region Properties Hinzufügen
-            foreach (Mapping mapping in _mappingInfos)
+		#region Properties Hinzufügen
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddInhertiedProperty(typeBuilder, raiseMethode);
             }
-#endregion
+		#endregion
 
-#region Parameterloser Konstruktor hinzufügen
+		#region Parameterloser Konstruktor hinzufügen
             ConstructorBuilder constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
             generator = constructorBuilder.GetILGenerator();
 
@@ -349,7 +324,7 @@ namespace ObjectStore.OrMapping
                 Type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.GetParameters().Length == 0).FirstOrDefault() ??
                 typeof(object).GetConstructor(Type.EmptyTypes));
 
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddConstructorCode(generator);
             }
@@ -366,9 +341,9 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ldc_I4_0);
             generator.Emit(OpCodes.Stfld, isDeletedField);
             generator.Emit(OpCodes.Ret);
-#endregion
+		#endregion
 
-#region StateProperty
+		#region StateProperty
             PropertyBuilder stateProperty = typeBuilder.DefineProperty("IFillAbleObject.State", System.Reflection.PropertyAttributes.None, typeof(State), Type.EmptyTypes);
             MethodBuilder getStateMethode = typeBuilder.DefineMethod("IFillAbleObject.get_State", MethodAttributes.Public | MethodAttributes.Virtual, typeof(State), Type.EmptyTypes);
             generator = getStateMethode.GetILGenerator();
@@ -399,7 +374,7 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ret);
             generator.MarkLabel(isNotNewLabel);
 
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddModifiedCode(generator, isModifiedTrueLabel);
             }
@@ -410,13 +385,13 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ret);
 
             typeBuilder.DefineMethodOverride(getStateMethode, typeof(IFillAbleObject).GetProperty("State").GetGetMethod());
-#endregion
+		#endregion
 
-#region FillMethode
+		#region FillMethode
             MethodBuilder fillMethode = typeBuilder.DefineMethod(nameof(IFillAbleObject) + "." + nameof(IFillAbleObject.Fill), MethodAttributes.Public | MethodAttributes.Virtual, null, new Type[] { typeof(IValueSource) });
             generator = fillMethode.GetILGenerator();
             Label afterStateChangeLable = generator.DefineLabel();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddFillMethodeCode(generator);
             }
@@ -442,33 +417,33 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ret);
 
             typeBuilder.DefineMethodOverride(fillMethode, typeof(IFillAbleObject).GetMethod(nameof(IFillAbleObject.Fill)));
-#endregion
+		#endregion
 
-#region CommitMethode
+		#region CommitMethode
             MethodBuilder commitMethode = typeBuilder.DefineMethod("IFillAbleObject.Commit", MethodAttributes.Public | MethodAttributes.Virtual, null, new Type[] { typeof(bool) });
             generator = commitMethode.GetILGenerator();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddCommitCode(generator, raiseMethode);
             }
 
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(commitMethode, typeof(IFillAbleObject).GetMethod("Commit"));
-#endregion
+		#endregion
 
-#region RollbackMethode
+		#region RollbackMethode
             MethodBuilder rollbackMethode = typeBuilder.DefineMethod("IFillAbleObject.Rollback", MethodAttributes.Public | MethodAttributes.Virtual, null, Type.EmptyTypes);
             generator = rollbackMethode.GetILGenerator();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddRollbackCode(generator);
             }
 
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(rollbackMethode, typeof(IFillAbleObject).GetMethod("Rollback"));
-#endregion
+		#endregion
 
-#region KeysProperty
+		#region KeysProperty
             PropertyBuilder keyProperty = typeBuilder.DefineProperty("IFillAbleObject.Keys", System.Reflection.PropertyAttributes.None, typeof(MappedObjectKeys), Type.EmptyTypes);
             MethodBuilder getKeyMethode = typeBuilder.DefineMethod("IFillAbleObject.get_Keys", MethodAttributes.Public | MethodAttributes.Virtual, typeof(MappedObjectKeys), Type.EmptyTypes);
             generator = getKeyMethode.GetILGenerator();
@@ -480,7 +455,7 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Stloc, array);
 
             int currentMapping = 0;
-            foreach (Mapping mapping in KeyMappingInfos)
+            foreach (MemberMapping mapping in KeyMappingInfos)
             {
                 mapping.AddDynamicGetKeyCode(generator, currentMapping++, array);
             }
@@ -489,16 +464,16 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Newobj, typeof(MappedObjectKeys).GetConstructor(new Type[] { typeof(IEnumerable) }));
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(getKeyMethode, typeof(IFillAbleObject).GetProperty("Keys").GetGetMethod());
-#endregion
+		#endregion
 
 
-#region ModifiedProperty
+		#region ModifiedProperty
             PropertyBuilder modifiedProperty = typeBuilder.DefineProperty("IFillAbleObject.Modified", System.Reflection.PropertyAttributes.None, typeof(MappedObjectKeys), Type.EmptyTypes);
             MethodBuilder getModifiedMethode = typeBuilder.DefineMethod("IFillAbleObject.get_Modified", MethodAttributes.Public | MethodAttributes.Virtual, typeof(bool), Type.EmptyTypes);
             generator = getModifiedMethode.GetILGenerator();
 
             Label returnTrueLabel = generator.DefineLabel();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddModifiedCode(generator, returnTrueLabel);
             }
@@ -508,48 +483,48 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ldc_I4_1);
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(getModifiedMethode, typeof(IFillAbleObject).GetProperty("Modified").GetGetMethod());
-#endregion
+		#endregion
 
-#region DeleteChildObjects-Method
+		#region DeleteChildObjects-Method
             MethodBuilder deleteChildObjects = typeBuilder.DefineMethod("IFillAbleObject.DeleteChildObjects", MethodAttributes.Public | MethodAttributes.Virtual, null, Type.EmptyTypes);
             generator = deleteChildObjects.GetILGenerator();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddDeleteChildObjectsCode(generator);
             }
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(deleteChildObjects, typeof(IFillAbleObject).GetMethod("DeleteChildObjects"));
-#endregion
+		#endregion
 
-#region SaveChildObjects-Method
+		#region SaveChildObjects-Method
             MethodBuilder saveChildObjects = typeBuilder.DefineMethod("IFillAbleObject.SaveChildObjects", MethodAttributes.Public | MethodAttributes.Virtual, null, Type.EmptyTypes);
             generator = saveChildObjects.GetILGenerator();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddSaveChildObjectsCode(generator);
             }
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(saveChildObjects, typeof(IFillAbleObject).GetMethod("SaveChildObjects"));
-#endregion
+		#endregion
 
-#region CheckChildObjectsChanged-Method
+		#region CheckChildObjectsChanged-Method
             MethodBuilder checkChildObjectsChanged = typeBuilder.DefineMethod("IFillAbleObject.CheckChildObjectsChanged", MethodAttributes.Public | MethodAttributes.Virtual, typeof(bool), Type.EmptyTypes);
             generator = checkChildObjectsChanged.GetILGenerator();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddCheckChildObjectsChangedCode(generator);
             }
             generator.Emit(OpCodes.Ldc_I4_0);
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(checkChildObjectsChanged, typeof(IFillAbleObject).GetMethod("CheckChildObjectsChanged"));
-#endregion
+		#endregion
 
-#region DropChanges-Method
+		#region DropChanges-Method
             MethodBuilder dropChanges = typeBuilder.DefineMethod("IFillAbleObject.DropChanges", MethodAttributes.Public | MethodAttributes.Virtual, null, Type.EmptyTypes);
             generator = dropChanges.GetILGenerator();
             isNotNewLabel = generator.DefineLabel();
             isNotDeletedLabel = generator.DefineLabel();
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddDropChangesCode(generator);
             }
@@ -596,9 +571,9 @@ namespace ObjectStore.OrMapping
 
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(dropChanges, typeof(IFillAbleObject).GetMethod("DropChanges"));
-#endregion
+		#endregion
 
-#region Delete-Method
+		#region Delete-Method
             MethodBuilder delete = typeBuilder.DefineMethod("IFillAbleObject.Delete", MethodAttributes.Public | MethodAttributes.Virtual, null, Type.EmptyTypes);
             generator = delete.GetILGenerator();
             Label isDeletedLabel = generator.DefineLabel();
@@ -630,9 +605,9 @@ namespace ObjectStore.OrMapping
             generator.MarkLabel(isDeletedLabel);
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(delete, typeof(IFillAbleObject).GetMethod("Delete"));
-#endregion
+		#endregion
 
-#region Deattach-Method
+		#region Deattach-Method
             MethodBuilder deattach = typeBuilder.DefineMethod("IFillAbleObject.Deattach", MethodAttributes.Public | MethodAttributes.Virtual, null, Type.EmptyTypes);
             generator = deattach.GetILGenerator();
             Label isNotDeattached = generator.DefineLabel();
@@ -653,24 +628,24 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Callvirt, raiseStateChangedMethode);
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(deattach, typeof(IFillAbleObject).GetMethod("Deattach"));
-#endregion
+		#endregion
 
-#region DropChangesChildObjects-Method
+		#region DropChangesChildObjects-Method
             MethodBuilder dropChangesChildObjects = typeBuilder.DefineMethod("IFillAbleObject.DropChangesChildObjects", MethodAttributes.Public | MethodAttributes.Virtual, null, Type.EmptyTypes);
             generator = dropChangesChildObjects.GetILGenerator();
 
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Call, dropChanges);
 
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddDropChangesCodeChildObjects(generator);
             }
             generator.Emit(OpCodes.Ret);
             typeBuilder.DefineMethodOverride(dropChangesChildObjects, typeof(IFillAbleObject).GetMethod("DropChangesChildObjects"));
-#endregion
+		#endregion
 
-#region FillCommand-Funktion
+		#region FillCommand-Funktion
             //void FillCommand(ICommandBuilder commandBuilder);
             MethodBuilder getInsertCommandBuilder = typeBuilder.DefineMethod("IFillAbleObject.GetInsertCommand", MethodAttributes.Virtual | MethodAttributes.Public, null, new Type[] { typeof(ICommandBuilder) });
             typeBuilder.DefineMethodOverride(getInsertCommandBuilder, typeof(IFillAbleObject).GetMethod("FillCommand"));
@@ -680,13 +655,13 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ldstr, TableName);
             generator.Emit(OpCodes.Callvirt, typeof(ICommandBuilder).GetMethod(nameof(ICommandBuilder.SetTablename)));
 
-            foreach (Mapping mapping in _mappingInfos)
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.AddFillCommandBuilderCode(generator);
             }
 
             generator.Emit(OpCodes.Ret);
-#endregion
+		#endregion
 
             _dynamicType =
 #if  NETCOREAPP1_0
@@ -695,7 +670,7 @@ namespace ObjectStore.OrMapping
                 typeBuilder.CreateType();
 #endif
             _constructor = Expression.Lambda<Func<object>>(Expression.New(_dynamicType.GetConstructor(Type.EmptyTypes))).Compile();
-#endregion
+		#endregion
         }
 
         public virtual object CreateObject()
@@ -705,8 +680,8 @@ namespace ObjectStore.OrMapping
 
         public virtual T FillCommand<T>(T commandBuilder) where T : ICommandBuilder
         {
-            commandBuilder.SetTablename(_tableName);
-            foreach (Mapping mapping in _mappingInfos)
+            commandBuilder.SetTablename(TableName);
+            foreach (MemberMapping mapping in _mappingInfos)
             {
                 mapping.FillCommandBuilder(commandBuilder);
             }
@@ -718,15 +693,12 @@ namespace ObjectStore.OrMapping
         {
             return _getKeyObjectFromReader(valueSource); 
         }
-#endregion
+        #endregion
 
-#region Properties
-        public virtual string TableName { 
-            get { return _tableName; }
-            set { _tableName = value; }
-        }
+        #region Properties
+        public string TableName => _typeMappingOptions.TableName;
 
-        public virtual ReadOnlyCollection<Mapping> KeyMappingInfos
+        public virtual ReadOnlyCollection<MemberMapping> KeyMappingInfos
         {
             get
             {
@@ -738,13 +710,7 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        protected Type Type
-        {
-            get
-            {
-                return _type;
-            }
-        }
+        protected Type Type => _typeMappingOptions.Type;
 
         protected Type DynamicType
         {
@@ -754,13 +720,7 @@ namespace ObjectStore.OrMapping
             }
         }
 
-        public virtual LoadBehavior LoadBehavior
-        {
-            get
-            {
-                return _loadBehavior;
-            }
-        }
-#endregion
+        public LoadBehavior LoadBehavior => _typeMappingOptions.LoadBehavior;
+		#endregion
     }
 }

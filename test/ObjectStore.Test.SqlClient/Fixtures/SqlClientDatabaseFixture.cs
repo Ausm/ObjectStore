@@ -10,6 +10,7 @@ using ObjectStore.Test.Tests;
 using System.Collections.Generic;
 using ObjectStore.Test.Fixtures;
 using System.Linq;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.Test.SqlClient
 {
@@ -27,7 +28,7 @@ namespace ObjectStore.Test.SqlClient
             _isInitialized = false;
 
             if (_objectProvider == null)
-                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("data source=(local);Integrated Security=True;initial catalog=Test", DataBaseProvider.Instance, true));
+                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("data source=(local);Integrated Security=True;initial catalog=Test", DataBaseProvider.Instance, new MappingOptionsSet().AddDefaultRules(), true));
 
             Func<DbCommand> getCommand = () => new Command(GetReader);
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getCommand", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)

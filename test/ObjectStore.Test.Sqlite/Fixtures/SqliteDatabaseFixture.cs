@@ -12,6 +12,7 @@ using System.IO;
 using Microsoft.Data.Sqlite;
 using System.Linq;
 using ObjectStore.Test.Fixtures;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.Test.Sqlite
 {
@@ -29,7 +30,7 @@ namespace ObjectStore.Test.Sqlite
             _isInitialized = false;
 
             if (_objectProvider == null)
-                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("Data Source=file::memory:?cache=shared;Version=3;New=True;", DataBaseProvider.Instance, true));
+                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("Data Source=file::memory:?cache=shared;Version=3;New=True;", DataBaseProvider.Instance, new MappingOptionsSet().AddDefaultRules(), true));
 
             Func<DbCommand> getCommand = () => new Command(GetReader);
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getCommand", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)

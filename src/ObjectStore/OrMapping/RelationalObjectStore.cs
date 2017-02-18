@@ -1,4 +1,5 @@
 ﻿using ObjectStore.Interfaces;
+using ObjectStore.MappingOptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,27 +11,29 @@ namespace ObjectStore.OrMapping
     {
         IDataBaseProvider _databaseProvider;
         Dictionary<Type, IObjectProvider> _relationalObjectProvider;
+        MappingOptionsSet _mappingOptionsSet;
         string _connectionString;
         bool _autoregisterTypes;
 
-        public RelationalObjectStore(string connectionString, IDataBaseProvider databaseProvider, bool autoregister)
+        public RelationalObjectStore(string connectionString, IDataBaseProvider databaseProvider, MappingOptionsSet mappingOptionsSet, bool autoregister)
         {
             _relationalObjectProvider = new Dictionary<Type, IObjectProvider>();
             _connectionString = connectionString;
             _autoregisterTypes = autoregister;
             _databaseProvider = databaseProvider;
+            _mappingOptionsSet = mappingOptionsSet;
         }
 
         public RelationalObjectStore(string connectionString, IDataBaseProvider databaseProvider)
-            : this(connectionString, databaseProvider, false)
+            : this(connectionString, databaseProvider, new MappingOptionsSet().AddDefaultRules(), false)
         {
         }
 
-        public RelationalObjectStore Register<T>() where T : class //new()
+        public RelationalObjectStore Register<T>() where T : class
         {
             if (!_relationalObjectProvider.ContainsKey(typeof(T)))
             {
-                IObjectProvider newProvider = new InheritensObjectProvider<T>(_connectionString, _databaseProvider);
+                IObjectProvider newProvider = new InheritensObjectProvider<T>(_connectionString, _databaseProvider, _mappingOptionsSet);
                 _relationalObjectProvider[typeof(T)] = newProvider;
 
                 System.Reflection.MethodInfo registerMethod = null;
