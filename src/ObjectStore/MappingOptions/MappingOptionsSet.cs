@@ -9,6 +9,8 @@ namespace ObjectStore.MappingOptions
     public class MappingOptionsSet
     {
         #region Fields
+        static Dictionary<Type, WeakReference<MappingOptionsSet>> _mappedInOptionSet = new Dictionary<Type, WeakReference<MappingOptionsSet>>();
+
         Dictionary<Type, TypeMappingOptions> _typeMappingOptions = new Dictionary<Type, TypeMappingOptions>();
         Dictionary<MemberInfo, MemberMappingOptions> _memberMappingOptions = new Dictionary<MemberInfo, MemberMappingOptions>();
 
@@ -27,8 +29,27 @@ namespace ObjectStore.MappingOptions
 
         #region Methods
         #region Internal
+        internal static TypeMappingOptions GetExistingTypeMappingOptions(Type type)
+        {
+            MappingOptionsSet mappingOptionsSet = null;
+
+            if (_mappedInOptionSet.ContainsKey(type))
+                mappingOptionsSet = _mappedInOptionSet[type].Value;
+
+            return mappingOptionsSet?.GetTypeMappingOptions(type);
+        }
+
         internal TypeMappingOptions GetTypeMappingOptions(Type type)
         {
+            if (_mappedInOptionSet.ContainsKey(type))
+            {
+                WeakReference<MappingOptionsSet> optionSetReference = _mappedInOptionSet[type];
+                if (!optionSetReference.IsAlive)
+                    _mappedInOptionSet.Remove(type);
+                else if (optionSetReference.Value != this)
+                    throw new InvalidOperationException($"Type {type} is configured in more than one mapping options sets.");
+            }
+
             _isFrozen = true;
 
             if (_typeMappingOptions.ContainsKey(type))
@@ -40,6 +61,7 @@ namespace ObjectStore.MappingOptions
                 action(returnValue);
 
             _typeMappingOptions.Add(type, returnValue);
+            _mappedInOptionSet.Add(type, this);
             return returnValue;
         }
 

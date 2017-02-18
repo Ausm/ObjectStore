@@ -2,10 +2,11 @@
 using ApplicationException = global::System.InvalidOperationException;
 #endif
 
+using ObjectStore.MappingOptions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace ObjectStore.OrMapping
 {
@@ -176,7 +177,8 @@ namespace ObjectStore.OrMapping
 
     public struct ForeignObjectBackingStore<T, T1> where T : class
     {
-        static PropertyInfo _property;
+        #region Fields
+        static MemberMappingOptions _foreignKeyMemberOptions;
         static Func<T, T1> _fromValue;
 
         T1 _uncommittedValue;
@@ -188,20 +190,9 @@ namespace ObjectStore.OrMapping
         bool _isOriginalConvertedSetted;
         bool _isChanged;
         bool _isUncommitted;
+        #endregion
 
-        static ForeignObjectBackingStore()
-        {
-            ParameterExpression paramT = Expression.Parameter(typeof(T), "T");
-
-            _fromValue = x => (T1)(((IFillAbleObject)x).Keys.Single());
-
-            PropertyInfo[] propertyInfos = typeof(T).GetProperties().Where(x => x.GetCustomAttributes(typeof(IsPrimaryKeyAttribute), true).Any()).ToArray();
-            if (propertyInfos.Length != 1)
-                throw new ApplicationException("ForeignObject must have only one IsPrimaryKey marked property.");
-
-            _property = propertyInfos[0];
-        }
-
+        #region Properties
         public T Value
         {
             get
@@ -227,7 +218,7 @@ namespace ObjectStore.OrMapping
                     _isChanged = !object.Equals(_originalValue, default(T1));
                 }
                 else if ((_isOriginalConvertedSetted && value == _originalConvertedValue) ||
-                    (_isOriginalSetted && object.Equals(_fromValue(value),_originalValue)))
+                    (_isOriginalSetted && object.Equals(FromValue(value),_originalValue)))
                 {
                     _changedValue = null;
                     _isChanged = false;
@@ -245,18 +236,46 @@ namespace ObjectStore.OrMapping
             get { return _isChanged; }
         }
 
+        static MemberMappingOptions ForeignKeyMemberOptions
+        {
+            get
+            {
+                if (_foreignKeyMemberOptions != null)
+                    return _foreignKeyMemberOptions;
+
+                List<MemberMappingOptions> options = MappingOptionsSet.GetExistingTypeMappingOptions(typeof(T)).MemberMappingOptions.Where(x => x.IsPrimaryKey).ToList();
+                if(options.Count != 1)
+                    throw new ApplicationException("ForeignObject must have only one IsPrimaryKey marked property.");
+
+                return _foreignKeyMemberOptions = options[0];
+            }
+        }
+
+        static Func<T, T1> FromValue
+        {
+            get
+            {
+                if (_fromValue != null)
+                    return _fromValue;
+
+                return _fromValue = x => (T1)(((IFillAbleObject)x).Keys.Single());
+            }
+        }
+        #endregion
+
+        #region Methods
         public T1 GetUncommittedValue()
         {
             return 
                 _isUncommitted ? _uncommittedValue : 
                 _isOriginalSetted ? _originalValue :
-                _isChanged ? _fromValue(_changedValue) : default(T1);
+                _isChanged ? FromValue(_changedValue) : default(T1);
         }
 
         public T1 GetChangedValue()
         {
             if (_isChanged)
-                return _changedValue == null ? default(T1) : _fromValue(_changedValue);
+                return _changedValue == null ? default(T1) : FromValue(_changedValue);
             else
                 return _originalValue;
         }
@@ -305,10 +324,29 @@ namespace ObjectStore.OrMapping
             }
             else
             {
+                Expression propertyAccess = null;
+                if (ForeignKeyMemberOptions is ForeignObjectMappingOptions)
+                {
+                    propertyAccess = Expression.Property(paramT, ForeignKeyMemberOptions.Member);
+                    ForeignObjectMappingOptions currentOptions = (ForeignObjectMappingOptions)ForeignKeyMemberOptions;
+                    while (true)
+                    {
+                        propertyAccess = Expression.Property(propertyAccess, currentOptions.ForeignMember.Member);
+                        if (currentOptions.ForeignMember is ForeignObjectMappingOptions)
+                            currentOptions = (ForeignObjectMappingOptions)currentOptions.ForeignMember;
+                        else
+                            break;
+                    }
+                }
+                else
+                {
+                    propertyAccess = Expression.Property(paramT, ForeignKeyMemberOptions.Member);
+                }
+
                 ((System.Collections.Specialized.INotifyCollectionChanged)(_originalQuery = ObjectStoreManager.DefaultObjectStore.GetQueryable<T>().Where(
                                 Expression.Lambda<Func<T, bool>>(
                                     Expression.Equal(
-                                        Expression.Property(paramT, _property),
+                                        propertyAccess,
                                         Expression.Constant(_originalValue)), paramT)).Take(1))).CollectionChanged += CollectionChangedHandler;
             }
 
@@ -348,5 +386,6 @@ namespace ObjectStore.OrMapping
             _changedValue = default(T);
             _isChanged = false;
         }
+        #endregion
     }
 }
