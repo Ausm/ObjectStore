@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace ObjectStore.MappingOptions
 {
@@ -30,6 +30,8 @@ namespace ObjectStore.MappingOptions
 
         public LoadBehavior LoadBehavior { get; set; } = LoadBehavior.OnDemandPartialLoad;
 
+        public MethodInfo RaisePropertyChangeMethod { get; set; } = null;
+
         internal IEnumerable<MemberMappingOptions> MemberMappingOptions
         {
             get
@@ -41,7 +43,6 @@ namespace ObjectStore.MappingOptions
                 return _memberMappingOptions.AsReadOnly();
             }
         }
-
         #endregion
 
     }
