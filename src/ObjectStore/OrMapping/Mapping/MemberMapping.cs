@@ -24,11 +24,6 @@ namespace ObjectStore.OrMapping
             else
                 return _mappings[memberMappingOptions.Member] = new PropertyMapping((FieldMappingOptions)memberMappingOptions);
         }
-
-        public static MemberMapping GetMappingFromMemberInfo(MemberInfo memberInfo)
-        {
-            return _mappings[memberInfo];
-        }
         #endregion
 
         #region Membervariablen

@@ -6,7 +6,7 @@ using System.Data.Common;
 using ObjectStore.OrMapping;
 using System.Linq.Expressions;
 using System.Linq;
-using System.Reflection;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.Sqlite
 {
@@ -78,13 +78,7 @@ namespace ObjectStore.Sqlite
                 }
             }
 
-            string ForeignKeyName
-            {
-                get
-                {
-                    return MemberMapping.GetMappingFromMemberInfo(_expression.Member).FieldName;
-                }
-            }
+            string ForeignKeyName => (MappingOptionsSet.GetExistingMemberMappingOptions(_expression) as FieldMappingOptions).DatabaseFieldName;
         }
         #endregion
 

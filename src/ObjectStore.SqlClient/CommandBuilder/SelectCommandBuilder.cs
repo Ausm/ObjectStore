@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Data.SqlClient;
 using System.Data.Common;
 using ObjectStore.OrMapping;
 using System.Linq.Expressions;
 using System.Linq;
-using System.Reflection;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.SqlClient
 {
@@ -82,7 +81,7 @@ namespace ObjectStore.SqlClient
             {
                 get
                 {
-                    return MemberMapping.GetMappingFromMemberInfo(_expression.Member).FieldName;
+                    return (MappingOptionsSet.GetExistingMemberMappingOptions(_expression) as FieldMappingOptions).DatabaseFieldName ;
                 }
             }
         }

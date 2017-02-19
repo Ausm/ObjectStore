@@ -1,4 +1,5 @@
 ﻿using ObjectStore.Expressions;
+using ObjectStore.MappingOptions;
 using ObjectStore.OrMapping;
 using System.Collections;
 using System.Linq;
@@ -34,14 +35,14 @@ namespace ObjectStore.Sqlite
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} < {args.ParseChild(exp.Right)}", ExpressionType.LessThan)
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} <= {args.ParseChild(exp.Right)}", ExpressionType.LessThanOrEqual)
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} - {args.ParseChild(exp.Right)}", ExpressionType.Subtract, ExpressionType.SubtractChecked)
-                        .AddRule<MemberExpression>((exp, args) => $"{args.ParseChild(exp.Expression)}.{MemberMapping.GetMappingFromMemberInfo(exp.Member).FieldName}",
+                        .AddRule<MemberExpression>((exp, args) => $"{args.ParseChild(exp.Expression)}.{(MappingOptionsSet.GetExistingMemberMappingOptions(exp) as FieldMappingOptions).DatabaseFieldName}",
                             e => e.Member.MemberType == MemberTypes.Property && e.Expression.NodeType == ExpressionType.Parameter,
                             ExpressionType.MemberAccess)
-                        .AddRule<MemberExpression>((exp, args) => $"{args.GetService<IParsingContext>().GetJoin((MemberExpression)exp.Expression)}.{MemberMapping.GetMappingFromMemberInfo(exp.Member).FieldName}",
-                            e => e.Member.MemberType == MemberTypes.Property && 
+                        .AddRule<MemberExpression>((exp, args) => $"{args.GetService<IParsingContext>().GetJoin((MemberExpression)exp.Expression)}.{(MappingOptionsSet.GetExistingMemberMappingOptions(exp) as FieldMappingOptions).DatabaseFieldName}",
+                            e => e.Member.MemberType == MemberTypes.Property &&
                             e.Expression is MemberExpression &&
                             ((MemberExpression)e.Expression).Member.MemberType == MemberTypes.Property &&
-                            ((MemberExpression)e.Expression).Member.GetCustomAttributes(typeof(ForeignObjectMappingAttribute), true).Any(), 
+                            MappingOptionsSet.GetExistingMemberMappingOptions(e.Expression) is ForeignObjectMappingOptions,
                             ExpressionType.MemberAccess)
                         .AddRule<MethodCallExpression>((exp, args) => $"{args.ParseChild(exp.Arguments[1])} IN {args.ParseChild(exp.Arguments[0])}", x => x.Method.DeclaringType == typeof(Enumerable) && x.Method.Name == nameof(Enumerable.Contains) && x.Arguments.Count == 2)
                         .AddRule<ParameterExpression>((exp, args) => args.GetService<IParsingContext>().GetAlias(exp))
