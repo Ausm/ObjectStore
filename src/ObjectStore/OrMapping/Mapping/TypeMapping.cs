@@ -275,19 +275,14 @@ namespace ObjectStore.OrMapping
             }
             else
             {
-                MethodInfo raiseMethodeInfo = Type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Where(x =>
-                        x.GetParameters().Length == 1 &&
-                        x.GetParameters()[0].ParameterType == typeof(PropertyChangedEventArgs) &&
-                        x.GetCustomAttributes(typeof(IsRaisePropertyChangeMethodAttribute), true).Any()).FirstOrDefault();
-
-                if (raiseMethode == null)
-                    throw new MissingMemberException("No void method(System.ComponentModel.PropertyChangedEventArgs) with IsRaisePropertyChangeMethodAttribute found. Remove INotifyPropertyChanged-Interface or implement raise method.");
+                if (_typeMappingOptions.RaisePropertyChangeMethod == null)
+                    throw new MissingMemberException("No RaisePropertyChangeMethod set. Remove INotifyPropertyChanged-Interface or implement raise method and set the RaisePropertyChangeMethod property in the type mapping options.");
 
                 generator = raiseMethode.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Newobj, typeof(PropertyChangedEventArgs).GetConstructor(new Type[] { typeof(string) }));
-                generator.Emit(OpCodes.Callvirt, raiseMethodeInfo);
+                generator.Emit(OpCodes.Callvirt, _typeMappingOptions.RaisePropertyChangeMethod);
                 generator.Emit(OpCodes.Ret);
 
                 generator = raiseStateChangedMethode.GetILGenerator();
@@ -302,7 +297,7 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Ldarg_2);
                 generator.Emit(OpCodes.Newobj, typeof(StateChangedEventArgs).GetConstructor(new Type[] { typeof(State), typeof(State) }));
-                generator.Emit(OpCodes.Callvirt, raiseMethodeInfo);
+                generator.Emit(OpCodes.Callvirt, _typeMappingOptions.RaisePropertyChangeMethod);
                 generator.Emit(OpCodes.Ret);
             }
 		#endregion

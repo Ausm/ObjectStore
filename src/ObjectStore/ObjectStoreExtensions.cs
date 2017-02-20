@@ -5,6 +5,7 @@ using ObjectStore.MappingOptions;
 using System.Reflection;
 using System;
 using System.Linq;
+using System.ComponentModel;
 
 namespace ObjectStore
 {
@@ -27,7 +28,14 @@ namespace ObjectStore
                     TableAttribute attribute = o.Type.GetCustomAttribute<TableAttribute>();
                     o.TableName = attribute.TableName;
                     o.LoadBehavior = attribute.LoadBehavior;
-                });
+            });
+
+            mappingOptionsSet.AddTypeRule(x => x.GetTypeInfo().ImplementedInterfaces.Contains(typeof(INotifyPropertyChanged)), o => {
+                o.RaisePropertyChangeMethod = o.Type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Where(x =>
+                     x.GetParameters().Length == 1 &&
+                     x.GetParameters()[0].ParameterType == typeof(PropertyChangedEventArgs) &&
+                     x.GetCustomAttributes(typeof(IsRaisePropertyChangeMethodAttribute), true).Any()).FirstOrDefault();
+            });
 
             mappingOptionsSet.AddMemberTypeRule(x => x.GetCustomAttribute<ForeignObjectMappingAttribute>() != null, x => { x.MappingType = MappingType.ForeignObjectMapping; });
             mappingOptionsSet.AddMemberTypeRule(x => x.GetCustomAttribute<ReferenceListMappingAttribute>() != null, x => { x.MappingType = MappingType.ReferenceListMapping; });
