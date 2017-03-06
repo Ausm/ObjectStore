@@ -61,6 +61,11 @@ namespace ObjectStore.OrMapping
             return this;
         }
 
+        public void InitializeDatabase()
+        {
+            throw new NotImplementedException();
+        }
+
         #region IObjectProvider Members
         public IQueryable<T> GetQueryable<T>() where T : class
         {
@@ -95,20 +100,21 @@ namespace ObjectStore.OrMapping
 
             return _relationalObjectProvider.ContainsKey(type) && _relationalObjectProvider[type].SupportsType(type);
         }
-#endregion
+        #endregion
 
-#region IObjectRegistration Members
+        #region IObjectRegistration Members
 
         IObjectRegistration IObjectRegistration.Register<T>()
         {
             return this.Register<T>();
         }
 
-#endregion
+        #endregion
     }
 
     public interface IObjectRegistration
     {
         IObjectRegistration Register<T>() where T : class;
+        void InitializeDatabase();
     }
 }
