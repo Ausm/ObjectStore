@@ -289,6 +289,11 @@ namespace ObjectStore.SqlClient
             return command;
         }
 
+        public IDatabaseInitializer GetDatabaseInitializer()
+        {
+            throw new NotImplementedException();
+        }
+
         internal static DbCommand GetCommand() => _getCommand();
 
         internal static SqlParameter GetParameter(string parameterName, object value)

@@ -63,7 +63,37 @@ namespace ObjectStore.OrMapping
 
         public void InitializeDatabase()
         {
-            throw new NotImplementedException();
+            IDatabaseInitializer initializer = _databaseProvider.GetDatabaseInitializer();
+
+            foreach (Type type in _relationalObjectProvider.Keys)
+            {
+                TypeMappingOptions typeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(type);
+                initializer.AddTable(typeMappingOptions.TableName);
+                foreach (FieldMappingOptions memberMappineOptions in typeMappingOptions.MemberMappingOptions.OfType<FieldMappingOptions>().OrderBy(x => x.IsPrimaryKey))
+                {
+                    if (memberMappineOptions.Type == MappingType.ReferenceListMapping)
+                        continue;
+
+                    if (memberMappineOptions is ForeignObjectMappingOptions)
+                    {
+                        ForeignObjectMappingOptions foreignObjectMappingOptions = (ForeignObjectMappingOptions)memberMappineOptions;
+
+                        initializer.AddField(foreignObjectMappingOptions.DatabaseFieldName, foreignObjectMappingOptions.KeyType);
+
+                        FieldMappingOptions foreignFieldMappingOptions = foreignObjectMappingOptions.ForeignMember as FieldMappingOptions;
+                        TypeMappingOptions foreignTypeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(foreignObjectMappingOptions.ForeignObjectType);
+
+                        initializer.AddForeignKey(foreignTypeMappingOptions.TableName, foreignFieldMappingOptions.DatabaseFieldName);
+                    }
+                    else
+                        initializer.AddField(memberMappineOptions.DatabaseFieldName, memberMappineOptions.Member.PropertyType);
+
+                    if (memberMappineOptions.IsPrimaryKey)
+                        initializer.SetIsKeyField(memberMappineOptions.IsReadonly);
+                }
+            }
+
+            initializer.Flush();
         }
 
         #region IObjectProvider Members

@@ -72,37 +72,6 @@ namespace ObjectStore.OrMapping
 
         }
 
-        protected override Type DataBaseValueType
-        {
-            get
-            {
-                Type foreignPropertyType = null;
-                if (_options.ForeignMember is ForeignObjectMappingOptions)
-                {
-                    ForeignObjectMappingOptions currentOption = (ForeignObjectMappingOptions)_options.ForeignMember;
-                    while (true)
-                    {
-                        if (currentOption.ForeignMember is ForeignObjectMappingOptions)
-                        {
-                            currentOption = (ForeignObjectMappingOptions)currentOption.ForeignMember;
-                            if (currentOption.ForeignMember == _options.ForeignMember)
-                                throw new ApplicationException($"Circlereference with foreign object mappings. Property: {_options.Member}");
-                            continue;
-                        }
-
-                        foreignPropertyType = currentOption.ForeignMember.Member.PropertyType;
-                        break;
-                    }
-                }
-                else
-                    foreignPropertyType = _options.ForeignMember.Member.PropertyType;
-
-
-                if(foreignPropertyType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(foreignPropertyType) == null)
-                    return typeof(Nullable<>).MakeGenericType(foreignPropertyType);
-                else
-                    return foreignPropertyType;
-            }
-        }
+        protected override Type DataBaseValueType => _options.KeyType;
     }
 }

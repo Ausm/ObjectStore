@@ -21,6 +21,39 @@ namespace ObjectStore.MappingOptions
 
         public Type ForeignObjectType { get; set; }
 
+        public Type KeyType
+        {
+            get
+            {
+                Type foreignPropertyType = null;
+                if (ForeignMember is ForeignObjectMappingOptions)
+                {
+                    ForeignObjectMappingOptions currentOption = (ForeignObjectMappingOptions)ForeignMember;
+                    while (true)
+                    {
+                        if (currentOption.ForeignMember is ForeignObjectMappingOptions)
+                        {
+                            currentOption = (ForeignObjectMappingOptions)currentOption.ForeignMember;
+                            if (currentOption.ForeignMember == ForeignMember)
+                                throw new InvalidOperationException($"Circlereference with foreign object mappings. Property: {Member}");
+                            continue;
+                        }
+
+                        foreignPropertyType = currentOption.ForeignMember.Member.PropertyType;
+                        break;
+                    }
+                }
+                else
+                    foreignPropertyType = ForeignMember.Member.PropertyType;
+
+
+                if (foreignPropertyType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(foreignPropertyType) == null)
+                    return typeof(Nullable<>).MakeGenericType(foreignPropertyType);
+                else
+                    return foreignPropertyType;
+            }
+        }
+
         internal MemberMappingOptions ForeignMember
         {
             get

@@ -19,6 +19,8 @@ namespace ObjectStore.Database
 
         void ReleaseConnection(DbConnection connection);
 
+        IDatabaseInitializer GetDatabaseInitializer();
+
         event EventHandler ConnectionOpened;
 
     }
