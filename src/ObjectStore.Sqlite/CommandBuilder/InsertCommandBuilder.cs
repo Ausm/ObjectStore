@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Data.Sqlite;
 using System.Data.Common;
-using ObjectStore.OrMapping;
+using ObjectStore.Database;
 
 namespace ObjectStore.Sqlite
 {

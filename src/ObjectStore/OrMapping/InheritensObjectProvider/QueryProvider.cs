@@ -12,6 +12,7 @@ using System.Transactions;
 using System.ComponentModel;
 using System.Data.Common;
 using System.Threading.Tasks;
+using ObjectStore.Database;
 
 #if NETCOREAPP1_0
 namespace System.ComponentModel

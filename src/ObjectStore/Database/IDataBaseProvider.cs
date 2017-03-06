@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Common;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.Database
 {
     public interface IDataBaseProvider
     {

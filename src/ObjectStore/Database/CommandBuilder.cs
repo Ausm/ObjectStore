@@ -2,7 +2,7 @@
 using System.Data.Common;
 using System.Linq.Expressions;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.Database
 {
     public interface ICommandBuilder
     {

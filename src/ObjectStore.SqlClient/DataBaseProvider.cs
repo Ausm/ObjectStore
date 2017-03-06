@@ -1,5 +1,5 @@
-﻿using ObjectStore.Expressions;
-using ObjectStore.OrMapping;
+﻿using ObjectStore.Database;
+using ObjectStore.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
