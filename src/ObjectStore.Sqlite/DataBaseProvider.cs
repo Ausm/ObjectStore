@@ -301,9 +301,9 @@ namespace ObjectStore.Sqlite
             return command;
         }
 
-        public IDatabaseInitializer GetDatabaseInitializer()
+        public IDatabaseInitializer GetDatabaseInitializer(string connectionString)
         {
-            throw new NotImplementedException();
+            return new DataBaseInitializer(connectionString, this);
         }
 
         internal static DbCommand GetCommand() => _getCommand();

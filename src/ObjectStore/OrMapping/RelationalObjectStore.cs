@@ -63,7 +63,7 @@ namespace ObjectStore.OrMapping
 
         public void InitializeDatabase()
         {
-            IDatabaseInitializer initializer = _databaseProvider.GetDatabaseInitializer();
+            IDatabaseInitializer initializer = _databaseProvider.GetDatabaseInitializer(_connectionString);
 
             foreach (Type type in _relationalObjectProvider.Keys)
             {

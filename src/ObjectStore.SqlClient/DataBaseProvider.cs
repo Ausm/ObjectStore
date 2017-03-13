@@ -289,7 +289,7 @@ namespace ObjectStore.SqlClient
             return command;
         }
 
-        public IDatabaseInitializer GetDatabaseInitializer()
+        public IDatabaseInitializer GetDatabaseInitializer(string connectionString)
         {
             throw new NotImplementedException();
         }
