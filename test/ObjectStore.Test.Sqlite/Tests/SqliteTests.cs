@@ -2,6 +2,7 @@
 using Xunit.Abstractions;
 using System;
 using ObjectStore.Test.Tests;
+using ObjectStore.Sqlite;
 using System.Collections.Generic;
 
 namespace ObjectStore.Test.Sqlite
@@ -127,5 +128,30 @@ namespace ObjectStore.Test.Sqlite
             return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])\s+\k<C>\s*(,\s*|\s+(?=FROM))){6}FROM\s+""dbo\.SubTestTable""\s+\k<T>\s+" + joinPattern + "$";
         }
         #endregion
+    }
+
+    public class SqliteAdditionalTests
+    {
+        #region Tests
+        [Fact]
+        public void TestInitialize()
+        {
+            OrMapping.RelationalObjectStore relationalObjectProvider;
+            
+            ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(relationalObjectProvider = new OrMapping.RelationalObjectStore("Data Source=file::memory:?cache=shared;", DataBaseProvider.Instance, new MappingOptions.MappingOptionsSet().AddDefaultRules(), true));
+
+            relationalObjectProvider.Register<Entities.Test>();
+            relationalObjectProvider.Register<Entities.SubTest>();
+            relationalObjectProvider.Register<Entities.DifferentTypes>();
+            relationalObjectProvider.Register<Entities.DifferentWritabilityLevels>();
+            relationalObjectProvider.Register<Entities.ForeignObjectKey>();
+            relationalObjectProvider.Register<Entities.NonInitializedKey>();
+            relationalObjectProvider.InitializeDatabase();
+
+            Assert.True(false);
+
+        }
+        #endregion
+
     }
 }

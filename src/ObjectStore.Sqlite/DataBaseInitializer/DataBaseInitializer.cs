@@ -24,12 +24,11 @@ namespace ObjectStore.Sqlite
 
             public IEnumerable<AddFieldStatment> FieldStatements => _fieldStatements;
 
-            public void AddFieldStatement(string fieldname, Type type, bool isPrimaryKey, bool isAutoincrement)
+            public AddFieldStatment AddFieldStatement(string fieldname, Type type)
             {
-                if (isPrimaryKey)
-                    _fieldStatements.Insert(0, new AddFieldStatment(this, fieldname, type, isPrimaryKey, isAutoincrement));
-                else
-                    _fieldStatements.Add(new AddFieldStatment(this, fieldname, type, isPrimaryKey, isAutoincrement));
+                AddFieldStatment statement;
+                _fieldStatements.Add(statement = new AddFieldStatment(this, fieldname, type));
+                return statement;
             }
         }
 
@@ -46,24 +45,24 @@ namespace ObjectStore.Sqlite
             string _foreignKeyTableName;
             string _foreignKeyFieldName;
 
-            public AddFieldStatment(AddTableStatement addTableStatment, string fieldname, Type type, bool isPrimaryKey, bool isAutoincrement) : this (fieldname, type, isPrimaryKey, isAutoincrement)
+            public AddFieldStatment(AddTableStatement addTableStatment, string fieldname, Type type) : this (fieldname, type)
             {
                 _parentTableStatment = addTableStatment;
                 _tableName = null;
             }
 
-            public AddFieldStatment(string tableName, string fieldname, Type type, bool isPrimaryKey, bool isAutoincrement) : this(fieldname, type, isPrimaryKey, isAutoincrement)
+            public AddFieldStatment(string tableName, string fieldname, Type type) : this(fieldname, type)
             {
                 _parentTableStatment = null;
                 _tableName = tableName;
             }
 
-            AddFieldStatment(string fieldname, Type type, bool isPrimaryKey, bool isAutoincrement)
+            AddFieldStatment(string fieldname, Type type)
             {
                 _fieldname = fieldname;
                 _type = type;
-                _isPrimaryKey = isPrimaryKey;
-                _isAutoincrement = isAutoincrement;
+                _isPrimaryKey = false;
+                _isAutoincrement = false;
             }
 
             public string Fieldname => _fieldname;
@@ -74,6 +73,12 @@ namespace ObjectStore.Sqlite
             {
                 _foreignKeyFieldName = fieldName;
                 _foreignKeyTableName = tableName;
+            }
+
+            public void SetPrimaryKey(bool autoincrement)
+            {
+                _isPrimaryKey = true;
+                _isAutoincrement = autoincrement;
             }
         }
         #endregion
@@ -86,7 +91,8 @@ namespace ObjectStore.Sqlite
         List<AddFieldStatment> _fieldStatments;
 
         AddTableStatement _currentTableStatment;
-        string _currentTableName;
+        ITableInfo _currentTableInfo;
+        AddFieldStatment _currentAddFieldStatment;
         #endregion
 
         #region Contructors
@@ -98,7 +104,7 @@ namespace ObjectStore.Sqlite
             _tableStatments = new List<AddTableStatement>();
             _fieldStatments = new List<AddFieldStatment>();
 
-            _currentTableName = null;
+            _currentTableInfo = null;
             _currentTableStatment = null;
         }
         #endregion
@@ -106,27 +112,42 @@ namespace ObjectStore.Sqlite
         #region IDatabaseInitializer member
         public void AddField(string fieldname, Type type)
         {
-            throw new NotImplementedException();
+            if (_currentTableStatment != null)
+            {
+                _currentAddFieldStatment = _currentTableStatment.AddFieldStatement(fieldname, type);
+            }
+            else if (_currentTableInfo != null)
+            {
+                _fieldStatments.Add(new AddFieldStatment(_currentTableInfo.TableName, fieldname, type));
+            }
+            else
+                throw new InvalidOperationException("No Table selected");
         }
 
         public void AddForeignKey(string foreignTableName, string foreignKeyFieldName)
         {
-            throw new NotImplementedException();
+            _currentAddFieldStatment.SetForeignKey(foreignTableName, foreignKeyFieldName);
         }
 
         public void AddTable(string tableName)
         {
-            throw new NotImplementedException();
+            _currentTableInfo = _databaseProvider.GetTableInfo(tableName, _connectionString);
+            _currentTableStatment = _currentTableInfo == null ? new AddTableStatement(tableName) : null;
         }
 
         public void Flush()
         {
+            _currentAddFieldStatment = null;
+            _currentTableInfo = null;
+            _currentTableStatment = null;
+
+            // TODO
             throw new NotImplementedException();
         }
 
         public void SetIsKeyField(bool isAutoIncrement)
         {
-            throw new NotImplementedException();
+            _currentAddFieldStatment.SetPrimaryKey(isAutoIncrement);
         }
         #endregion
     }
