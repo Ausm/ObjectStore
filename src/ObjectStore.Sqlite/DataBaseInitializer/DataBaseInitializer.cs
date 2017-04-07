@@ -1,8 +1,11 @@
 ﻿using ObjectStore.Database;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.Text;
+using System.Xml.Linq;
 
 namespace ObjectStore.Sqlite
 {
@@ -45,7 +48,7 @@ namespace ObjectStore.Sqlite
             string _foreignKeyTableName;
             string _foreignKeyFieldName;
 
-            public AddFieldStatment(AddTableStatement addTableStatment, string fieldname, Type type) : this (fieldname, type)
+            public AddFieldStatment(AddTableStatement addTableStatment, string fieldname, Type type) : this(fieldname, type)
             {
                 _parentTableStatment = addTableStatment;
                 _tableName = null;
@@ -63,11 +66,23 @@ namespace ObjectStore.Sqlite
                 _type = type;
                 _isPrimaryKey = false;
                 _isAutoincrement = false;
+                _foreignKeyFieldName = null;
+                _foreignKeyTableName = null;
             }
 
             public string Fieldname => _fieldname;
 
             public Type Type => _type;
+
+            public bool IsPrimaryKey => _isPrimaryKey;
+
+            public bool IsAutoincrement => _isPrimaryKey && _isAutoincrement;
+
+            public bool HasForeignKey => string.IsNullOrWhiteSpace(_foreignKeyTableName) || string.IsNullOrWhiteSpace(_foreignKeyFieldName);
+
+            public string ForeignTable => _foreignKeyTableName;
+
+            public string ForeignField => _foreignKeyFieldName;
 
             public void SetForeignKey(string tableName, string fieldName)
             {
@@ -96,6 +111,9 @@ namespace ObjectStore.Sqlite
         #endregion
 
         #region Contructors
+        static DataBaseInitializer()
+        {
+        }
         public DataBaseInitializer(string connectionString, DataBaseProvider databaseProvider)
         {
             _databaseProvider = databaseProvider;
@@ -133,6 +151,8 @@ namespace ObjectStore.Sqlite
         {
             _currentTableInfo = _databaseProvider.GetTableInfo(tableName, _connectionString);
             _currentTableStatment = _currentTableInfo == null ? new AddTableStatement(tableName) : null;
+            if (_currentTableStatment != null)
+                _tableStatments.Add(_currentTableStatment);
         }
 
         public void Flush()
@@ -140,10 +160,92 @@ namespace ObjectStore.Sqlite
             _currentAddFieldStatment = null;
             _currentTableInfo = null;
             _currentTableStatment = null;
+            StringBuilder stringBuilder = new StringBuilder();
 
-            // TODO
-            throw new NotImplementedException();
+            foreach (AddTableStatement tableStatment in _tableStatments)
+            {
+                stringBuilder.Append($"CREATE TABLE {Qoute(tableStatment.Tablename)} (");
+                bool first = true;
+                foreach (AddFieldStatment fieldStatement in tableStatment.FieldStatements)
+                {
+                    if (first)
+                        first = false;
+                    else
+                        stringBuilder.AppendLine(",");
+
+                    stringBuilder.Append(Qoute(fieldStatement.Fieldname)).Append(" ").Append(GetDbTypeString(fieldStatement.Type));
+
+                    if (fieldStatement.IsPrimaryKey)
+                    {
+                        stringBuilder.Append(" PRIMARY KEY");
+                        if (fieldStatement.IsAutoincrement)
+                            stringBuilder.Append(" AUTOINCREMENT");
+                    }
+                }
+
+                foreach (AddFieldStatment fieldStatement in tableStatment.FieldStatements.Where(x => x.HasForeignKey))
+                    stringBuilder.AppendLine(",").Append("FOREIGN KEY(").Append(Qoute(fieldStatement.Fieldname)).Append(") REFERENCES ").Append(Qoute($"{fieldStatement.ForeignTable}({fieldStatement.ForeignField})"));
+
+                stringBuilder.AppendLine(");");
+            }
+
+            foreach (AddFieldStatment tableStatment in _fieldStatments)
+            {
+                throw new NotImplementedException();
+            }
+
+            using (DbCommand command = DataBaseProvider.GetCommand())
+            {
+                using (DbConnection connection = _databaseProvider.GetConnection(_connectionString))
+                {
+                    if (connection.State != System.Data.ConnectionState.Open)
+                        connection.Open();
+
+                    command.Connection = connection;
+                    command.CommandText = stringBuilder.ToString();
+                    command.ExecuteNonQuery();
+                }
+            }
+
+
         }
+
+        static string Qoute(string value) => "`" + value.Replace("`", "``") + "`";
+
+        static string GetDbTypeString(Type type)
+        {
+            
+            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                return GetDbTypeStringNotNull(type.GenericTypeArguments[0]);
+
+            return GetDbTypeStringNotNull(type) + " NOT NULL";
+        }
+
+        static string GetDbTypeStringNotNull(Type type)
+        {
+            if (type == typeof(int) ||
+                type == typeof(long) ||
+                type == typeof(short) ||
+                type == typeof(byte) ||
+                type == typeof(bool))
+                return "INTEGER";
+            if (type == typeof(string) ||
+                type == typeof(XElement))
+                return "TEXT";
+            if (type == typeof(DateTime))
+                return "TIMESTAMP";
+            if (type == typeof(Guid) ||
+                type == typeof(byte[]))
+                return "BLOB";
+            if (type == typeof(Double) ||
+                type == typeof(Single) ||
+                type == typeof(Decimal))
+                return "REAL";
+
+            throw new NotSupportedException($"DataType {type.FullName} is not supported for database initialization.");
+        }
+
+
 
         public void SetIsKeyField(bool isAutoIncrement)
         {

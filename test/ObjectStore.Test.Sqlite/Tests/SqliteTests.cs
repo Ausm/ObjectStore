@@ -136,9 +136,7 @@ namespace ObjectStore.Test.Sqlite
         [Fact]
         public void TestInitialize()
         {
-            OrMapping.RelationalObjectStore relationalObjectProvider;
-            
-            ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(relationalObjectProvider = new OrMapping.RelationalObjectStore("Data Source=file::memory:?cache=shared;", DataBaseProvider.Instance, new MappingOptions.MappingOptionsSet().AddDefaultRules(), true));
+            OrMapping.RelationalObjectStore relationalObjectProvider = new OrMapping.RelationalObjectStore("Data Source=file::memory:?cache=shared;", DataBaseProvider.Instance, new MappingOptions.MappingOptionsSet().AddDefaultRules(), true);
 
             relationalObjectProvider.Register<Entities.Test>();
             relationalObjectProvider.Register<Entities.SubTest>();
@@ -147,9 +145,6 @@ namespace ObjectStore.Test.Sqlite
             relationalObjectProvider.Register<Entities.ForeignObjectKey>();
             relationalObjectProvider.Register<Entities.NonInitializedKey>();
             relationalObjectProvider.InitializeDatabase();
-
-            Assert.True(false);
-
         }
         #endregion
 
