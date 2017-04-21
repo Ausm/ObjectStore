@@ -29,16 +29,19 @@ namespace ObjectStore.Test.Sqlite
         {
             _isInitialized = false;
 
-            if (_objectProvider == null)
-                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("Data Source=file::memory:?cache=shared;Version=3;New=True;", DataBaseProvider.Instance, new MappingOptionsSet().AddDefaultRules(), true));
+            RelationalObjectStore relationalObjectProvider = new RelationalObjectStore("Data Source=file::memory:?cache=shared;", DataBaseProvider.Instance, new MappingOptionsSet().AddDefaultRules(), true);
+            ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = relationalObjectProvider);
+            relationalObjectProvider.Register<Entities.DifferentTypes>();
+            relationalObjectProvider.Register<Entities.DifferentWritabilityLevels>();
+            relationalObjectProvider.Register<Entities.ForeignObjectKey>();
+            relationalObjectProvider.Register<Entities.NonInitializedKey>();
+            relationalObjectProvider.Register<Entities.SubTest>();
+            relationalObjectProvider.Register<Entities.Test>();
+            relationalObjectProvider.InitializeDatabase();
 
             Func<DbCommand> getCommand = () => new Command(GetReader);
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getCommand", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
                 .SetValue(null, getCommand);
-
-            Func<string, DbConnection> getConnection = x => new Connection(x);
-            typeof(DataBaseProvider).GetTypeInfo().GetField("_getConnection", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
-                .SetValue(null, getConnection);
 
             _resultManager = new ResultManager<Query>();
         }
@@ -89,18 +92,10 @@ namespace ObjectStore.Test.Sqlite
                 foreach(Query key in keys)
                     HitCommand(this, new HitCommandEventArgs(key));
 
-            string directory = Path.Combine(Path.GetDirectoryName(typeof(SqliteDatabaseFixture).GetTypeInfo().Assembly.Location), "Resources");
-            File.Copy(Path.Combine(directory, "Test.sqlite3"), Path.Combine(directory, "test.db"), true);
-
-            SqliteConnection connection = new SqliteConnection("Data Source=Resources/test.db");
-            connection.Open();
-
-            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, connection);
+            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, (SqliteConnection)command.Connection);
             sqliteCommand.Parameters.AddRange(command.Parameters.Cast<SqliteParameter>());
 
             return sqliteCommand.ExecuteReader();
-
-            //return returnValue;
         }
         #endregion
 

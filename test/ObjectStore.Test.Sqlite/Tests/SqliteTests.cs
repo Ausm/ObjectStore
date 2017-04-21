@@ -129,24 +129,4 @@ namespace ObjectStore.Test.Sqlite
         }
         #endregion
     }
-
-    public class SqliteAdditionalTests
-    {
-        #region Tests
-        [Fact]
-        public void TestInitialize()
-        {
-            OrMapping.RelationalObjectStore relationalObjectProvider = new OrMapping.RelationalObjectStore("Data Source=file::memory:?cache=shared;", DataBaseProvider.Instance, new MappingOptions.MappingOptionsSet().AddDefaultRules(), true);
-
-            relationalObjectProvider.Register<Entities.Test>();
-            relationalObjectProvider.Register<Entities.SubTest>();
-            relationalObjectProvider.Register<Entities.DifferentTypes>();
-            relationalObjectProvider.Register<Entities.DifferentWritabilityLevels>();
-            relationalObjectProvider.Register<Entities.ForeignObjectKey>();
-            relationalObjectProvider.Register<Entities.NonInitializedKey>();
-            relationalObjectProvider.InitializeDatabase();
-        }
-        #endregion
-
-    }
 }

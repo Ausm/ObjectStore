@@ -196,7 +196,8 @@ namespace ObjectStore.Sqlite
 
             using (DbCommand command = DataBaseProvider.GetCommand())
             {
-                using (DbConnection connection = _databaseProvider.GetConnection(_connectionString))
+                DbConnection connection = _databaseProvider.GetConnection(_connectionString);
+                try
                 {
                     if (connection.State != System.Data.ConnectionState.Open)
                         connection.Open();
@@ -205,12 +206,22 @@ namespace ObjectStore.Sqlite
                     command.CommandText = stringBuilder.ToString();
                     command.ExecuteNonQuery();
                 }
+                finally
+                {
+                    _databaseProvider.ReleaseConnection(connection);
+                }
             }
 
 
         }
 
-        static string Qoute(string value) => "`" + value.Replace("`", "``") + "`";
+        static string Qoute(string value)
+        {
+            if (value.StartsWith("[") && value.EndsWith("]"))
+                value = value.Substring(1, value.Length - 2);
+
+            return "`" + value.Replace("`", "``") + "`";
+        }
 
         static string GetDbTypeString(Type type)
         {
