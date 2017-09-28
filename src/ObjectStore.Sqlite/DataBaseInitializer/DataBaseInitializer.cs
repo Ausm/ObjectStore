@@ -36,6 +36,7 @@ namespace ObjectStore.Sqlite
             bool HasForeignKey { get; }
             string ForeignTable { get; }
             string ForeignField { get; }
+            IStatement Statement { get; }
         }
 
         class AddTableStatement : IAddTableStatement
@@ -58,7 +59,7 @@ namespace ObjectStore.Sqlite
             public Field AddFieldStatement(string fieldname, Type type)
             {
                 Field statement;
-                _fieldStatements.Add(statement = new Field(fieldname, type));
+                _fieldStatements.Add(statement = new Field(fieldname, type, this));
                 return statement;
             }
         }
@@ -68,10 +69,10 @@ namespace ObjectStore.Sqlite
             string _tablename;
             Field _fieldStatement;
 
-            public AlterTableStatement(string tablename, Field fieldStatement)
+            public AlterTableStatement(string tablename, string fieldname, Type type)
             {
                 _tablename = tablename;
-                _fieldStatement = fieldStatement;
+                _fieldStatement = new Field(fieldname, type, this);
             }
 
             public string Tablename => _tablename;
@@ -87,14 +88,16 @@ namespace ObjectStore.Sqlite
             Type _type;
             bool _isPrimaryKey;
             bool _isAutoincrement;
+            IStatement _statement;
 
             string _foreignKeyTableName;
             string _foreignKeyFieldName;
 
-            public Field(string fieldname, Type type)
+            public Field(string fieldname, Type type, IStatement statement)
             {
                 _fieldname = fieldname;
                 _type = type;
+                _statement = statement;
                 _isPrimaryKey = false;
                 _isAutoincrement = false;
                 _foreignKeyFieldName = null;
@@ -109,11 +112,13 @@ namespace ObjectStore.Sqlite
 
             public bool IsAutoincrement => _isPrimaryKey && _isAutoincrement;
 
-            public bool HasForeignKey => string.IsNullOrWhiteSpace(_foreignKeyTableName) || string.IsNullOrWhiteSpace(_foreignKeyFieldName);
+            public bool HasForeignKey => !string.IsNullOrWhiteSpace(_foreignKeyTableName) || !string.IsNullOrWhiteSpace(_foreignKeyFieldName);
 
             public string ForeignTable => _foreignKeyTableName;
 
             public string ForeignField => _foreignKeyFieldName;
+
+            public IStatement Statement => _statement;
 
             public void SetForeignKey(string tableName, string fieldName)
             {
@@ -138,9 +143,9 @@ namespace ObjectStore.Sqlite
         ITableInfo _currentTableInfo;
         Field _currentAddFieldStatment;
 
-        List<Tuple<Func<IStatement, bool>, Func<IStatement, string>>> _registeredCreateTableParseMethods;
-        List<Tuple<Func<IField, bool>, Func<IField, string>>> _registeredAddFieldParseMethods;
-        List<Tuple<Func<IField, bool>, Func<IField, string>>> _registeredAddConstraintParseMethods;
+        List<Tuple<Func<IStatement, bool>, Func<IStatement, string, string>>> _registeredCreateTableParseMethods;
+        List<Tuple<Func<IField, bool>, Func<IField, string, string>>> _registeredAddFieldParseMethods;
+        List<Tuple<Func<IField, bool>, Func<IField, string, string>>> _registeredAddConstraintParseMethods;
         #endregion
 
         #region Contructors
@@ -157,74 +162,33 @@ namespace ObjectStore.Sqlite
             _currentTableInfo = null;
             _currentTableStatment = null;
 
-            _registeredCreateTableParseMethods = new List<Tuple<Func<IStatement, bool>, Func<IStatement, string>>>();
-            _registeredAddFieldParseMethods = new List<Tuple<Func<IField, bool>, Func<IField, string>>>();
-            _registeredAddConstraintParseMethods = new List<Tuple<Func<IField, bool>, Func<IField, string>>>();
+            _registeredCreateTableParseMethods = new List<Tuple<Func<IStatement, bool>, Func<IStatement, string, string>>>();
+            _registeredAddFieldParseMethods = new List<Tuple<Func<IField, bool>, Func<IField, string, string>>>();
+            _registeredAddConstraintParseMethods = new List<Tuple<Func<IField, bool>, Func<IField, string, string>>>();
 
-            InsertParseFunc(_registeredCreateTableParseMethods, x => true, DefaultParseCreateTableStatement, false);
-            InsertParseFunc(_registeredAddFieldParseMethods, x => true, DefaultParseAddFieldStatement, false);
-            InsertParseFunc(_registeredAddConstraintParseMethods, x => true, DefaultParseAddConstraintStatement, false);
+            AddParseFunc(_registeredCreateTableParseMethods, x => true, DefaultParseCreateTableStatement, false);
+            AddParseFunc(_registeredAddFieldParseMethods, x => true, DefaultParseAddFieldStatement, false);
+            AddParseFunc(_registeredAddConstraintParseMethods, x => true, DefaultParseAddConstraintStatement, false);
         }
         #endregion
 
         #region Methods
-        public void RegisterCreateTableStatement(Func<IStatement, bool> predicate, Func<IStatement, string> parseFunc)
+        public void RegisterCreateTableStatement(Func<IStatement, bool> predicate, Func<IStatement, string, string> parseFunc)
         {
-            InsertParseFunc(_registeredCreateTableParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
+            AddParseFunc(_registeredCreateTableParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
 
-        public void RegisterAddFieldStatment(Func<IField, bool> predicate, Func<IField, string> parseFunc)
+        public void RegisterAddFieldStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
         {
-            InsertParseFunc(_registeredAddFieldParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
+            AddParseFunc(_registeredAddFieldParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
 
-        public void RegisterAddConstraintStatment(Func<IField, bool> predicate, Func<IField, string> parseFunc)
+        public void RegisterAddConstraintStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
         {
-            InsertParseFunc(_registeredAddConstraintParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
+            AddParseFunc(_registeredAddConstraintParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
 
-        void InsertParseFunc<T1, T2>(List<Tuple<T1, T2>> methodsList, T1 predicate, T2 method, bool clear)
-        {
-            if (clear)
-                methodsList.Clear();
-
-            methodsList.Insert(0, Tuple.Create(predicate, method));
-        }
-
-        string ParseStatement(IStatement addTableStatement)
-        {
-            foreach (var item in _registeredCreateTableParseMethods)
-            {
-                if (item.Item1(addTableStatement))
-                    return item.Item2(addTableStatement);
-            }
-
-            return DefaultParseCreateTableStatement(addTableStatement);
-        }
-
-        string ParseFieldStatement(IField addFieldStatement)
-        {
-            foreach (var item in _registeredAddFieldParseMethods)
-            {
-                if (item.Item1(addFieldStatement))
-                    return item.Item2(addFieldStatement);
-            }
-
-            return DefaultParseAddFieldStatement(addFieldStatement);
-        }
-
-        string ParseConstraintStatement(IField addFieldStatement)
-        {
-            foreach (var item in _registeredAddConstraintParseMethods)
-            {
-                if (item.Item1(addFieldStatement))
-                    return item.Item2(addFieldStatement);
-            }
-
-            return DefaultParseAddConstraintStatement(addFieldStatement);
-        }
-
-        protected virtual string DefaultParseCreateTableStatement(IStatement completeStatement)
+        protected virtual string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult)
         {
             if (completeStatement is IAddTableStatement)
             {
@@ -250,7 +214,7 @@ namespace ObjectStore.Sqlite
             return null;
         }
 
-        protected virtual string DefaultParseAddFieldStatement(IField addFieldStatement)
+        protected virtual string DefaultParseAddFieldStatement(IField addFieldStatement, string previousParseResult)
         {
             StringBuilder stringBuilder = new StringBuilder(Qoute(addFieldStatement.Fieldname)).Append(" ").Append(GetDbTypeString(addFieldStatement.Type));
             if (addFieldStatement.IsPrimaryKey)
@@ -263,13 +227,34 @@ namespace ObjectStore.Sqlite
             return stringBuilder.ToString();
         }
 
-        protected virtual string DefaultParseAddConstraintStatement(IField addFieldStatement)
+        protected virtual string DefaultParseAddConstraintStatement(IField addFieldStatement, string previousParseResult)
         {
             StringBuilder stringBuilder = new StringBuilder();
             if(addFieldStatement.HasForeignKey)
-                stringBuilder.Append("FOREIGN KEY(").Append(Qoute(addFieldStatement.Fieldname)).Append(") REFERENCES ").Append(Qoute($"{addFieldStatement.ForeignTable}({addFieldStatement.ForeignField})"));
+                stringBuilder.Append("FOREIGN KEY(").Append(Qoute(addFieldStatement.Fieldname)).Append(") REFERENCES ").Append($"{Qoute(addFieldStatement.ForeignTable)}({Qoute(addFieldStatement.ForeignField)})");
 
             return stringBuilder.Length == 0 ? default(string) : stringBuilder.ToString();
+        }
+
+        void AddParseFunc<T1, T2>(List<Tuple<T1, T2>> methodsList, T1 predicate, T2 method, bool clear)
+        {
+            methodsList.Add(Tuple.Create(predicate, method));
+        }
+
+        string ParseStatement(IStatement addTableStatement) => Parse(addTableStatement, _registeredCreateTableParseMethods);
+
+        string ParseFieldStatement(IField addFieldStatement) => Parse(addFieldStatement, _registeredAddFieldParseMethods);
+
+        string ParseConstraintStatement(IField addFieldStatement) => Parse(addFieldStatement, _registeredAddConstraintParseMethods);
+
+        string Parse<T>(T statment, IEnumerable<Tuple<Func<T, bool>, Func<T, string, string>>> parseMethods)
+        {
+            string returnValue = null;
+            foreach (Tuple<Func<T, bool>, Func<T, string, string>> item in parseMethods.Where(x => x.Item1(statment)))
+            {
+                returnValue = item.Item2(statment, returnValue);
+            }
+            return returnValue;
         }
         #endregion
 
@@ -282,7 +267,7 @@ namespace ObjectStore.Sqlite
             }
             else if (_currentTableInfo != null)
             {
-                _tableStatments.Add(new AlterTableStatement(_currentTableInfo.TableName, new Field(fieldname, type)));
+                _tableStatments.Add(new AlterTableStatement(_currentTableInfo.TableName, fieldname, type));
             }
             else
                 throw new InvalidOperationException("No Table selected");

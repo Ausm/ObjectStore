@@ -301,10 +301,9 @@ namespace ObjectStore.Sqlite
             return command;
         }
 
-        public IDatabaseInitializer GetDatabaseInitializer(string connectionString)
-        {
-            return new DataBaseInitializer(connectionString, this);
-        }
+        public DataBaseInitializer GetDatabaseInitializer(string connectionString) =>  new DataBaseInitializer(connectionString, this);
+        
+        IDatabaseInitializer IDataBaseProvider.GetDatabaseInitializer(string connectionString) => GetDatabaseInitializer(connectionString);
 
         internal static DbCommand GetCommand() => _getCommand();
 
