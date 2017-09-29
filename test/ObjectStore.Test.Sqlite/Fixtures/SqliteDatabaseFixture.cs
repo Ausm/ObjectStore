@@ -8,7 +8,6 @@ using ObjectStore.Test.Mocks;
 using System.Text.RegularExpressions;
 using ObjectStore.Test.Tests;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Data.Sqlite;
 using System.Linq;
 using ObjectStore.Test.Fixtures;
@@ -22,6 +21,8 @@ namespace ObjectStore.Test.Sqlite
         IObjectProvider _objectProvider;
         ResultManager<Query> _resultManager;
         bool _isInitialized;
+        SqliteConnection _connection;
+        SqliteTransaction _transaction;
         #endregion
 
         #region Constructor
@@ -60,6 +61,8 @@ namespace ObjectStore.Test.Sqlite
                 .SetValue(null, getCommand);
 
             _resultManager = new ResultManager<Query>();
+
+            _connection = (SqliteConnection)DataBaseProvider.Instance.GetConnection(connectionString);
         }
         #endregion
 
@@ -93,6 +96,19 @@ namespace ObjectStore.Test.Sqlite
             }
         }
 
+        public SqliteTransaction BeginTransaction()
+        {
+            _transaction?.Rollback();
+            _transaction = _connection.BeginTransaction();
+            return _transaction;
+        }
+
+        public void RollbackTransaction()
+        {
+            _transaction?.Rollback();
+            _transaction = null;
+        }
+
         public void Dispose()
         {
         }
@@ -108,7 +124,8 @@ namespace ObjectStore.Test.Sqlite
                 foreach(Query key in keys)
                     HitCommand(this, new HitCommandEventArgs(key));
 
-            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, (SqliteConnection)command.Connection);
+            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, (SqliteConnection)_connection);
+            sqliteCommand.Transaction = _transaction;
             sqliteCommand.Parameters.AddRange(command.Parameters.Cast<SqliteParameter>());
 
             return sqliteCommand.ExecuteReader();

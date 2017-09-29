@@ -2,21 +2,20 @@
 using Xunit.Abstractions;
 using System;
 using ObjectStore.Test.Tests;
-using ObjectStore.Sqlite;
 using System.Collections.Generic;
 
 namespace ObjectStore.Test.Sqlite
 {
-    public class SqliteTests : TestsBase, IClassFixture<SqliteDatabaseFixture>
+    public class SqliteTests : TestsBase, IClassFixture<SqliteDatabaseFixture>, IDisposable
     {
+        SqliteDatabaseFixture _databaseFixture;
+        
         #region Constructor
-        static SqliteTests()
-        {
-        }
-
         public SqliteTests(SqliteDatabaseFixture databaseFixture, ITestOutputHelper output) :
             base(databaseFixture, output)
         {
+            databaseFixture.BeginTransaction();
+            _databaseFixture = databaseFixture;
         }
         #endregion
 
@@ -126,6 +125,11 @@ namespace ObjectStore.Test.Sqlite
         string GetForeignObjectExpressionPattern(string joinPattern)
         {
             return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])\s+\k<C>\s*(,\s*|\s+(?=FROM))){6}FROM\s+""dbo\.SubTestTable""\s+\k<T>\s+" + joinPattern + "$";
+        }
+
+        public void Dispose()
+        {
+            _databaseFixture.RollbackTransaction();
         }
         #endregion
     }
