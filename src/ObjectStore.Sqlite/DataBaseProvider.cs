@@ -1,5 +1,4 @@
 ﻿using ObjectStore.Expressions;
-using ObjectStore.OrMapping;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -7,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
+using ObjectStore.Database;
 
 namespace ObjectStore.Sqlite
 {
@@ -300,6 +300,10 @@ namespace ObjectStore.Sqlite
 
             return command;
         }
+
+        public DataBaseInitializer GetDatabaseInitializer(string connectionString) =>  new DataBaseInitializer(connectionString, this);
+        
+        IDatabaseInitializer IDataBaseProvider.GetDatabaseInitializer(string connectionString) => GetDatabaseInitializer(connectionString);
 
         internal static DbCommand GetCommand() => _getCommand();
 

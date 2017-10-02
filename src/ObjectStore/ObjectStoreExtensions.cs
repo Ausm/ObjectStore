@@ -6,6 +6,7 @@ using System.Reflection;
 using System;
 using System.Linq;
 using System.ComponentModel;
+using ObjectStore.Database;
 
 namespace ObjectStore
 {

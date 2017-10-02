@@ -1,4 +1,5 @@
-﻿using ObjectStore.Interfaces;
+﻿using ObjectStore.Database;
+using ObjectStore.Interfaces;
 using ObjectStore.MappingOptions;
 using System;
 using System.Collections.Generic;

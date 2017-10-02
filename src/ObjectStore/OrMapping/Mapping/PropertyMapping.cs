@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using ObjectStore.MappingOptions;
+using ObjectStore.Database;
 
 namespace ObjectStore.OrMapping
 {
@@ -146,11 +147,11 @@ namespace ObjectStore.OrMapping
                 generator.Emit(OpCodes.Box, DataBaseValueType);
             
             generator.Emit(OpCodes.Ldc_I4, (int)
-                (IsPrimaryKey ? OrMapping.FieldType.KeyField :
-                IsInsertable && IsUpdateAble ? OrMapping.FieldType.WriteableField :
-                IsInsertable ? OrMapping.FieldType.InsertableField :
-                IsUpdateAble ? OrMapping.FieldType.UpdateableField :
-                    OrMapping.FieldType.ReadOnlyField));
+                (IsPrimaryKey ? Database.FieldType.KeyField :
+                IsInsertable && IsUpdateAble ? Database.FieldType.WriteableField :
+                IsInsertable ? Database.FieldType.InsertableField :
+                IsUpdateAble ? Database.FieldType.UpdateableField :
+                    Database.FieldType.ReadOnlyField));
 
             if (!IsPrimaryKey || IsInsertable)
                 generator.Emit(OpCodes.Ldnull);
@@ -221,12 +222,12 @@ namespace ObjectStore.OrMapping
 
         public override void FillCommandBuilder(ICommandBuilder commandBuilder)
         {
-            OrMapping.FieldType fieldType = 
-                IsPrimaryKey ? OrMapping.FieldType.KeyField :
-                IsInsertable && IsUpdateAble ? OrMapping.FieldType.WriteableField :
-                IsInsertable ? OrMapping.FieldType.InsertableField :
-                IsUpdateAble ? OrMapping.FieldType.UpdateableField :
-                    OrMapping.FieldType.ReadOnlyField;
+            FieldType fieldType = 
+                IsPrimaryKey ? Database.FieldType.KeyField :
+                IsInsertable && IsUpdateAble ? Database.FieldType.WriteableField :
+                IsInsertable ? Database.FieldType.InsertableField :
+                IsUpdateAble ? Database.FieldType.UpdateableField :
+                    Database.FieldType.ReadOnlyField;
 
             commandBuilder.AddField(FieldName, fieldType);
         }

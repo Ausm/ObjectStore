@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.Database
 {
     public interface IValueSource : IDisposable
     {

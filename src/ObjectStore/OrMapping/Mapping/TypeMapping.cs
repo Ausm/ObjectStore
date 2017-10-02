@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using ObjectStore.MappingOptions;
 using System.ComponentModel;
+using ObjectStore.Database;
 
 namespace ObjectStore.OrMapping
 {

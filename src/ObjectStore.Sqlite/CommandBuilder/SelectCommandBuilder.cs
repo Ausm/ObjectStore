@@ -7,6 +7,7 @@ using ObjectStore.OrMapping;
 using System.Linq.Expressions;
 using System.Linq;
 using ObjectStore.MappingOptions;
+using ObjectStore.Database;
 
 namespace ObjectStore.Sqlite
 {

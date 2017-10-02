@@ -8,7 +8,6 @@ using ObjectStore.Test.Mocks;
 using System.Text.RegularExpressions;
 using ObjectStore.Test.Tests;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Data.Sqlite;
 using System.Linq;
 using ObjectStore.Test.Fixtures;
@@ -22,6 +21,8 @@ namespace ObjectStore.Test.Sqlite
         IObjectProvider _objectProvider;
         ResultManager<Query> _resultManager;
         bool _isInitialized;
+        SqliteConnection _connection;
+        SqliteTransaction _transaction;
         #endregion
 
         #region Constructor
@@ -29,18 +30,39 @@ namespace ObjectStore.Test.Sqlite
         {
             _isInitialized = false;
 
-            if (_objectProvider == null)
-                ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = new RelationalObjectStore("Data Source=file::memory:?cache=shared;Version=3;New=True;", DataBaseProvider.Instance, new MappingOptionsSet().AddDefaultRules(), true));
+            string connectionString = "Data Source=file::memory:";
+
+            RelationalObjectStore relationalObjectProvider = new RelationalObjectStore(connectionString, DataBaseProvider.Instance, new MappingOptionsSet().AddDefaultRules(), true);
+            ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = relationalObjectProvider);
+            relationalObjectProvider.Register<Entities.DifferentTypes>();
+            relationalObjectProvider.Register<Entities.DifferentWritabilityLevels>();
+            relationalObjectProvider.Register<Entities.ForeignObjectKey>();
+            relationalObjectProvider.Register<Entities.NonInitializedKey>();
+            relationalObjectProvider.Register<Entities.SubTest>();
+            relationalObjectProvider.Register<Entities.Test>();
+            DataBaseInitializer databaseInitializer = DataBaseProvider.Instance.GetDatabaseInitializer(connectionString);
+            databaseInitializer.RegisterCreateTableStatement(x => x.Tablename == "dbo.TestTable", (x, s) => s + ";INSERT INTO `dbo.TestTable` (`Name`, `Description`) VALUES ('Testname', 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.'), ('Testname 2', 'Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.')");
+            databaseInitializer.RegisterCreateTableStatement(x => x.Tablename == "dbo.SubTestTable", (x, s) => s + ";INSERT INTO `dbo.SubTestTable` (`Test`, `Name`, `First`, `Second`, `Nullable`) VALUES (1,'SubEntity0',0,10,NULL),(1,'SubEntity2',1,9,NULL),(1,'SubEntity4',2,8,NULL),(1,'SubEntity6',3,7,NULL),(1,'SubEntity8',4,6,NULL),(1,'SubEntity10',5,5,NULL),(1,'SubEntity12',6,4,NULL),(1,'SubEntity14',7,3,'2016-06-23 17:31:49'),(1,'SubEntity16',8,2,NULL),(1,'SubEntity18',9,1,NULL),(2,'SubEntity1',0,10,NULL),(2,'SubEntity3',1,9,NULL),(2,'SubEntity5',2,8,NULL),(2,'SubEntity7',3,7,NULL),(2,'SubEntity9',4,6,NULL),(2,'SubEntity11',5,5,NULL),(2,'SubEntity13',6,4,NULL),(2,'SubEntity15',7,3,'2016-06-23 17:31:49'),(2,'SubEntity17',8,2,NULL),(2,'SubEntity19',9,1,NULL)");
+            databaseInitializer.RegisterCreateTableStatement(x => x.Tablename == "dbo.ForeignObjectKeyTable", (x, s) => s + ";INSERT INTO `dbo.ForeignObjectKeyTable` (`Id`, `Value`) VALUES (1, 'Testentry')");
+            databaseInitializer.RegisterCreateTableStatement(x => x.Tablename == "dbo.DifferentWritabilityLevels", (x, s) =>
+            {
+                s = s.Replace("`dbo.DifferentWritabilityLevels`", "`dbo.DifferentWritabilityLevelsTable`");
+                s += ";CREATE VIEW `dbo.DifferentWritabilityLevels` AS SELECT Id, Writeable, Updateable, Insertable, Readonly FROM`dbo.DifferentWritabilityLevelsTable`";
+                s += ";CREATE TRIGGER `dbo.II_DifferentWritabilityLevels` INSTEAD OF INSERT ON `dbo.DifferentWritabilityLevels` FOR EACH ROW BEGIN INSERT INTO `dbo.DifferentWritabilityLevelsTable` (Writeable, Insertable) VALUES(NEW.Writeable, NEW.Insertable); UPDATE sqlite_sequence SET seq = last_insert_rowid() WHERE name = \"dbo.DifferentWritabilityLevels\"; END";
+                s += ";CREATE TRIGGER `dbo.IU_DifferentWritabilityLevels` INSTEAD OF UPDATE ON `dbo.DifferentWritabilityLevels` FOR EACH ROW BEGIN UPDATE `dbo.DifferentWritabilityLevelsTable` SET Writeable = NEW.Writeable, Updateable = NEW.Updateable, Readonly = Readonly + 1 WHERE Id = OLD.Id; END";
+                s += ";INSERT INTO sqlite_sequence (name, seq) VALUES ('dbo.DifferentWritabilityLevels', 1)";
+                return s + ";INSERT INTO `dbo.DifferentWritabilityLevelsTable` (`Id`, `Writeable`, `Updateable`, `Insertable`, `Readonly`) VALUES (1, 5, 1, 10, 1)";
+            });
+            databaseInitializer.RegisterAddFieldStatment(x => (x.Fieldname == "Updateable" || x.Fieldname == "Readonly") && x.Statement.Tablename == "dbo.DifferentWritabilityLevels", (x, s) => s + " DEFAULT 1");
+            relationalObjectProvider.InitializeDatabase(databaseInitializer);
 
             Func<DbCommand> getCommand = () => new Command(GetReader);
             typeof(DataBaseProvider).GetTypeInfo().GetField("_getCommand", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
                 .SetValue(null, getCommand);
 
-            Func<string, DbConnection> getConnection = x => new Connection(x);
-            typeof(DataBaseProvider).GetTypeInfo().GetField("_getConnection", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static)
-                .SetValue(null, getConnection);
-
             _resultManager = new ResultManager<Query>();
+
+            _connection = (SqliteConnection)DataBaseProvider.Instance.GetConnection(connectionString);
         }
         #endregion
 
@@ -74,6 +96,19 @@ namespace ObjectStore.Test.Sqlite
             }
         }
 
+        public SqliteTransaction BeginTransaction()
+        {
+            _transaction?.Rollback();
+            _transaction = _connection.BeginTransaction();
+            return _transaction;
+        }
+
+        public void RollbackTransaction()
+        {
+            _transaction?.Rollback();
+            _transaction = null;
+        }
+
         public void Dispose()
         {
         }
@@ -89,18 +124,11 @@ namespace ObjectStore.Test.Sqlite
                 foreach(Query key in keys)
                     HitCommand(this, new HitCommandEventArgs(key));
 
-            string directory = Path.Combine(Path.GetDirectoryName(typeof(SqliteDatabaseFixture).GetTypeInfo().Assembly.Location), "Resources");
-            File.Copy(Path.Combine(directory, "Test.sqlite3"), Path.Combine(directory, "test.db"), true);
-
-            SqliteConnection connection = new SqliteConnection("Data Source=Resources/test.db");
-            connection.Open();
-
-            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, connection);
+            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, (SqliteConnection)_connection);
+            sqliteCommand.Transaction = _transaction;
             sqliteCommand.Parameters.AddRange(command.Parameters.Cast<SqliteParameter>());
 
             return sqliteCommand.ExecuteReader();
-
-            //return returnValue;
         }
         #endregion
 

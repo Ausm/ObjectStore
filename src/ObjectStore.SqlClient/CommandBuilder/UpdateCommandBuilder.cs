@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data.Common;
-using ObjectStore.OrMapping;
+using ObjectStore.Database;
 
 namespace ObjectStore.SqlClient
 {

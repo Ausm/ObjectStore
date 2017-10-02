@@ -1,4 +1,5 @@
-﻿using ObjectStore.Interfaces;
+﻿using ObjectStore.Database;
+using ObjectStore.Interfaces;
 using ObjectStore.MappingOptions;
 using System;
 using System.Collections.Generic;
@@ -60,6 +61,42 @@ namespace ObjectStore.OrMapping
             return this;
         }
 
+        public void InitializeDatabase(IDatabaseInitializer initializer = null)
+        {
+            if(initializer == null)
+                initializer = _databaseProvider.GetDatabaseInitializer(_connectionString);
+
+            foreach (Type type in _relationalObjectProvider.Keys)
+            {
+                TypeMappingOptions typeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(type);
+                initializer.AddTable(typeMappingOptions.TableName);
+                foreach (FieldMappingOptions memberMappineOptions in typeMappingOptions.MemberMappingOptions.OfType<FieldMappingOptions>().OrderBy(x => x.IsPrimaryKey))
+                {
+                    if (memberMappineOptions.Type == MappingType.ReferenceListMapping)
+                        continue;
+
+                    if (memberMappineOptions is ForeignObjectMappingOptions)
+                    {
+                        ForeignObjectMappingOptions foreignObjectMappingOptions = (ForeignObjectMappingOptions)memberMappineOptions;
+
+                        initializer.AddField(foreignObjectMappingOptions.DatabaseFieldName, foreignObjectMappingOptions.KeyType);
+
+                        FieldMappingOptions foreignFieldMappingOptions = foreignObjectMappingOptions.ForeignMember as FieldMappingOptions;
+                        TypeMappingOptions foreignTypeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(foreignObjectMappingOptions.ForeignObjectType);
+
+                        initializer.AddForeignKey(foreignTypeMappingOptions.TableName, foreignFieldMappingOptions.DatabaseFieldName);
+                    }
+                    else
+                        initializer.AddField(memberMappineOptions.DatabaseFieldName, memberMappineOptions.Member.PropertyType);
+
+                    if (memberMappineOptions.IsPrimaryKey)
+                        initializer.SetIsKeyField(memberMappineOptions.IsReadonly);
+                }
+            }
+
+            initializer.Flush();
+        }
+
         #region IObjectProvider Members
         public IQueryable<T> GetQueryable<T>() where T : class
         {
@@ -94,20 +131,21 @@ namespace ObjectStore.OrMapping
 
             return _relationalObjectProvider.ContainsKey(type) && _relationalObjectProvider[type].SupportsType(type);
         }
-#endregion
+        #endregion
 
-#region IObjectRegistration Members
+        #region IObjectRegistration Members
 
         IObjectRegistration IObjectRegistration.Register<T>()
         {
             return this.Register<T>();
         }
 
-#endregion
+        #endregion
     }
 
     public interface IObjectRegistration
     {
         IObjectRegistration Register<T>() where T : class;
+        void InitializeDatabase(IDatabaseInitializer initializer = null);
     }
 }

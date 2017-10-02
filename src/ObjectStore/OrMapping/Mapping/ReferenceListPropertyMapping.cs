@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Collections.Generic;
 using System.Linq;
 using ObjectStore.MappingOptions;
+using ObjectStore.Database;
 
 namespace ObjectStore.OrMapping
 {

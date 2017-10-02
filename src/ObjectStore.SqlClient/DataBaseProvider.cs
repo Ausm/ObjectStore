@@ -1,5 +1,5 @@
-﻿using ObjectStore.Expressions;
-using ObjectStore.OrMapping;
+﻿using ObjectStore.Database;
+using ObjectStore.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -287,6 +287,11 @@ namespace ObjectStore.SqlClient
             }
 
             return command;
+        }
+
+        public IDatabaseInitializer GetDatabaseInitializer(string connectionString)
+        {
+            throw new NotImplementedException();
         }
 
         internal static DbCommand GetCommand() => _getCommand();

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Common;
 
-namespace ObjectStore.OrMapping
+namespace ObjectStore.Database
 {
     public interface IDataBaseProvider
     {
@@ -18,6 +18,8 @@ namespace ObjectStore.OrMapping
         DbCommand CombineCommands(IEnumerable<DbCommand> commands);
 
         void ReleaseConnection(DbConnection connection);
+
+        IDatabaseInitializer GetDatabaseInitializer(string connectionString);
 
         event EventHandler ConnectionOpened;
 

@@ -10,7 +10,7 @@ namespace ObjectStore.Test.Mocks
         string _commandText;
         ParameterCollection _parameterCollection = new ParameterCollection();
         Func<Command, DbDataReader> _getReader;
-        Connection _connection;
+        DbConnection _connection;
         #endregion
 
         #region Constructors
@@ -95,7 +95,7 @@ namespace ObjectStore.Test.Mocks
 
             set
             {
-                _connection = value as Connection;
+                _connection = value;
             }
         }
 
