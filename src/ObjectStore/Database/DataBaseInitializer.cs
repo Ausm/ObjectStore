@@ -5,13 +5,13 @@ using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
+//using System.Xml.Linq;
 
-namespace ObjectStore.Sqlite
+namespace ObjectStore
 {
     public class DataBaseInitializer : IDatabaseInitializer
     {
-        #region Subclasses
+        #region Nested classes
         public interface IStatement
         {
             string Tablename { get; }
@@ -136,7 +136,8 @@ namespace ObjectStore.Sqlite
 
         #region Fields
         string _connectionString;
-        DataBaseProvider _databaseProvider;
+        IDataBaseProvider _databaseProvider;
+        Func<DbCommand> _getCommandFunc;
 
         List<IStatement> _tableStatments;
         AddTableStatement _currentTableStatment;
@@ -152,10 +153,11 @@ namespace ObjectStore.Sqlite
         static DataBaseInitializer()
         {
         }
-        public DataBaseInitializer(string connectionString, DataBaseProvider databaseProvider)
+        public DataBaseInitializer(string connectionString, IDataBaseProvider databaseProvider, Func<DbCommand> getCommandFunc)
         {
             _databaseProvider = databaseProvider;
             _connectionString = connectionString;
+            _getCommandFunc = getCommandFunc;
 
             _tableStatments = new List<IStatement>();
 
@@ -188,6 +190,28 @@ namespace ObjectStore.Sqlite
             AddParseFunc(_registeredAddConstraintParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
 
+        void AddParseFunc<T1, T2>(List<Tuple<T1, T2>> methodsList, T1 predicate, T2 method, bool clear)
+        {
+            methodsList.Add(Tuple.Create(predicate, method));
+        }
+
+        protected string ParseStatement(IStatement addTableStatement) => Parse(addTableStatement, _registeredCreateTableParseMethods);
+
+        protected string ParseFieldStatement(IField addFieldStatement) => Parse(addFieldStatement, _registeredAddFieldParseMethods);
+
+        protected string ParseConstraintStatement(IField addFieldStatement) => Parse(addFieldStatement, _registeredAddConstraintParseMethods);
+
+        string Parse<T>(T statment, IEnumerable<Tuple<Func<T, bool>, Func<T, string, string>>> parseMethods)
+        {
+            string returnValue = null;
+            foreach (Tuple<Func<T, bool>, Func<T, string, string>> item in parseMethods.Where(x => x.Item1(statment)))
+            {
+                returnValue = item.Item2(statment, returnValue);
+            }
+            return returnValue;
+        }
+
+        #region Abstract
         protected virtual string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult)
         {
             if (completeStatement is IAddTableStatement)
@@ -236,29 +260,55 @@ namespace ObjectStore.Sqlite
             return stringBuilder.Length == 0 ? default(string) : stringBuilder.ToString();
         }
 
-        void AddParseFunc<T1, T2>(List<Tuple<T1, T2>> methodsList, T1 predicate, T2 method, bool clear)
+        protected virtual string Qoute(string value)
         {
-            methodsList.Add(Tuple.Create(predicate, method));
+            if (value.StartsWith("[") && value.EndsWith("]"))
+                value = value.Substring(1, value.Length - 2);
+
+            return "`" + value.Replace("`", "``") + "`";
         }
 
-        string ParseStatement(IStatement addTableStatement) => Parse(addTableStatement, _registeredCreateTableParseMethods);
-
-        string ParseFieldStatement(IField addFieldStatement) => Parse(addFieldStatement, _registeredAddFieldParseMethods);
-
-        string ParseConstraintStatement(IField addFieldStatement) => Parse(addFieldStatement, _registeredAddConstraintParseMethods);
-
-        string Parse<T>(T statment, IEnumerable<Tuple<Func<T, bool>, Func<T, string, string>>> parseMethods)
+        protected virtual string GetDbTypeString(Type type)
         {
-            string returnValue = null;
-            foreach (Tuple<Func<T, bool>, Func<T, string, string>> item in parseMethods.Where(x => x.Item1(statment)))
-            {
-                returnValue = item.Item2(statment, returnValue);
-            }
-            return returnValue;
+
+            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                return GetDbTypeStringNotNull(type.GenericTypeArguments[0]);
+
+            return GetDbTypeStringNotNull(type) + " NOT NULL";
+        }
+
+        protected virtual string GetDbTypeStringNotNull(Type type)
+        {
+            if (type == typeof(int) ||
+                type == typeof(long) ||
+                type == typeof(short) ||
+                type == typeof(byte) ||
+                type == typeof(bool))
+                return "INTEGER";
+            if (type == typeof(string))// ||
+                //type == typeof(XElement))
+                return "TEXT";
+            if (type == typeof(DateTime))
+                return "TIMESTAMP";
+            if (type == typeof(Guid) ||
+                type == typeof(byte[]))
+                return "BLOB";
+            if (type == typeof(Double) ||
+                type == typeof(Single) ||
+                type == typeof(Decimal))
+                return "REAL";
+
+            throw new NotSupportedException($"DataType {type.FullName} is not supported for database initialization.");
+        }
+
+        protected virtual DbCommand GetCommand()
+        {
+            return _getCommandFunc();
         }
         #endregion
+        #endregion
 
-        #region IDatabaseInitializer member
+        #region IDatabaseInitializer members
         public void AddField(string fieldname, Type type)
         {
             if (_currentTableStatment != null)
@@ -294,7 +344,7 @@ namespace ObjectStore.Sqlite
 
             string commandText = string.Join(";", _tableStatments.Select(x => ParseStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)));
 
-            using (DbCommand command = DataBaseProvider.GetCommand())
+            using (DbCommand command = _getCommandFunc())
             {
                 DbConnection connection = _databaseProvider.GetConnection(_connectionString);
                 try
@@ -311,49 +361,6 @@ namespace ObjectStore.Sqlite
                     _databaseProvider.ReleaseConnection(connection);
                 }
             }
-
-
-        }
-
-        static string Qoute(string value)
-        {
-            if (value.StartsWith("[") && value.EndsWith("]"))
-                value = value.Substring(1, value.Length - 2);
-
-            return "`" + value.Replace("`", "``") + "`";
-        }
-
-        static string GetDbTypeString(Type type)
-        {
-            
-            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                return GetDbTypeStringNotNull(type.GenericTypeArguments[0]);
-
-            return GetDbTypeStringNotNull(type) + " NOT NULL";
-        }
-
-        static string GetDbTypeStringNotNull(Type type)
-        {
-            if (type == typeof(int) ||
-                type == typeof(long) ||
-                type == typeof(short) ||
-                type == typeof(byte) ||
-                type == typeof(bool))
-                return "INTEGER";
-            if (type == typeof(string) ||
-                type == typeof(XElement))
-                return "TEXT";
-            if (type == typeof(DateTime))
-                return "TIMESTAMP";
-            if (type == typeof(Guid) ||
-                type == typeof(byte[]))
-                return "BLOB";
-            if (type == typeof(Double) ||
-                type == typeof(Single) ||
-                type == typeof(Decimal))
-                return "REAL";
-
-            throw new NotSupportedException($"DataType {type.FullName} is not supported for database initialization.");
         }
 
         public void SetIsKeyField(bool isAutoIncrement)
