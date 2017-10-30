@@ -344,6 +344,9 @@ namespace ObjectStore
 
             string commandText = string.Join(";", _tableStatments.Select(x => ParseStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)));
 
+            if (string.IsNullOrWhiteSpace(commandText))
+                return;
+
             using (DbCommand command = _getCommandFunc())
             {
                 DbConnection connection = _databaseProvider.GetConnection(_connectionString);

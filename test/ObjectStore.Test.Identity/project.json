@@ -34,11 +34,5 @@
         "System.ObjectModel": "4.0.0.0"
       }
     }
-  },
-
-  "buildOptions": {
-    "copyToOutput": {
-      "includeFiles": [ "Database/Database.db" ]
-    }
   }
 }
