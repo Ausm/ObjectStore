@@ -294,11 +294,6 @@ namespace ObjectStore.SqlClient
             throw new NotImplementedException();
         }
         
-        public ITableInfo GetTableInfo(string tableName, string connectionString)
-        {
-            throw new NotImplementedException();
-        }
-
         internal static DbCommand GetCommand() => _getCommand();
 
         internal static SqlParameter GetParameter(string parameterName, object value)

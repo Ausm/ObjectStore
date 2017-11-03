@@ -3,13 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-//using System.Xml.Linq;
 
 namespace ObjectStore
 {
-    public class DataBaseInitializer : IDatabaseInitializer
+    public abstract class DataBaseInitializer : IDatabaseInitializer
     {
         #region Nested classes
         public interface IStatement
@@ -25,6 +22,7 @@ namespace ObjectStore
         public interface IAlterTableStatment : IStatement
         {
             IField FieldStatement { get; }
+            bool ExistsAlready { get; }
         }
 
         public interface IField
@@ -68,9 +66,11 @@ namespace ObjectStore
         {
             string _tablename;
             Field _fieldStatement;
+            ITableInfo _tableInfo;
 
-            public AlterTableStatement(string tablename, string fieldname, Type type)
+            public AlterTableStatement(string tablename, string fieldname, Type type, ITableInfo tableInfo)
             {
+                _tableInfo = tableInfo;
                 _tablename = tablename;
                 _fieldStatement = new Field(fieldname, type, this);
             }
@@ -80,6 +80,9 @@ namespace ObjectStore
             public Field FieldStatement => _fieldStatement;
 
             IField IAlterTableStatment.FieldStatement => _fieldStatement;
+
+            bool IAlterTableStatment.ExistsAlready => _tableInfo.FieldNames.Contains(FieldStatement.Fieldname);
+
         }
 
         class Field : IField
@@ -212,112 +215,41 @@ namespace ObjectStore
         }
 
         #region Abstract
-        protected virtual string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult)
-        {
-            if (completeStatement is IAddTableStatement)
-            {
-                IAddTableStatement addTableStatement = (IAddTableStatement)completeStatement;
+        protected abstract string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult);
 
-                List<string> fieldStatements = addTableStatement.FieldStatements.Select(x => ParseFieldStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
-                fieldStatements.AddRange(addTableStatement.FieldStatements.Where(x => x.HasForeignKey).Select(x => ParseConstraintStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)));
+        protected abstract string DefaultParseAddFieldStatement(IField addFieldStatement, string previousParseResult);
 
-                StringBuilder stringBuilder = new StringBuilder($"CREATE TABLE {Qoute(addTableStatement.Tablename)} (").Append(string.Join(",", fieldStatements)).AppendLine(")");
-                return stringBuilder.ToString();
-            }
-            else if (completeStatement is IAlterTableStatment)
-            {
-                IAlterTableStatment alterTableStatement = (IAlterTableStatment)completeStatement;
-                StringBuilder stringBuilder = new StringBuilder($"CREATE TABLE {Qoute(alterTableStatement.Tablename)} ADD ");
+        protected abstract string DefaultParseAddConstraintStatement(IField addFieldStatement, string previousParseResult);
 
-                stringBuilder.Append(ParseFieldStatement(alterTableStatement.FieldStatement));
-                if (alterTableStatement.FieldStatement.HasForeignKey)
-                    stringBuilder.Append(" ").Append(ParseConstraintStatement(alterTableStatement.FieldStatement));
+        protected abstract string Qoute(string value);
 
-                return stringBuilder.ToString();
-            }
-            return null;
-        }
+        protected abstract string GetDbTypeString(Type type);
 
-        protected virtual string DefaultParseAddFieldStatement(IField addFieldStatement, string previousParseResult)
-        {
-            StringBuilder stringBuilder = new StringBuilder(Qoute(addFieldStatement.Fieldname)).Append(" ").Append(GetDbTypeString(addFieldStatement.Type));
-            if (addFieldStatement.IsPrimaryKey)
-            {
-                stringBuilder.Append(" PRIMARY KEY");
-                if (addFieldStatement.IsAutoincrement)
-                    stringBuilder.Append(" AUTOINCREMENT");
-            }
-
-            return stringBuilder.ToString();
-        }
-
-        protected virtual string DefaultParseAddConstraintStatement(IField addFieldStatement, string previousParseResult)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            if(addFieldStatement.HasForeignKey)
-                stringBuilder.Append("FOREIGN KEY(").Append(Qoute(addFieldStatement.Fieldname)).Append(") REFERENCES ").Append($"{Qoute(addFieldStatement.ForeignTable)}({Qoute(addFieldStatement.ForeignField)})");
-
-            return stringBuilder.Length == 0 ? default(string) : stringBuilder.ToString();
-        }
-
-        protected virtual string Qoute(string value)
-        {
-            if (value.StartsWith("[") && value.EndsWith("]"))
-                value = value.Substring(1, value.Length - 2);
-
-            return "`" + value.Replace("`", "``") + "`";
-        }
-
-        protected virtual string GetDbTypeString(Type type)
-        {
-
-            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                return GetDbTypeStringNotNull(type.GenericTypeArguments[0]);
-
-            return GetDbTypeStringNotNull(type) + " NOT NULL";
-        }
-
-        protected virtual string GetDbTypeStringNotNull(Type type)
-        {
-            if (type == typeof(int) ||
-                type == typeof(long) ||
-                type == typeof(short) ||
-                type == typeof(byte) ||
-                type == typeof(bool))
-                return "INTEGER";
-            if (type == typeof(string))// ||
-                //type == typeof(XElement))
-                return "TEXT";
-            if (type == typeof(DateTime))
-                return "TIMESTAMP";
-            if (type == typeof(Guid) ||
-                type == typeof(byte[]))
-                return "BLOB";
-            if (type == typeof(Double) ||
-                type == typeof(Single) ||
-                type == typeof(Decimal))
-                return "REAL";
-
-            throw new NotSupportedException($"DataType {type.FullName} is not supported for database initialization.");
-        }
+        protected abstract string GetDbTypeStringNotNull(Type type);
 
         protected virtual DbCommand GetCommand()
         {
             return _getCommandFunc();
         }
+
+        protected abstract ITableInfo GetTableInfo(string tableName);
         #endregion
         #endregion
 
         #region IDatabaseInitializer members
         public void AddField(string fieldname, Type type)
         {
+            fieldname = Qoute(fieldname);
+
             if (_currentTableStatment != null)
             {
                 _currentAddFieldStatment = _currentTableStatment.AddFieldStatement(fieldname, type);
             }
             else if (_currentTableInfo != null)
             {
-                _tableStatments.Add(new AlterTableStatement(_currentTableInfo.TableName, fieldname, type));
+                AlterTableStatement alterTableStatement = new AlterTableStatement(_currentTableInfo.TableName, fieldname, type, _currentTableInfo);
+                _currentAddFieldStatment = alterTableStatement.FieldStatement;
+                _tableStatments.Add(alterTableStatement);
             }
             else
                 throw new InvalidOperationException("No Table selected");
@@ -325,12 +257,13 @@ namespace ObjectStore
 
         public void AddForeignKey(string foreignTableName, string foreignKeyFieldName)
         {
-            _currentAddFieldStatment.SetForeignKey(foreignTableName, foreignKeyFieldName);
+            _currentAddFieldStatment.SetForeignKey(Qoute(foreignTableName), Qoute(foreignKeyFieldName));
         }
 
         public void AddTable(string tableName)
         {
-            _currentTableInfo = _databaseProvider.GetTableInfo(tableName, _connectionString);
+            tableName = Qoute(tableName);
+            _currentTableInfo = GetTableInfo(tableName);
             _currentTableStatment = _currentTableInfo == null ? new AddTableStatement(tableName) : null;
             if (_currentTableStatment != null)
                 _tableStatments.Add(_currentTableStatment);

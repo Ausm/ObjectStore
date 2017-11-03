@@ -6,7 +6,8 @@ using System.Collections.Generic;
 
 namespace ObjectStore.Test.Sqlite
 {
-    public class SqliteTests : TestsBase, IClassFixture<SqliteDatabaseFixture>, IDisposable
+    [Collection("SqliteDatabaseCollection")]
+    public class SqliteTests : TestsBase, IDisposable
     {
         SqliteDatabaseFixture _databaseFixture;
         

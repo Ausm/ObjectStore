@@ -17,8 +17,6 @@ namespace ObjectStore.Database
 
         DbCommand CombineCommands(IEnumerable<DbCommand> commands);
 
-        ITableInfo GetTableInfo(string tableName, string connectionString);
-
         void ReleaseConnection(DbConnection connection);
 
         IDatabaseInitializer GetDatabaseInitializer(string connectionString);
