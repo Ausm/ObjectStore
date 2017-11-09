@@ -466,8 +466,6 @@ namespace ObjectStore.Sqlite
 
         public DataBaseInitializer GetDatabaseInitializer(string connectionString) =>  new SqliteDataBaseInitializer(connectionString, this, GetCommand);
 
-        IDatabaseInitializer IDataBaseProvider.GetDatabaseInitializer(string connectionString) => GetDatabaseInitializer(connectionString);
-
         internal static DbCommand GetCommand() => _getCommand();
 
         internal static SqliteParameter GetParameter(string parameterName, object value)

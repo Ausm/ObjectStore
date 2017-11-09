@@ -1,20 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using static ObjectStore.DataBaseInitializer;
 
 namespace ObjectStore.Database
 {
     public interface IDatabaseInitializer
     {
-        void AddTable(string tableName);
+        void RegisterAddConstraintStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc);
 
-        void AddField(string fieldname, Type type);
+        void RegisterAddFieldStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc);
 
-        void SetIsKeyField(bool isAutoIncrement);
-
-        void AddForeignKey(string foreignTableName, string foreignKeyFieldName);
-
-        void Flush();
+        void RegisterCreateTableStatement(Func<IStatement, bool> predicate, Func<IStatement, string, string> parseFunc);
     }
 }

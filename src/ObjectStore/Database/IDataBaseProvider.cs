@@ -19,7 +19,7 @@ namespace ObjectStore.Database
 
         void ReleaseConnection(DbConnection connection);
 
-        IDatabaseInitializer GetDatabaseInitializer(string connectionString);
+        DataBaseInitializer GetDatabaseInitializer(string connectionString);
 
         event EventHandler ConnectionOpened;
 

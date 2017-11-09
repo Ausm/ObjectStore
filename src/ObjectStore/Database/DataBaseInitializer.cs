@@ -178,21 +178,6 @@ namespace ObjectStore
         #endregion
 
         #region Methods
-        public void RegisterCreateTableStatement(Func<IStatement, bool> predicate, Func<IStatement, string, string> parseFunc)
-        {
-            AddParseFunc(_registeredCreateTableParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
-        }
-
-        public void RegisterAddFieldStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
-        {
-            AddParseFunc(_registeredAddFieldParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
-        }
-
-        public void RegisterAddConstraintStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
-        {
-            AddParseFunc(_registeredAddConstraintParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
-        }
-
         void AddParseFunc<T1, T2>(List<Tuple<T1, T2>> methodsList, T1 predicate, T2 method, bool clear)
         {
             methodsList.Add(Tuple.Create(predicate, method));
@@ -214,30 +199,7 @@ namespace ObjectStore
             return returnValue;
         }
 
-        #region Abstract
-        protected abstract string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult);
-
-        protected abstract string DefaultParseAddFieldStatement(IField addFieldStatement, string previousParseResult);
-
-        protected abstract string DefaultParseAddConstraintStatement(IField addFieldStatement, string previousParseResult);
-
-        protected abstract string Qoute(string value);
-
-        protected abstract string GetDbTypeString(Type type);
-
-        protected abstract string GetDbTypeStringNotNull(Type type);
-
-        protected virtual DbCommand GetCommand()
-        {
-            return _getCommandFunc();
-        }
-
-        protected abstract ITableInfo GetTableInfo(string tableName);
-        #endregion
-        #endregion
-
-        #region IDatabaseInitializer members
-        public void AddField(string fieldname, Type type)
+        internal void AddField(string fieldname, Type type)
         {
             fieldname = Qoute(fieldname);
 
@@ -255,12 +217,12 @@ namespace ObjectStore
                 throw new InvalidOperationException("No Table selected");
         }
 
-        public void AddForeignKey(string foreignTableName, string foreignKeyFieldName)
+        internal void AddForeignKey(string foreignTableName, string foreignKeyFieldName)
         {
             _currentAddFieldStatment.SetForeignKey(Qoute(foreignTableName), Qoute(foreignKeyFieldName));
         }
 
-        public void AddTable(string tableName)
+        internal void AddTable(string tableName)
         {
             tableName = Qoute(tableName);
             _currentTableInfo = GetTableInfo(tableName);
@@ -269,7 +231,7 @@ namespace ObjectStore
                 _tableStatments.Add(_currentTableStatment);
         }
 
-        public void Flush()
+        internal void Flush()
         {
             _currentAddFieldStatment = null;
             _currentTableInfo = null;
@@ -299,9 +261,47 @@ namespace ObjectStore
             }
         }
 
-        public void SetIsKeyField(bool isAutoIncrement)
+        internal void SetIsKeyField(bool isAutoIncrement)
         {
             _currentAddFieldStatment.SetPrimaryKey(isAutoIncrement);
+        }
+
+        #region Abstract
+        protected abstract string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult);
+
+        protected abstract string DefaultParseAddFieldStatement(IField addFieldStatement, string previousParseResult);
+
+        protected abstract string DefaultParseAddConstraintStatement(IField addFieldStatement, string previousParseResult);
+
+        protected abstract string Qoute(string value);
+
+        protected abstract string GetDbTypeString(Type type);
+
+        protected abstract string GetDbTypeStringNotNull(Type type);
+
+        protected virtual DbCommand GetCommand()
+        {
+            return _getCommandFunc();
+        }
+
+        protected abstract ITableInfo GetTableInfo(string tableName);
+        #endregion
+        #endregion
+
+        #region IDatabaseInitializer members
+        public void RegisterCreateTableStatement(Func<IStatement, bool> predicate, Func<IStatement, string, string> parseFunc)
+        {
+            AddParseFunc(_registeredCreateTableParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
+        }
+
+        public void RegisterAddFieldStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
+        {
+            AddParseFunc(_registeredAddFieldParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
+        }
+
+        public void RegisterAddConstraintStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
+        {
+            AddParseFunc(_registeredAddConstraintParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
         #endregion
     }
