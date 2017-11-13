@@ -58,9 +58,9 @@ namespace ObjectStore.Test.Identity.Fixtures
                     objectStore.Register<User>().Register<Role>().Register<UserInRole<User, Role>>();
 
                     objectStore.InitializeDatabase(databaseInitializer => {
-                        databaseInitializer.RegisterCreateTableStatement(x => x.Tablename == "`dbo.Roles`", (x, s) => s + ";INSERT INTO `dbo.Roles` (`Name`, `NormalizedRolename`) VALUES ('Admin', 'ADMIN'), ('Test', 'TEST')");
-                        databaseInitializer.RegisterCreateTableStatement(x => x.Tablename == "`dbo.Users`", (x, s) => s + ";INSERT INTO `dbo.Users` (`Name`, `Password`, `NormalizedUsername`) VALUES ('Admin', 'AQAAAAEAACcQAAAAEH7ZcGTOm+i5+wDjYcKunrChCybl3/XfsGoRnchwXssH9swyQYCLETt+H39cXjacaA==', 'ADMIN'), ('User1', 'AQAAAAEAACcQAAAAEH3QfNo5cHGK4myXlU1XHm6I1t+e02CPXhdAqlBiE4h+7VcJdwkI0u2A3uNC0TgGkQ==', 'USER1')");
-                        databaseInitializer.RegisterCreateTableStatement(x => x.Tablename == "`dbo.UsersInRole`", (x, s) => "CREATE TABLE `dbo.UsersInRole` ( `User` INTEGER NOT NULL, `Role` INTEGER NOT NULL, PRIMARY KEY(User,Role), FOREIGN KEY(`User`) REFERENCES `dbo.Users`(`Id`), FOREIGN KEY(`Role`) REFERENCES `dbo.Roles`(`Id`) );INSERT INTO `dbo.UsersInRole` (`User`, `Role`) VALUES (1, 1)");
+                        databaseInitializer.RegisterTableStatement(x => x.Tablename == "`dbo.Roles`", (x, s) => s + ";INSERT INTO `dbo.Roles` (`Name`, `NormalizedRolename`) VALUES ('Admin', 'ADMIN'), ('Test', 'TEST')");
+                        databaseInitializer.RegisterTableStatement(x => x.Tablename == "`dbo.Users`", (x, s) => s + ";INSERT INTO `dbo.Users` (`Name`, `Password`, `NormalizedUsername`) VALUES ('Admin', 'AQAAAAEAACcQAAAAEH7ZcGTOm+i5+wDjYcKunrChCybl3/XfsGoRnchwXssH9swyQYCLETt+H39cXjacaA==', 'ADMIN'), ('User1', 'AQAAAAEAACcQAAAAEH3QfNo5cHGK4myXlU1XHm6I1t+e02CPXhdAqlBiE4h+7VcJdwkI0u2A3uNC0TgGkQ==', 'USER1')");
+                        databaseInitializer.RegisterTableStatement(x => x.Tablename == "`dbo.UsersInRole`", (x, s) => "CREATE TABLE `dbo.UsersInRole` ( `User` INTEGER NOT NULL, `Role` INTEGER NOT NULL, PRIMARY KEY(User,Role), FOREIGN KEY(`User`) REFERENCES `dbo.Users`(`Id`), FOREIGN KEY(`Role`) REFERENCES `dbo.Roles`(`Id`) );INSERT INTO `dbo.UsersInRole` (`User`, `Role`) VALUES (1, 1)");
                     });
                 }));
             _client = _server.CreateClient();

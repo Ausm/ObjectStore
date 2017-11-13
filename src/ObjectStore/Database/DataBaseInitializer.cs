@@ -289,17 +289,17 @@ namespace ObjectStore
         #endregion
 
         #region IDatabaseInitializer members
-        public void RegisterCreateTableStatement(Func<IStatement, bool> predicate, Func<IStatement, string, string> parseFunc)
+        public void RegisterTableStatement(Func<IStatement, bool> predicate, Func<IStatement, string, string> parseFunc)
         {
             AddParseFunc(_registeredCreateTableParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
 
-        public void RegisterAddFieldStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
+        public void RegisterFieldStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
         {
             AddParseFunc(_registeredAddFieldParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
 
-        public void RegisterAddConstraintStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
+        public void RegisterConstraintStatment(Func<IField, bool> predicate, Func<IField, string, string> parseFunc)
         {
             AddParseFunc(_registeredAddConstraintParseMethods, predicate ?? (x => true), parseFunc, predicate == null);
         }
