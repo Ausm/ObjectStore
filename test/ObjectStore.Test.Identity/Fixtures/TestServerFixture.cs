@@ -13,6 +13,7 @@ using ObjectStore.Interfaces;
 using ObjectStore.OrMapping;
 using System.IO;
 using System.Reflection;
+using E = ObjectStore.Test.Identity.Entities;
 
 namespace ObjectStore.Test.Identity.Fixtures
 {
@@ -48,14 +49,14 @@ namespace ObjectStore.Test.Identity.Fixtures
                 .ConfigureServices(services =>
                 {
                     services.AddObjectStoreWithSqlite($"Data Source={_databaseFileName}");
-                    services.AddIdentity<User, Role>()
-                        .AddObjectStoreUserStores();
+                    services.AddIdentity<E.User, E.Role>()
+                        .AddObjectStoreUserStores<E.User, E.Role, E.UserInRole>();
                 })
                 .Configure(app =>
                 {
                     app.UseIdentity().Use(d => c => _function == null ? d(c) : _function(c));
                     RelationalObjectStore objectStore = app.ApplicationServices.GetService(typeof(IObjectProvider)) as RelationalObjectStore;
-                    objectStore.Register<User>().Register<Role>().Register<UserInRole<User, Role>>();
+                    objectStore.Register<E.User>().Register<E.Role>().Register<E.UserInRole>();
 
                     objectStore.InitializeDatabase(databaseInitializer => {
                         databaseInitializer.RegisterTableStatement(x => x.Tablename == "`dbo.Roles`", (x, s) => s + ";INSERT INTO `dbo.Roles` (`Name`, `NormalizedRolename`) VALUES ('Admin', 'ADMIN'), ('Test', 'TEST')");

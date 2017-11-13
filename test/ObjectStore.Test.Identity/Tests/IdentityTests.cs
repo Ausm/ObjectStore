@@ -5,9 +5,9 @@ using Xunit.Abstractions;
 using System.Threading.Tasks;
 using ObjectStore.Test.Identity.Fixtures;
 using Microsoft.AspNetCore.Identity;
-using ObjectStore.Identity;
 using ObjectStore.Interfaces;
 using System.Collections.Generic;
+using ObjectStore.Test.Identity.Entities;
 
 namespace ObjectStore.Test.Identity
 {
@@ -171,10 +171,10 @@ namespace ObjectStore.Test.Identity
 
             objectProvider.GetQueryable<User>().DropChanges();
             objectProvider.GetQueryable<Role>().DropChanges();
-            objectProvider.GetQueryable<UserInRole<User, Role>>().DropChanges();
+            objectProvider.GetQueryable<UserInRole>().DropChanges();
             await objectProvider.GetQueryable<User>().FetchAsync();
             await objectProvider.GetQueryable<Role>().FetchAsync();
-            await objectProvider.GetQueryable<UserInRole<User, Role>>().FetchAsync();
+            await objectProvider.GetQueryable<UserInRole>().FetchAsync();
         }
         #endregion
     }
