@@ -61,10 +61,10 @@ namespace ObjectStore.OrMapping
             return this;
         }
 
-        public void InitializeDatabase(IDatabaseInitializer initializer = null)
+        public void InitializeDatabase(Action<IDatabaseInitializer> initFunc = null)
         {
-            if(initializer == null)
-                initializer = _databaseProvider.GetDatabaseInitializer(_connectionString);
+            DataBaseInitializer initializer = _databaseProvider.GetDatabaseInitializer(_connectionString);
+            initFunc?.Invoke(initializer);
 
             foreach (Type type in _relationalObjectProvider.Keys)
             {
@@ -146,6 +146,6 @@ namespace ObjectStore.OrMapping
     public interface IObjectRegistration
     {
         IObjectRegistration Register<T>() where T : class;
-        void InitializeDatabase(IDatabaseInitializer initializer = null);
+        void InitializeDatabase(Action<IDatabaseInitializer> initFunc = null);
     }
 }

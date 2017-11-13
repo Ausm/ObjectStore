@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using ObjectStore.Database;
+using System.Text;
+using System.Reflection;
 
 namespace ObjectStore.Sqlite
 {
@@ -174,6 +176,167 @@ namespace ObjectStore.Sqlite
                 return false;
             }
         }
+
+        class TableInfo : ITableInfo
+        {
+            string _tableName;
+            List<string> _fieldNames;
+
+            public TableInfo(string tableName, IEnumerable<string> fieldNames)
+            {
+                _tableName = tableName;
+                _fieldNames = fieldNames.ToList();
+            }
+
+            public string TableName => _tableName;
+
+            public IEnumerable<string> FieldNames => _fieldNames.AsReadOnly();
+        }
+
+        class SqliteDataBaseInitializer : DataBaseInitializer
+        {
+            DataBaseProvider _databaseProvider;
+            string _connectionString;
+
+            public SqliteDataBaseInitializer(string connectionString, DataBaseProvider databaseProvider, Func<DbCommand> getCommandFunc) : base(connectionString, databaseProvider, getCommandFunc)
+            {
+                _databaseProvider = databaseProvider;
+                _connectionString = connectionString;
+            }
+
+            protected override string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult)
+            {
+                if (completeStatement is IAddTableStatement)
+                {
+                    IAddTableStatement addTableStatement = (IAddTableStatement)completeStatement;
+
+                    List<string> fieldStatements = addTableStatement.FieldStatements.Select(x => ParseFieldStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                    fieldStatements.AddRange(addTableStatement.FieldStatements.Where(x => x.HasForeignKey).Select(x => ParseConstraintStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)));
+
+                    StringBuilder stringBuilder = new StringBuilder($"CREATE TABLE {addTableStatement.Tablename} (").Append(string.Join(",", fieldStatements)).AppendLine(")");
+                    return stringBuilder.ToString();
+                }
+                else if (completeStatement is IAlterTableStatment)
+                {
+                    IAlterTableStatment alterTableStatement = (IAlterTableStatment)completeStatement;
+                    if (alterTableStatement.ExistsAlready)
+                        return previousParseResult;
+
+                    StringBuilder stringBuilder = new StringBuilder($"ALTER TABLE {alterTableStatement.Tablename} ADD ");
+
+                    stringBuilder.Append(ParseFieldStatement(alterTableStatement.FieldStatement));
+                    if (alterTableStatement.FieldStatement.HasForeignKey)
+                        stringBuilder.Append(" ").Append(ParseConstraintStatement(alterTableStatement.FieldStatement));
+
+                    return stringBuilder.ToString();
+                }
+                return null;
+            }
+
+            protected override string DefaultParseAddFieldStatement(IField addFieldStatement, string previousParseResult)
+            {
+                StringBuilder stringBuilder = new StringBuilder(addFieldStatement.Fieldname).Append(" ").Append(GetDbTypeString(addFieldStatement.Type));
+                if (addFieldStatement.IsPrimaryKey)
+                {
+                    stringBuilder.Append(" PRIMARY KEY");
+                    if (addFieldStatement.IsAutoincrement)
+                        stringBuilder.Append(" AUTOINCREMENT");
+                }
+
+                return stringBuilder.ToString();
+            }
+
+            protected override string DefaultParseAddConstraintStatement(IField addFieldStatement, string previousParseResult)
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                if (addFieldStatement.HasForeignKey)
+                    stringBuilder.Append("FOREIGN KEY(").Append(addFieldStatement.Fieldname).Append(") REFERENCES ").Append($"{addFieldStatement.ForeignTable}({addFieldStatement.ForeignField})");
+
+                return stringBuilder.Length == 0 ? default(string) : stringBuilder.ToString();
+            }
+
+            protected override string Qoute(string value)
+            {
+                if (value.StartsWith("[") && value.EndsWith("]"))
+                    value = value.Substring(1, value.Length - 2);
+
+                return "`" + value.Replace("`", "``") + "`";
+            }
+
+            protected override string GetDbTypeString(Type type)
+            {
+
+                if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    return GetDbTypeStringNotNull(type.GenericTypeArguments[0]);
+
+                return GetDbTypeStringNotNull(type) + " NOT NULL";
+            }
+
+            protected override string GetDbTypeStringNotNull(Type type)
+            {
+                if (type == typeof(int) ||
+                    type == typeof(long) ||
+                    type == typeof(short) ||
+                    type == typeof(byte) ||
+                    type == typeof(bool))
+                    return "INTEGER";
+                if (type == typeof(string) ||
+                    type == typeof(XElement))
+                    return "TEXT";
+                if (type == typeof(DateTime))
+                    return "TIMESTAMP";
+                if (type == typeof(Guid) ||
+                    type == typeof(byte[]))
+                    return "BLOB";
+                if (type == typeof(Double) ||
+                    type == typeof(Single) ||
+                    type == typeof(Decimal))
+                    return "REAL";
+
+                throw new NotSupportedException($"DataType {type.FullName} is not supported for database initialization.");
+            }
+
+            protected override DbCommand GetCommand()
+            {
+                return base.GetCommand();
+            }
+
+            protected override ITableInfo GetTableInfo(string tableName)
+            {
+                using (DbConnection connection = _databaseProvider.GetConnection(_connectionString))
+                {
+                    connection.Open();
+
+                    tableName = tableName.Replace('`', '\'');
+
+                    using (DbCommand command = GetCommand())
+                    {
+                        command.Connection = connection;
+                        command.CommandText = $"SELECT COUNT(*) FROM sqlite_master WHERE tbl_name = {tableName} AND type in ('table', 'view')";
+
+                        object value = command.ExecuteScalar();
+                        if (!(value is long) || (long)value != 1L)
+                            return null;
+                    }
+
+                    using (DbCommand command = GetCommand())
+                    {
+                        command.Connection = connection;
+                        command.CommandText = $"PRAGMA TABLE_INFO({tableName});";
+                        using (DbDataReader reader = command.ExecuteReader())
+                        {
+                            List<string> fieldNames = new List<string>();
+                            int nameOrdinal = reader.GetOrdinal("name");
+
+                            while (reader.Read())
+                                fieldNames.Add(Qoute(reader.GetString(nameOrdinal)));
+
+                            return new TableInfo(tableName, fieldNames);
+                        }
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Fields
@@ -301,9 +464,7 @@ namespace ObjectStore.Sqlite
             return command;
         }
 
-        public DataBaseInitializer GetDatabaseInitializer(string connectionString) =>  new DataBaseInitializer(connectionString, this);
-        
-        IDatabaseInitializer IDataBaseProvider.GetDatabaseInitializer(string connectionString) => GetDatabaseInitializer(connectionString);
+        public DataBaseInitializer GetDatabaseInitializer(string connectionString) =>  new SqliteDataBaseInitializer(connectionString, this, GetCommand);
 
         internal static DbCommand GetCommand() => _getCommand();
 

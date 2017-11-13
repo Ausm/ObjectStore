@@ -132,7 +132,8 @@ namespace ObjectStore.Test.Mocks
 
         public override object ExecuteScalar()
         {
-            throw new NotImplementedException();
+            DbDataReader reader = _getReader(this);
+            return reader.Read() && reader.FieldCount > 0 ? reader.GetValue(0) : null;
         }
 
         public override void Prepare()
