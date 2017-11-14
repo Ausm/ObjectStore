@@ -39,11 +39,11 @@ namespace ObjectStore.MappingOptions
             return mappingOptionsSet?.GetTypeMappingOptions(type);
         }
 
-        internal static MemberMappingOptions GetExistingMemberMappingOptions(PropertyInfo property) =>
-            GetExistingTypeMappingOptions(property.DeclaringType).MemberMappingOptions.Where(x => x.Member == property).FirstOrDefault();
-
-        internal static MemberMappingOptions GetExistingMemberMappingOptions(System.Linq.Expressions.Expression expression) => 
-            GetExistingMemberMappingOptions((expression as System.Linq.Expressions.MemberExpression).Member as PropertyInfo);
+        internal static MemberMappingOptions GetExistingMemberMappingOptions(System.Linq.Expressions.Expression expression)
+        {
+            System.Linq.Expressions.MemberExpression memberExpression = expression as System.Linq.Expressions.MemberExpression;
+            return GetExistingTypeMappingOptions(memberExpression.Expression.Type)?.MemberMappingOptions.Where(x => x.Member.MetadataToken == memberExpression.Member.MetadataToken && x.Member.Module == memberExpression.Member.Module).FirstOrDefault();
+        }
 
         internal TypeMappingOptions GetTypeMappingOptions(Type type)
         {
