@@ -20,4 +20,7 @@ script:
   # dotnet build
   - dotnet build --framework "netcoreapp1.0"
   # dotnet test
-  - dotnet test --framework "netcoreapp1.0"
+  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test
+  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.SqlClient
+  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.Sqlite
+  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.Identity
