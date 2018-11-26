@@ -18,6 +18,6 @@ install:
 
 script:
   # dotnet build
-  - dotnet build
+  - dotnet build --framework "netcoreapp1.0"
   # dotnet test
-  - dotnet test
+  - dotnet test --framework "netcoreapp1.0"
