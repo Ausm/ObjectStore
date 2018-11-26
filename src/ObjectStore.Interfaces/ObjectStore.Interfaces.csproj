@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ObjectStore.Interfaces Class Library</Description>
+    <VersionPrefix>1.0.0-alpha4</VersionPrefix>
+    <Authors>Matthias Auswoeger</Authors>
+    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
+    <AssemblyName>ObjectStore.Interfaces</AssemblyName>
+    <PackageId>ObjectStore.Interfaces</PackageId>
+    <PackageTags>ORMapper;SQL;SQLite</PackageTags>
+    <PackageProjectUrl>https://github.com/Ausm/ObjectStore</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Ausm/ObjectStore/blob/master/LICENSE</PackageLicenseUrl>
+  </PropertyGroup>
+
+</Project>

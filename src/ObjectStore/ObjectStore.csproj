@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ObjectStore Class Library</Description>
+    <VersionPrefix>1.0.0-alpha4</VersionPrefix>
+    <Authors>Matthias Auswoeger</Authors>
+    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
+    <AssemblyName>ObjectStore</AssemblyName>
+    <PackageId>ObjectStore</PackageId>
+    <PackageTags>ORMapper;SQL;SQLite</PackageTags>
+    <PackageProjectUrl>https://github.com/Ausm/ObjectStore</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Ausm/ObjectStore/blob/master/LICENSE</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
+    <Reference Include="System.Transactions" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
+    <PackageReference Include="System.Data.Common" Version="4.1.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.0.1" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ObjectStore.Interfaces\ObjectStore.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

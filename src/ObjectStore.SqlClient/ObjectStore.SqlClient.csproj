@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>MsSql Provider for ObjectStore Class Library</Description>
+    <VersionPrefix>1.0.0-alpha4</VersionPrefix>
+    <Authors>Matthias Auswoeger</Authors>
+    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
+    <AssemblyName>ObjectStore.SqlClient</AssemblyName>
+    <PackageId>ObjectStore.SqlClient</PackageId>
+    <PackageTags>ORMapper;SQL;MSSQL</PackageTags>
+    <PackageProjectUrl>https://github.com/Ausm/ObjectStore</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Ausm/ObjectStore/blob/master/LICENSE</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ObjectStore\ObjectStore.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
+    <PackageReference Include="System.Data.SqlClient" Version="4.1.0" />
+    <PackageReference Include="System.Xml.XDocument" Version="4.0.11" />
+  </ItemGroup>
+
+</Project>

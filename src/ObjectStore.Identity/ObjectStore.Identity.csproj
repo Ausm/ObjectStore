@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ObjectStore.Identity Class Library</Description>
+    <VersionPrefix>1.0.0-alpha4</VersionPrefix>
+    <Authors>Matthias Auswoeger</Authors>
+    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
+    <AssemblyName>ObjectStore.Identity</AssemblyName>
+    <PackageId>ObjectStore.Identity</PackageId>
+    <PackageTags>ORMapper;SQL;SQLite;ASP.NET;Identity</PackageTags>
+    <PackageProjectUrl>https://github.com/Ausm/ObjectStore</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Ausm/ObjectStore/blob/master/LICENSE</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ObjectStore\ObjectStore.csproj" />
+    <ProjectReference Include="..\ObjectStore.Interfaces\ObjectStore.Interfaces.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="1.0.2" />
+  </ItemGroup>
+
+</Project>
