@@ -70,7 +70,7 @@ namespace ObjectStore.Test.Identity
         [Fact()]
         public async Task TestRegisterAndDeleteUser()
         {
-            string userName = $"Test{(DateTime.Now - new DateTime(2016, 1, 1)).TotalHours}";
+            string userName = $"Test{(DateTime.Now - new DateTime(2016, 1, 1)).TotalHours:0}";
 
             IdentityResult identityResult = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.CreateAsync(new UserMock() { Name = userName }, "Passw0rd!"));
 
@@ -130,7 +130,7 @@ namespace ObjectStore.Test.Identity
 
             IList<User> users = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.GetUsersInRoleAsync("Test"));
 
-            Assert.True(users.Any(x => x.Id == 2));
+            Assert.Contains(users, x => x.Id == 2);
 
             IdentityResult removeFromRoleResult = await _fixture.Execute(async (UserManager<User> userManager) =>
             {
@@ -144,7 +144,7 @@ namespace ObjectStore.Test.Identity
 
             users = await _fixture.Execute(async (UserManager<User> userManager) => await userManager.GetUsersInRoleAsync("Test"));
 
-            Assert.False(users.Any(x => x.Id == 2));
+            Assert.DoesNotContain(users, x => x.Id == 2);
 
         }
 

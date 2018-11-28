@@ -163,7 +163,6 @@ namespace ObjectStore.Test.Sqlite
         #endregion
 
         #region Fields
-        string _connectionString;
         RelationalObjectStore _objectProvider;
         int _commandCalls = 0;
         SqliteDatabaseFixture _databaseFixture;

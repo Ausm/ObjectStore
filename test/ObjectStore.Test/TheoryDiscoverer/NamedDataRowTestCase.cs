@@ -131,5 +131,7 @@ namespace ObjectStore.Test
                                                  ExceptionAggregator aggregator,
                                                  CancellationTokenSource cancellationTokenSource)
             => new XunitTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, TestMethodArguments, messageBus, aggregator, cancellationTokenSource).RunAsync();
+
+        public int Timeout => 0;
     }
 }

@@ -1,0 +1,127 @@
+root = true
+
+[*.cs]
+indent_size = 4
+indent_style = space
+
+# Language conventions
+# .NET Code Style Settings
+
+dotnet_style_qualification_for_event = false:none
+dotnet_style_qualification_for_field = false:none
+dotnet_style_qualification_for_method = false:none
+dotnet_style_qualification_for_property = false:none
+
+dotnet_style_predefined_type_for_locals_parameters_members = true:none
+dotnet_style_predefined_type_for_member_access = true:none
+
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:none
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:none
+
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_explicit_tuple_names = true:suggestion
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+
+# C# Code Style Settings
+
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = false:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+csharp_style_expression_bodied_methods = false:none
+csharp_style_expression_bodied_constructors = false:none
+csharp_style_expression_bodied_operators = false:none
+csharp_style_expression_bodied_properties = false:none
+csharp_style_expression_bodied_indexers = false:none
+csharp_style_expression_bodied_accessors = false:none
+
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+
+csharp_style_inlined_variable_declaration = true:suggestion
+
+csharp_prefer_simple_default_expression = true:suggestion
+csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_style_pattern_local_over_anonymous_function = true:suggestion
+
+csharp_style_throw_expression = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+
+csharp_prefer_braces = false:none
+
+# Formatting conventions
+
+dotnet_sort_system_directives_first = true
+
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = no_change
+
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true
+
+# Naming Conventions
+
+# Symbols
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_symbols.types.applicable_kinds = class,struct,interface,enum
+dotnet_naming_symbols.types.applicable_accessibilities = *
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.applicable_accessibilities = *
+dotnet_naming_symbols.async_methods.required_modifiers = async
+dotnet_naming_symbols.non_field_members.applicable_kinds = class,struct,interface,enum,property,method,event,delegate
+dotnet_naming_symbols.non_field_members.applicable_accessibilities = *
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameters
+
+# Styles
+dotnet_naming_style.begin_with_I.required_prefix = I
+dotnet_naming_style.begin_with_I.capitalization = pascal_case
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.end_with_Async.required_suffix = Async
+dotnet_naming_style.end_with_Async.capitalization = pascal_case
+dotnet_naming_style.begin_with_T.required_prefix = T
+dotnet_naming_style.begin_with_T.capitalization = pascal_case
+
+# Interfaces should begin with I
+dotnet_naming_rule.interfaces_should_begin_with_I.symbols = interfaces
+dotnet_naming_rule.interfaces_should_begin_with_I.style = begin_with_I
+dotnet_naming_rule.interfaces_should_begin_with_I.severity = suggestion
+
+# Type Parameters should begin with T
+dotnet_naming_rule.type_parameters_should_begin_with_T.symbols = type_parameters
+dotnet_naming_rule.type_parameters_should_begin_with_T.style = begin_with_T
+dotnet_naming_rule.type_parameters_should_begin_with_T.severity = suggestion
+
+# Types should be pascal case
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.types_should_be_pascal_case.severity = suggestion
+
+# Async methods should end with Async
+dotnet_naming_rule.async_methods_should_end_with_Async.symbols = async_methods
+dotnet_naming_rule.async_methods_should_end_with_Async.style = end_with_Async
+dotnet_naming_rule.async_methods_should_end_with_Async.severity = suggestion
+
+# Non field members should be pascal case
+dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
+dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = suggestion
+
+

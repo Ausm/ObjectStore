@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ObjectStore.Test Class Library</Description>
+    <Authors>MatthiasA</Authors>
+    <TargetFrameworks>netcoreapp1.0;net452</TargetFrameworks>
+    <AssemblyName>ObjectStore.Test</AssemblyName>
+    <PackageId>ObjectStore.Test</PackageId>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ObjectStore\ObjectStore.csproj" />
+    <ProjectReference Include="..\..\src\ObjectStore.SqlClient\ObjectStore.SqlClient.csproj" />
+    <ProjectReference Include="..\..\src\ObjectStore.Sqlite\ObjectStore.Sqlite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.1.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit" Version="2.4.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
+    <PackageReference Include="Microsoft.CodeCoverage" Version="15.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="1.1.0" />
+  </ItemGroup>
+
+</Project>

@@ -410,7 +410,7 @@ namespace ObjectStore.Test.Tests
             Assert.ScriptCalled(_databaseFixture, Query.InsertDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
 
             Assert.Equal(FirstRandomText, entity.Text);
-            Assert.Equal(true, entity.Boolean);
+            Assert.True(entity.Boolean);
             Assert.Equal(int.MaxValue, entity.Int);
             Assert.Equal(byte.MaxValue, entity.Byte);
             Assert.Equal(short.MaxValue, entity.Short);
@@ -438,7 +438,7 @@ namespace ObjectStore.Test.Tests
             Assert.ScriptCalled(_databaseFixture, Query.UpdateDifferentTypesEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.DifferentTypes>().Save());
 
             Assert.Equal(SecondRandomText, entity.Text);
-            Assert.Equal(false, entity.Boolean);
+            Assert.False(entity.Boolean);
             Assert.Equal(int.MinValue, entity.Int);
             Assert.Equal(byte.MinValue, entity.Byte);
             Assert.Equal(short.MinValue, entity.Short);
