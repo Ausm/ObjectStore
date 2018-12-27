@@ -1,11 +1,12 @@
 version: 1.0.{build}
 image: Visual Studio 2017
 configuration: Release
-platform: Any CPU
 before_build:
 - ps: dotnet restore
 build:
   project: ObjectStore.sln
+  publish_nuget: true
+  include_nuget_references: true
   verbosity: minimal
 dotnet_csproj:
   patch: true
