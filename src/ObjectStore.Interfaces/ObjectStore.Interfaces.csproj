@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>ObjectStore.Interfaces Class Library</Description>
-    <VersionPrefix>1.0.0-alpha4</VersionPrefix>
+    <Version>1.0.0</Version>
     <Authors>Matthias Auswoeger</Authors>
     <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
     <AssemblyName>ObjectStore.Interfaces</AssemblyName>
