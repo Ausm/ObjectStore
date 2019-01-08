@@ -3,11 +3,6 @@ image: Visual Studio 2017
 configuration: Release
 before_build:
 - ps: dotnet restore
-build:
-  project: ObjectStore.sln
-  publish_nuget: true
-  include_nuget_references: true
-  verbosity: minimal
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -16,6 +11,12 @@ dotnet_csproj:
   assembly_version: '{version}'
   file_version: '{version}'
   informational_version: '{version}'
+build:
+  project: ObjectStore.sln
+  publish_nuget: true
+  include_nuget_references: true
+  verbosity: minimal
+
 nuget:
   project_feed: true
   disable_publish_on_pr: true
