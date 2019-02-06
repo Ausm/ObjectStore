@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <Description>SQLite Provider for ObjectStore Class Library</Description>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Matthias Auswoeger</Authors>
-    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ObjectStore.Sqlite</AssemblyName>
     <PackageId>ObjectStore.Sqlite</PackageId>
     <PackageTags>ORMapper;SQLite</PackageTags>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>

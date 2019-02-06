@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>ObjectStore.Test.SqlClient Class Library</Description>
     <Authors>MatthiasA</Authors>
-    <TargetFrameworks>netcoreapp1.0;net452</TargetFrameworks>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>ObjectStore.Test.SqlClient</AssemblyName>
     <PackageId>ObjectStore.Test.SqlClient</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>

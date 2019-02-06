@@ -119,11 +119,7 @@ namespace ObjectStore.OrMapping
             if (_moduleBuilder == null)
             {
                 AssemblyName assemblyName = new AssemblyName("InheritensObjectProviderClasses");
-#if  NETCOREAPP1_0
                 AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
-#else
-                AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-#endif
                 _moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name + ".dll");
             }
             return _moduleBuilder.DefineType(name);
@@ -659,12 +655,7 @@ namespace ObjectStore.OrMapping
             generator.Emit(OpCodes.Ret);
 		#endregion
 
-            _dynamicType =
-#if  NETCOREAPP1_0
-                typeBuilder.CreateTypeInfo().UnderlyingSystemType;
-#else
-                typeBuilder.CreateType();
-#endif
+            _dynamicType = typeBuilder.CreateTypeInfo().UnderlyingSystemType;
             _constructor = Expression.Lambda<Func<object>>(Expression.New(_dynamicType.GetConstructor(Type.EmptyTypes))).Compile();
 		#endregion
         }
