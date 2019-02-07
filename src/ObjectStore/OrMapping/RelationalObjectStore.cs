@@ -66,7 +66,27 @@ namespace ObjectStore.OrMapping
             DataBaseInitializer initializer = _databaseProvider.GetDatabaseInitializer(_connectionString);
             initFunc?.Invoke(initializer);
 
-            foreach (Type type in _relationalObjectProvider.Keys)
+            IEnumerable<Type> GetTypesOrderedCorrectly(IEnumerable<Type> types)
+            {
+                List<Type> typesList = types.ToList();
+                while (typesList.Count > 0)
+                {
+                    for(int i = 0; i < typesList.Count; i++)
+                    {
+                        TypeMappingOptions typeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(typesList[i]);
+                        if (!typeMappingOptions.MemberMappingOptions.OfType<ForeignObjectMappingOptions>()
+                            .Where(x => typesList.Contains(x.ForeignObjectType))
+                            .Any())
+                        {
+                            yield return typesList[i];
+                            typesList.RemoveAt(i);
+                        }
+                    }
+
+                }
+            }
+
+            foreach (Type type in GetTypesOrderedCorrectly(_relationalObjectProvider.Keys))
             {
                 TypeMappingOptions typeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(type);
                 initializer.AddTable(typeMappingOptions.TableName);
