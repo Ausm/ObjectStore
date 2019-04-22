@@ -12,7 +12,7 @@ namespace ObjectStore.Sqlite
     {
         partial void InitExpressionParser()
         {
-            _expressionParser = new ExpressionParser()
+            ExpressionParser = new ExpressionParser()
                         .AddRule<BinaryExpression>((exp, args) => $"{args.ParseChild(exp.Left)} + {args.ParseChild(exp.Right)}", ExpressionType.Add, ExpressionType.AddChecked)
                         .AddRule<BinaryExpression>((exp, args) => $"({args.ParseChild(exp.Left)}) AND ({args.ParseChild(exp.Right)})", ExpressionType.And, ExpressionType.AndAlso)
                         .AddRule<BinaryExpression>((exp, args) => $"({args.ParseChild(exp.Left)}) OR ({args.ParseChild(exp.Right)})", ExpressionType.Or, ExpressionType.OrElse)

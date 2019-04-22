@@ -1,8 +1,8 @@
-﻿using ObjectStore.Database;
-using ObjectStore.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ObjectStore.Database;
+using ObjectStore.Interfaces;
 
 namespace ObjectStore.OrMapping
 {
@@ -18,7 +18,7 @@ namespace ObjectStore.OrMapping
                 _changedHandlers = new Dictionary<string, List<Action<IFillAbleObject>>>();
             }
 
-            bool _keepFullLoaded;
+            readonly bool _keepFullLoaded;
             ContextEnumerable _baseKeptEnumerable;
             Dictionary<MappedObjectKeys, WeakReference<IFillAbleObject>> _itemsByKey;
             Dictionary<QueryContext, WeakReference<ContextEnumerable>> _enumerables;
@@ -503,27 +503,27 @@ namespace ObjectStore.OrMapping
                                 }
                                 else
                                 {
-                                    Action<int, int> binarySearch = null;
-                                    binarySearch = (min, max) =>
+                                    void binarySearch(int min, int max)
+                                    {
+                                        int spread = max - min;
+                                        if (spread == 0)
+                                            InsertAt(_expectedNextInsertIndex = (_context.Compare(item, _items[min]) < 0 ? min : ++min), item);
+                                        else if (spread == 1)
+                                            InsertAt(_expectedNextInsertIndex = (_context.Compare(item, _items[min]) < 0 ? min : _context.Compare(item, _items[max]) < 0 ? max : ++max), item);
+                                        else
                                         {
-                                            int spread = max - min;
-                                            if (spread == 0)
-                                                InsertAt(_expectedNextInsertIndex = (_context.Compare(item, _items[min]) < 0 ? min : ++min), item);
-                                            else if (spread == 1)
-                                                InsertAt(_expectedNextInsertIndex = (_context.Compare(item, _items[min]) < 0 ? min : _context.Compare(item, _items[max]) < 0 ? max : ++max), item);
+                                            int mid = min + (spread / 2);
+                                            int compare = _context.Compare(item, _items[mid]);
+                                            if (compare == 0)
+                                                InsertAt(_expectedNextInsertIndex = mid, item);
+                                            else if (compare > 0)
+                                                binarySearch(mid, max);
                                             else
-                                            {
-                                                int mid = min + (spread / 2);
-                                                int compare = _context.Compare(item, _items[mid]);
-                                                if (compare == 0)
-                                                    InsertAt(_expectedNextInsertIndex = mid, item);
-                                                else if (compare > 0)
-                                                    binarySearch(mid, max);
-                                                else
-                                                    binarySearch(min, mid);
+                                                binarySearch(min, mid);
 
-                                            }
-                                        };
+                                        }
+                                    }
+
                                     binarySearch(0, _items.Count - 1);
 
                                 }
@@ -615,17 +615,15 @@ namespace ObjectStore.OrMapping
 #region EntryEventHandlers
             private void EntryValuePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
             {
-                if (sender is IFillAbleObject)
+                if (sender is IFillAbleObject fillableObject)
                 {
-                    IFillAbleObject fillableObject = (IFillAbleObject)sender;
-                    if (e is StateChangedEventArgs)
+                    if (e is StateChangedEventArgs e2)
                     {
-                        StateChangedEventArgs e2 = (StateChangedEventArgs)e;
                         if (e2.NewState == State.NotAttached)
-                            _itemsByKey.Remove(e2.OldState == State.Created ? new MappedObjectKeys(new object[]{fillableObject}) : fillableObject.Keys);
+                            _itemsByKey.Remove(e2.OldState == State.Created ? new MappedObjectKeys(new object[] { fillableObject }) : fillableObject.Keys);
                         else if (e2.OldState == State.Created)
                         {
-                            _itemsByKey.Remove(new MappedObjectKeys(new object[]{fillableObject}));
+                            _itemsByKey.Remove(new MappedObjectKeys(new object[] { fillableObject }));
                             _itemsByKey.Add(fillableObject.Keys, new WeakReference<IFillAbleObject>(fillableObject));
                         }
                     }
