@@ -1,7 +1,7 @@
 language: csharp
 solution: ObjectStore.sln
 mono: none
-dotnet: 1.1.5
+dotnet: 2.1.502
 
 matrix:
   include:
@@ -18,9 +18,9 @@ install:
 
 script:
   # dotnet build
-  - dotnet build --framework "netcoreapp1.0"
+  - dotnet build
   # dotnet test
-  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test/ObjectStore.Test.csproj
-  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.SqlClient/ObjectStore.Test.SqlClient.csproj
-  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.Sqlite/ObjectStore.Test.Sqlite.csproj
-  - dotnet test --framework "netcoreapp1.0" test/ObjectStore.Test.Identity/ObjectStore.Test.Identity.csproj
+  - dotnet test test/ObjectStore.Test/ObjectStore.Test.csproj
+  - dotnet test test/ObjectStore.Test.SqlClient/ObjectStore.Test.SqlClient.csproj
+  - dotnet test test/ObjectStore.Test.Sqlite/ObjectStore.Test.Sqlite.csproj
+  - dotnet test test/ObjectStore.Test.Identity/ObjectStore.Test.Identity.csproj
