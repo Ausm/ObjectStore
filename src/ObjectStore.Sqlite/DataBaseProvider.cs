@@ -1,14 +1,14 @@
-﻿using ObjectStore.Expressions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using Microsoft.Data.Sqlite;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Xml.Linq;
+using ObjectStore.Expressions;
 using ObjectStore.Database;
-using System.Text;
-using System.Reflection;
+using Microsoft.Data.Sqlite;
 
 namespace ObjectStore.Sqlite
 {
@@ -77,7 +77,7 @@ namespace ObjectStore.Sqlite
             int _referenceCount;
             DateTime? _dereferenceTime;
             Thread _disposingThread;
-            string _connectionString;
+            readonly string _connectionString;
 
             public DbConnection IncreaseReferencCount()
             {
@@ -179,16 +179,15 @@ namespace ObjectStore.Sqlite
 
         class TableInfo : ITableInfo
         {
-            string _tableName;
             List<string> _fieldNames;
 
             public TableInfo(string tableName, IEnumerable<string> fieldNames)
             {
-                _tableName = tableName;
+                TableName = tableName;
                 _fieldNames = fieldNames.ToList();
             }
 
-            public string TableName => _tableName;
+            public string TableName { get; }
 
             public IEnumerable<string> FieldNames => _fieldNames.AsReadOnly();
         }
@@ -196,7 +195,7 @@ namespace ObjectStore.Sqlite
         class SqliteDataBaseInitializer : DataBaseInitializer
         {
             DataBaseProvider _databaseProvider;
-            string _connectionString;
+            readonly string _connectionString;
 
             public SqliteDataBaseInitializer(string connectionString, DataBaseProvider databaseProvider, Func<DbCommand> getCommandFunc) : base(connectionString, databaseProvider, getCommandFunc)
             {
@@ -206,19 +205,16 @@ namespace ObjectStore.Sqlite
 
             protected override string DefaultParseCreateTableStatement(IStatement completeStatement, string previousParseResult)
             {
-                if (completeStatement is IAddTableStatement)
+                if (completeStatement is IAddTableStatement addTableStatement)
                 {
-                    IAddTableStatement addTableStatement = (IAddTableStatement)completeStatement;
-
                     List<string> fieldStatements = addTableStatement.FieldStatements.Select(x => ParseFieldStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                     fieldStatements.AddRange(addTableStatement.FieldStatements.Where(x => x.HasForeignKey).Select(x => ParseConstraintStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)));
 
                     StringBuilder stringBuilder = new StringBuilder($"CREATE TABLE {addTableStatement.Tablename} (").Append(string.Join(",", fieldStatements)).AppendLine(")");
                     return stringBuilder.ToString();
                 }
-                else if (completeStatement is IAlterTableStatment)
+                else if (completeStatement is IAlterTableStatment alterTableStatement)
                 {
-                    IAlterTableStatment alterTableStatement = (IAlterTableStatment)completeStatement;
                     if (alterTableStatement.ExistsAlready)
                         return previousParseResult;
 
@@ -250,7 +246,15 @@ namespace ObjectStore.Sqlite
             {
                 StringBuilder stringBuilder = new StringBuilder();
                 if (addFieldStatement.HasForeignKey)
-                    stringBuilder.Append("FOREIGN KEY(").Append(addFieldStatement.Fieldname).Append(") REFERENCES ").Append($"{addFieldStatement.ForeignTable}({addFieldStatement.ForeignField})");
+                {
+                    stringBuilder.Append("FOREIGN KEY(")
+                        .Append(addFieldStatement.Fieldname)
+                        .Append(") REFERENCES ")
+                        .Append($"{addFieldStatement.ForeignTable}({addFieldStatement.ForeignField})");
+
+                    if (addFieldStatement.ForeignKeyOnDeleteCascade)
+                        stringBuilder.Append(" ON DELETE CASCADE ");
+                }
 
                 return stringBuilder.Length == 0 ? default(string) : stringBuilder.ToString();
             }
@@ -297,9 +301,7 @@ namespace ObjectStore.Sqlite
             }
 
             protected override DbCommand GetCommand()
-            {
-                return base.GetCommand();
-            }
+                => base.GetCommand();
 
             protected override ITableInfo GetTableInfo(string tableName)
             {
@@ -343,7 +345,6 @@ namespace ObjectStore.Sqlite
         Dictionary<string, Dictionary<Thread, ReferencedConnection>> _connections = new Dictionary<string, Dictionary<Thread, ReferencedConnection>>();
         DateTime _lastCleanUpTime = DateTime.Now;
         int _currentUniqe = 0;
-        ExpressionParser _expressionParser;
         static Func<DbCommand> _getCommand = () => new SqliteCommand();
         static Func<string, DbConnection> _getConnection = c => new SqliteConnection(c);
         #endregion
@@ -352,12 +353,7 @@ namespace ObjectStore.Sqlite
         public static DataBaseProvider _instance;
 
         public static DataBaseProvider Instance
-        {
-            get
-            {
-                return _instance ?? (_instance = new DataBaseProvider());
-            }
-        }
+            => _instance ?? (_instance = new DataBaseProvider());
 
         private DataBaseProvider()
         {
@@ -367,29 +363,19 @@ namespace ObjectStore.Sqlite
 
         #region CommandBuilders
         public IModifyableCommandBuilder GetSelectCommandBuilder()
-        {
-            return new SelectCommandBuilder(this);
-        }
+            => new SelectCommandBuilder(this);
 
         public ICommandBuilder GetInsertCommandBuilder()
-        {
-            return new InsertCommandBuilder();
-        }
+            => new InsertCommandBuilder();
 
         public ICommandBuilder GetUpdateCommandBuilder()
-        {
-            return new UpdateCommandBuilder();
-        }
+            => new UpdateCommandBuilder();
 
         public ICommandBuilder GetDeleteCommandBuilder()
-        {
-            return new DeleteCommandBuilder();
-        }
+            => new DeleteCommandBuilder();
 
         public IValueSource GetValueSource(DbCommand command)
-        {
-            return new ValueSource(command.ExecuteReader());
-        }
+            => new ValueSource(command.ExecuteReader());
         #endregion
 
         #region Connections
@@ -514,7 +500,7 @@ namespace ObjectStore.Sqlite
         #endregion
 
         #region Properties
-        internal ExpressionParser ExpressionParser => _expressionParser;
+        internal ExpressionParser ExpressionParser { get; private set; }
         #endregion
     }
 }

@@ -1,8 +1,8 @@
-﻿using ObjectStore.Database;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using ObjectStore.Database;
 
 namespace ObjectStore
 {
@@ -34,21 +34,21 @@ namespace ObjectStore
             bool HasForeignKey { get; }
             string ForeignTable { get; }
             string ForeignField { get; }
+            bool ForeignKeyOnDeleteCascade { get; }
             IStatement Statement { get; }
         }
 
         class AddTableStatement : IAddTableStatement
         {
-            string _tablename;
             List<Field> _fieldStatements;
 
             public AddTableStatement(string tablename)
             {
-                _tablename = tablename;
+                Tablename = tablename;
                 _fieldStatements = new List<Field>();
             }
 
-            public string Tablename => _tablename;
+            public string Tablename { get; }
 
             public IEnumerable<Field> FieldStatements => _fieldStatements;
 
@@ -64,22 +64,20 @@ namespace ObjectStore
 
         class AlterTableStatement : IAlterTableStatment
         {
-            string _tablename;
-            Field _fieldStatement;
             ITableInfo _tableInfo;
 
             public AlterTableStatement(string tablename, string fieldname, Type type, ITableInfo tableInfo)
             {
                 _tableInfo = tableInfo;
-                _tablename = tablename;
-                _fieldStatement = new Field(fieldname, type, this);
+                Tablename = tablename;
+                FieldStatement = new Field(fieldname, type, this);
             }
 
-            public string Tablename => _tablename;
+            public string Tablename { get; }
 
-            public Field FieldStatement => _fieldStatement;
+            public Field FieldStatement { get; }
 
-            IField IAlterTableStatment.FieldStatement => _fieldStatement;
+            IField IAlterTableStatment.FieldStatement => FieldStatement;
 
             bool IAlterTableStatment.ExistsAlready => _tableInfo.FieldNames.Contains(FieldStatement.Fieldname);
 
@@ -87,69 +85,65 @@ namespace ObjectStore
 
         class Field : IField
         {
-            string _fieldname;
-            Type _type;
-            bool _isPrimaryKey;
             bool _isAutoincrement;
-            IStatement _statement;
-
-            string _foreignKeyTableName;
-            string _foreignKeyFieldName;
 
             public Field(string fieldname, Type type, IStatement statement)
             {
-                _fieldname = fieldname;
-                _type = type;
-                _statement = statement;
-                _isPrimaryKey = false;
+                Fieldname = fieldname;
+                Type = type;
+                Statement = statement;
+                IsPrimaryKey = false;
                 _isAutoincrement = false;
-                _foreignKeyFieldName = null;
-                _foreignKeyTableName = null;
+                ForeignField = null;
+                ForeignTable = null;
             }
 
-            public string Fieldname => _fieldname;
+            public string Fieldname { get; }
 
-            public Type Type => _type;
+            public Type Type { get; }
 
-            public bool IsPrimaryKey => _isPrimaryKey;
+            public bool IsPrimaryKey { get; private set; }
 
-            public bool IsAutoincrement => _isPrimaryKey && _isAutoincrement;
+            public bool IsAutoincrement => IsPrimaryKey && _isAutoincrement;
 
-            public bool HasForeignKey => !string.IsNullOrWhiteSpace(_foreignKeyTableName) || !string.IsNullOrWhiteSpace(_foreignKeyFieldName);
+            public bool HasForeignKey => !string.IsNullOrWhiteSpace(ForeignTable) || !string.IsNullOrWhiteSpace(ForeignField);
 
-            public string ForeignTable => _foreignKeyTableName;
+            public bool ForeignKeyOnDeleteCascade { get; private set; }
 
-            public string ForeignField => _foreignKeyFieldName;
+            public string ForeignTable { get; private set; }
 
-            public IStatement Statement => _statement;
+            public string ForeignField { get; private set; }
 
-            public void SetForeignKey(string tableName, string fieldName)
+            public IStatement Statement { get; }
+
+            public void SetForeignKey(string tableName, string fieldName, bool onDeleteCascade)
             {
-                _foreignKeyFieldName = fieldName;
-                _foreignKeyTableName = tableName;
+                ForeignField = fieldName;
+                ForeignTable = tableName;
+                ForeignKeyOnDeleteCascade = onDeleteCascade;
             }
 
             public void SetPrimaryKey(bool autoincrement)
             {
-                _isPrimaryKey = true;
+                IsPrimaryKey = true;
                 _isAutoincrement = autoincrement;
             }
         }
         #endregion
 
         #region Fields
-        string _connectionString;
+        readonly string _connectionString;
+        readonly Func<DbCommand> _getCommandFunc;
         IDataBaseProvider _databaseProvider;
-        Func<DbCommand> _getCommandFunc;
 
         List<IStatement> _tableStatments;
         AddTableStatement _currentTableStatment;
         ITableInfo _currentTableInfo;
         Field _currentAddFieldStatment;
 
-        List<Tuple<Func<IStatement, bool>, Func<IStatement, string, string>>> _registeredCreateTableParseMethods;
-        List<Tuple<Func<IField, bool>, Func<IField, string, string>>> _registeredAddFieldParseMethods;
-        List<Tuple<Func<IField, bool>, Func<IField, string, string>>> _registeredAddConstraintParseMethods;
+        readonly List<Tuple<Func<IStatement, bool>, Func<IStatement, string, string>>> _registeredCreateTableParseMethods;
+        readonly List<Tuple<Func<IField, bool>, Func<IField, string, string>>> _registeredAddFieldParseMethods;
+        readonly List<Tuple<Func<IField, bool>, Func<IField, string, string>>> _registeredAddConstraintParseMethods;
         #endregion
 
         #region Contructors
@@ -217,10 +211,8 @@ namespace ObjectStore
                 throw new InvalidOperationException("No Table selected");
         }
 
-        internal void AddForeignKey(string foreignTableName, string foreignKeyFieldName)
-        {
-            _currentAddFieldStatment.SetForeignKey(Qoute(foreignTableName), Qoute(foreignKeyFieldName));
-        }
+        internal void AddForeignKey(string foreignTableName, string foreignKeyFieldName, bool onDeleteCascade)
+            => _currentAddFieldStatment.SetForeignKey(Qoute(foreignTableName), Qoute(foreignKeyFieldName), onDeleteCascade);
 
         internal void AddTable(string tableName)
         {

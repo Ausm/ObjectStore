@@ -26,10 +26,11 @@ namespace ObjectStore.Test
 
         public NumberedDataRowTestCase(IMessageSink diagnosticMessageSink,
                              TestMethodDisplay defaultMethodDisplay,
+                             TestMethodDisplayOptions defaultMethodDisplayOptions,
                              ITestMethod testMethod,
                              int attributeNumber,
                              int rowNumber)
-            : base(defaultMethodDisplay, testMethod, GetTestMethodArguments(testMethod, attributeNumber, rowNumber, diagnosticMessageSink))
+            : base(defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, GetTestMethodArguments(testMethod, attributeNumber, rowNumber, diagnosticMessageSink))
         {
             _attributeNumber = attributeNumber;
             _rowNumber = rowNumber;

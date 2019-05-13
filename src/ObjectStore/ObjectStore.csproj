@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <Description>ObjectStore Class Library</Description>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Matthias Auswoeger</Authors>
-    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ObjectStore</AssemblyName>
     <PackageId>ObjectStore</PackageId>
     <PackageTags>ORMapper;SQL;SQLite</PackageTags>
@@ -13,17 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.0.2" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
-    <Reference Include="System.Transactions" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
-    <PackageReference Include="System.Data.Common" Version="4.1.0" />
-    <PackageReference Include="System.Reflection.Emit" Version="4.0.1" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.2.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

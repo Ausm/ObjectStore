@@ -1,10 +1,9 @@
-﻿using ObjectStore.Database;
-using ObjectStore.Interfaces;
-using ObjectStore.MappingOptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using ObjectStore.Database;
+using ObjectStore.Interfaces;
+using ObjectStore.MappingOptions;
 
 namespace ObjectStore.OrMapping
 {
@@ -13,8 +12,8 @@ namespace ObjectStore.OrMapping
         IDataBaseProvider _databaseProvider;
         Dictionary<Type, IObjectProvider> _relationalObjectProvider;
         MappingOptionsSet _mappingOptionsSet;
-        string _connectionString;
-        bool _autoregisterTypes;
+        readonly string _connectionString;
+        readonly bool _autoregisterTypes;
 
         public RelationalObjectStore(string connectionString, IDataBaseProvider databaseProvider, MappingOptionsSet mappingOptionsSet, bool autoregister)
         {
@@ -66,7 +65,27 @@ namespace ObjectStore.OrMapping
             DataBaseInitializer initializer = _databaseProvider.GetDatabaseInitializer(_connectionString);
             initFunc?.Invoke(initializer);
 
-            foreach (Type type in _relationalObjectProvider.Keys)
+            IEnumerable<Type> GetTypesOrderedCorrectly(IEnumerable<Type> types)
+            {
+                List<Type> typesList = types.ToList();
+                while (typesList.Count > 0)
+                {
+                    for(int i = 0; i < typesList.Count; i++)
+                    {
+                        TypeMappingOptions typeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(typesList[i]);
+                        if (!typeMappingOptions.MemberMappingOptions.OfType<ForeignObjectMappingOptions>()
+                            .Where(x => typesList.Contains(x.ForeignObjectType))
+                            .Any())
+                        {
+                            yield return typesList[i];
+                            typesList.RemoveAt(i);
+                        }
+                    }
+
+                }
+            }
+
+            foreach (Type type in GetTypesOrderedCorrectly(_relationalObjectProvider.Keys))
             {
                 TypeMappingOptions typeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(type);
                 initializer.AddTable(typeMappingOptions.TableName);
@@ -75,16 +94,23 @@ namespace ObjectStore.OrMapping
                     if (memberMappineOptions.Type == MappingType.ReferenceListMapping)
                         continue;
 
-                    if (memberMappineOptions is ForeignObjectMappingOptions)
+                    if (memberMappineOptions is ForeignObjectMappingOptions foreignObjectMappingOptions)
                     {
-                        ForeignObjectMappingOptions foreignObjectMappingOptions = (ForeignObjectMappingOptions)memberMappineOptions;
-
                         initializer.AddField(foreignObjectMappingOptions.DatabaseFieldName, foreignObjectMappingOptions.KeyType);
 
                         FieldMappingOptions foreignFieldMappingOptions = foreignObjectMappingOptions.ForeignMember as FieldMappingOptions;
                         TypeMappingOptions foreignTypeMappingOptions = _mappingOptionsSet.GetTypeMappingOptions(foreignObjectMappingOptions.ForeignObjectType);
 
-                        initializer.AddForeignKey(foreignTypeMappingOptions.TableName, foreignFieldMappingOptions.DatabaseFieldName);
+                        IEnumerable<ReferenceListMappingOptions> referenceListMappingOptions =
+                            foreignTypeMappingOptions.MemberMappingOptions.OfType<ReferenceListMappingOptions>()
+                                .Where(x => x.ForeignProperty == foreignObjectMappingOptions.Member);
+
+
+
+                        initializer.AddForeignKey(
+                            foreignTypeMappingOptions.TableName,
+                            foreignFieldMappingOptions.DatabaseFieldName,
+                            referenceListMappingOptions.Any(x => x.DeleteCascade));
                     }
                     else
                         initializer.AddField(memberMappineOptions.DatabaseFieldName, memberMappineOptions.Member.PropertyType);

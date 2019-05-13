@@ -264,7 +264,7 @@ namespace ObjectStore.Test.Tests
 
                 manualResetEvent2.WaitOne();
                 Assert.Collection(hittedCommands,
-                    x => Assert.Equal(x, Query.SelectSub));
+                    x => Assert.Equal(Query.SelectSub, x));
 
                 manualResetEvent.Set();
 
@@ -273,9 +273,9 @@ namespace ObjectStore.Test.Tests
                 await tasks[2];
 
                 Assert.Collection(hittedCommands,
-                    x => Assert.Equal(x, Query.SelectSub),
-                    x => Assert.Equal(x, Query.Select),
-                    x => Assert.Equal(x, Query.SelectSub));
+                    x => Assert.Equal(Query.SelectSub, x),
+                    x => Assert.Equal(Query.Select, x),
+                    x => Assert.Equal(Query.SelectSub, x));
 
                 Assert.InRange(collectionChangedCounter, 20, int.MaxValue);
             }

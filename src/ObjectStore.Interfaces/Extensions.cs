@@ -51,92 +51,6 @@ namespace ObjectStore
         #endregion
 
         #region Queryable Extensions
-
-#if  NETCOREAPP1_0
-        public static bool Save<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.Execute<bool>(Expression.Call(null, GetMethodInfoOf(() => default(IQueryable<T>).Save()), new Expression[] { source.Expression }));
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        public static bool DropChanges<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.Execute<bool>(Expression.Call(null, GetMethodInfoOf(() => default(IQueryable<T>).DropChanges()), new Expression[] { source.Expression }));
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        public static bool CheckChanged<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.Execute<bool>(Expression.Call(null, GetMethodInfoOf(() => default(IQueryable<T>).CheckChanged()), new Expression[] { source.Expression }));
-            }
-            else
-            {
-                throw new InvalidOperationException("Source is not a IStoreQueryable.");
-            }
-        }
-
-        public static bool Delete<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.Execute<bool>(Expression.Call(null, GetMethodInfoOf(() => default(IQueryable<T>).Delete()), new Expression[] { source.Expression }));
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        public static IQueryable<T> ForceLoad<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.CreateQuery<T>(
-                    Expression.Call(null,
-                    GetMethodInfoOf(() => default(IQueryable<T>).ForceLoad()),
-                    new Expression[] { source.Expression })
-                    );
-            }
-            throw new InvalidOperationException("Source is not a IStoreQueryable.");
-        }
-
-        public static IQueryable<T> ForceCache<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-            {
-                return source.Provider.CreateQuery<T>(
-                    Expression.Call(null,
-                    GetMethodInfoOf(() => default(IQueryable<T>).ForceCache()),
-                    new Expression[] { source.Expression }));
-            }
-            throw new InvalidOperationException("Source is not a IStoreQueryable.");
-        }
-
-        static MethodInfo GetMethodInfoOf<T>(Expression<Func<T>> expression)
-        {
-            return ((MethodCallExpression)expression.Body).Method;
-        }
-
-        public static async Task FetchAsync<T>(this IQueryable<T> source)
-        {
-            if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
-                await source.Provider.Execute<Task>(Expression.Call(null, GetMethodInfoOf(() => default(IQueryable<T>).FetchAsync()), new Expression[] { source.Expression }));
-        }
-#else
         public static bool Save<T>(this IQueryable<T> source)
         {
             if (typeof(IObjectStoreQueryable<T>).IsAssignableFrom(source.GetType()))
@@ -219,7 +133,6 @@ namespace ObjectStore
             else
                 throw new InvalidOperationException("Source is not a IStoreQueryable.");
         }
-#endif
         #endregion
     }
 }

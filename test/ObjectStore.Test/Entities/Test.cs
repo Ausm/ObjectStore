@@ -16,5 +16,8 @@ namespace ObjectStore.Test.Entities
 
         [ReferenceListMapping(typeof(SubTest), nameof(SubTest.Test))]
         public abstract ICollection<SubTest> SubTests { get; }
+
+        [ReferenceListMapping(typeof(ForeignObjectKey), nameof(ForeignObjectKey.Test))]
+        public abstract ICollection<ForeignObjectKey> ForeignObjectKeyValue { get; }
     }
 }

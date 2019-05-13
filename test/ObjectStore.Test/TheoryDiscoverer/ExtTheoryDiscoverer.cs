@@ -22,19 +22,19 @@ namespace ObjectStore.Test
         }
 
         protected virtual IXunitTestCase CreateTestCaseForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, int dataAttributeNumber, int dataRowNumber)
-            => new NumberedDataRowTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, dataAttributeNumber, dataRowNumber);
+            => new NumberedDataRowTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataAttributeNumber, dataRowNumber);
 
         protected virtual IXunitTestCase CreateTestCaseForNamedDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, int dataAttributeNumber, string dataRowName)
-            => new NamedDataRowTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, dataAttributeNumber, dataRowName);
+            => new NamedDataRowTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataAttributeNumber, dataRowName);
 
         protected virtual IXunitTestCase CreateTestCaseForSkip(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, string skipReason)
-            => new Xunit.Sdk.XunitTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod);
+            => new XunitTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
 
         protected virtual IXunitTestCase CreateTestCaseForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
-            => new XunitTheoryTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod);
+            => new XunitTheoryTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
 
         protected virtual IXunitTestCase CreateTestCaseForSkippedDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow, string skipReason)
-            => new XunitSkippedDataRowTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod, skipReason, dataRow);
+            => new XunitSkippedDataRowTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, skipReason, dataRow);
 
         public virtual IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
         {
@@ -100,6 +100,7 @@ namespace ObjectStore.Test
                     if (results.Count == 0)
                         results.Add(new ExecutionErrorTestCase(diagnosticMessageSink,
                                                                discoveryOptions.MethodDisplayOrDefault(),
+                                                               discoveryOptions.MethodDisplayOptionsOrDefault(),
                                                                testMethod,
                                                                $"No data found for {testMethod.TestClass.Class.Name}.{testMethod.Method.Name}"));
 

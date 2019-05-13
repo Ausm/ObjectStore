@@ -6,29 +6,21 @@ namespace ObjectStore
     [global::System.AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = true, AllowMultiple = false)]
     public sealed class TableAttribute : Attribute
     {
-        readonly string _tableName;
-        readonly LoadBehavior _loadBehavior;
         public TableAttribute(string tableName)
         {
-            _tableName = tableName;
-            _loadBehavior = LoadBehavior.OnDemandPartialLoad;
+            TableName = tableName;
+            LoadBehavior = LoadBehavior.OnDemandPartialLoad;
         }
 
         public TableAttribute(string tableName, LoadBehavior loadBehavior)
         {
-            _tableName = tableName;
-            _loadBehavior = loadBehavior; 
+            TableName = tableName;
+            LoadBehavior = loadBehavior; 
         }
 
-        public string TableName
-        {
-            get { return _tableName; }
-        }
+        public string TableName { get; }
 
-        public LoadBehavior LoadBehavior
-        {
-            get { return _loadBehavior; }
-        }
+        public LoadBehavior LoadBehavior { get; }
     }
 
     public enum LoadBehavior
@@ -118,104 +110,60 @@ namespace ObjectStore
     [global::System.AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public sealed class ForeignObjectMappingAttribute : Attribute
     {
-        string _fieldname;
-        bool _insertable;
-        bool _updateable;
-        Type _foreignObjectType;
-
         public ForeignObjectMappingAttribute(string fieldname)
         {
-            _fieldname = fieldname;
-            _insertable = _updateable = true;
+            Fieldname = fieldname;
+            Insertable = Updateable = true;
         }
 
-        public string Fieldname { get { return _fieldname; } }
+        public string Fieldname { get; }
 
-        public bool Insertable
-        {
-            get
-            {
-                return _insertable;
-            }
-            set
-            {
-                _insertable = value;
-            }
-        }
+        public bool Insertable { get; set; }
 
-        public bool Updateable
-        {
-            get
-            {
-                return _updateable;
-            }
-            set
-            {
-                _updateable = value;
-            }
-        }
+        public bool Updateable { get; set; }
 
         public bool ReadOnly
         {
             get
             {
-                return !(_insertable || _updateable);
+                return !(Insertable || Updateable);
             }
             set
             {
-                _insertable = _updateable = !value;
+                Insertable = Updateable = !value;
             }
         }
 
-        public Type ForeignObjectType
-        {
-            get
-            {
-                return _foreignObjectType;
-            }
-            set
-            {
-                _foreignObjectType = value;
-            }
-        }
+        public Type ForeignObjectType { get; set; }
 
     }
 
     [global::System.AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public sealed class ReferenceListMappingAttribute : Attribute
     {
-        PropertyInfo _foreignProperty;
-        Type _foreignType;
-        bool _deleteCascade;
-        bool _saveCascade;
-        bool _dropChangesCascade;
-
         public ReferenceListMappingAttribute(Type foreignType, string foreignPropertyName)
         {
-            _foreignType = foreignType;
-            _foreignProperty = foreignType.GetProperty(foreignPropertyName);
-            _deleteCascade = true;
-            _saveCascade = true;
-            _dropChangesCascade = true;
+            ForeignType = foreignType;
+            ForeignProperty = foreignType.GetProperty(foreignPropertyName);
+            DeleteCascade = true;
+            SaveCascade = true;
+            DropChangesCascade = true;
         }
 
-        public PropertyInfo ForeignProperty { get { return _foreignProperty; } }
-        public Type ForeignType { get { return _foreignType; } }
-        public bool DeleteCascade { get { return _deleteCascade; } set { _deleteCascade = value; } }
-        public bool SaveCascade { get { return _saveCascade; } set { _saveCascade = value; } }
-        public bool DropChangesCascade { get { return _dropChangesCascade; } set { _dropChangesCascade = value; } }
+        public PropertyInfo ForeignProperty { get; }
+        public Type ForeignType { get; }
+        public bool DeleteCascade { get; set; }
+        public bool SaveCascade { get; set; }
+        public bool DropChangesCascade { get; set; }
     }
 
     [global::System.AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = true)]
     public sealed class EqualsObjectConditionAttribute : Attribute
     {
-        string _propertyName;
-        object _equalValue;
-
         private EqualsObjectConditionAttribute(string propertyName, object equalValue)
         {
-            _propertyName = propertyName;
-            _equalValue = equalValue;
+            PropertyName = propertyName;
+            Value = equalValue;
         }
 
         public EqualsObjectConditionAttribute(string propertyName, byte equalValue)
@@ -233,21 +181,9 @@ namespace ObjectStore
         {
         }
 
-        public string PropertyName
-        {
-            get
-            {
-                return _propertyName;
-            }
-        }
+        public string PropertyName { get; }
 
-        public object Value
-        {
-            get
-            {
-                return _equalValue;
-            }
-        }
+        public object Value { get; }
     }
 
 
@@ -257,20 +193,12 @@ namespace ObjectStore
     [global::System.AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class SqlSubstituteAttribute : Attribute 
     {
-        string _sqlSubstitution;
-
         public SqlSubstituteAttribute(string sqlSubstitution)
         {
-            _sqlSubstitution = sqlSubstitution;
+            SqlSubstitution = sqlSubstitution;
         }
 
-        public string SqlSubstitution
-        {
-            get
-            {
-                return _sqlSubstitution;
-            }
-        }
+        public string SqlSubstitution { get; }
     }
 
 }

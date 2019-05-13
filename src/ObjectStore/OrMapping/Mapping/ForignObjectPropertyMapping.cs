@@ -1,8 +1,4 @@
-﻿#if  NETCOREAPP1_0
-using ApplicationException = global::System.InvalidOperationException;
-#endif
-
-using System;
+﻿using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using ObjectStore.MappingOptions;
@@ -29,11 +25,7 @@ namespace ObjectStore.OrMapping
 
         public override void AddInhertiedProperty(TypeBuilder typeBuilder, MethodInfo notifyPropertyChangedMethode)
         {
-#if  NETCOREAPP1_0
-            if (!MemberInfo.DeclaringType.GetTypeInfo().IsAbstract)
-#else
             if (!MemberInfo.DeclaringType.IsAbstract)
-#endif
                 throw new NotSupportedException("Inherited properties are only possible for Interfaces and abstract classes.");
 
 #region Member Definieren
