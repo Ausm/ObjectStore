@@ -25,6 +25,7 @@ pull_requests:
 branches:  
   only:
   - master
+  - V1
 deploy:
 - provider: NuGet
   api_key:
