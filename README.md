@@ -4,14 +4,12 @@ Travis CI:
 [![Build Status](https://travis-ci.org/Ausm/ObjectStore.svg?branch=master)](https://travis-ci.org/Ausm/ObjectStore)
 Appveyor:
 [![Build status](https://ci.appveyor.com/api/projects/status/9r1b0mfgjskf7gry/branch/master?svg=true)](https://ci.appveyor.com/project/Ausm/objectstore/branch/master)
-MyGet:
-[![MyGet CI](https://img.shields.io/myget/objectstore/v/ObjectStore.svg)](https://www.myget.org/feed/objectstore/package/nuget/ObjectStore)
 Nuget:
 [![NuGet Pre Release](https://img.shields.io/nuget/vpre/ObjectStore.svg?maxAge=2592000?style=plastic)](https://www.nuget.org/packages/ObjectStore)
 
 .Net Or-Mapper working with dynamically implemented abstract Classes
 
-##How to Use?
+## How to Use?
 
 
 **Simply write classes like:**
