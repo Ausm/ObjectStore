@@ -21,10 +21,9 @@ namespace ObjectStore.Test.Sqlite
     public class SqliteDatabaseFixture : IDisposable, IDatabaseFixture
     {
         #region Fields
-        IObjectProvider _objectProvider;
-        ResultManager<Query> _resultManager;
+        readonly ResultManager<Query> _resultManager;
         bool _isInitialized;
-        SqliteConnection _connection;
+        readonly SqliteConnection _connection;
         SqliteTransaction _transaction;
         bool _useResultManager;
         #endregion
@@ -57,7 +56,7 @@ namespace ObjectStore.Test.Sqlite
 
 
             RelationalObjectStore relationalObjectProvider = new RelationalObjectStore(connectionString, DataBaseProvider.Instance, new MappingOptionsSet().AddDefaultRules(), true);
-            ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(_objectProvider = relationalObjectProvider);
+            ObjectStoreManager.DefaultObjectStore.RegisterObjectProvider(ObjectProvider = relationalObjectProvider);
             relationalObjectProvider.Register<Entities.DifferentTypes>();
             relationalObjectProvider.Register<Entities.DifferentWritabilityLevels>();
             relationalObjectProvider.Register<Entities.ForeignObjectKey>();
@@ -92,13 +91,7 @@ namespace ObjectStore.Test.Sqlite
         #endregion
 
         #region Properties
-        public IObjectProvider ObjectProvider
-        {
-            get
-            {
-                return _objectProvider;
-            }
-        }
+        public IObjectProvider ObjectProvider { get; }
 
         public bool UseResultManager
         {
@@ -168,8 +161,9 @@ namespace ObjectStore.Test.Sqlite
                         HitCommand(this, new HitCommandEventArgs(key));
             }
 
-            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, (SqliteConnection)_connection);
-            sqliteCommand.Transaction = _transaction;
+            SqliteCommand sqliteCommand = new SqliteCommand(command.CommandText, _connection) {
+                Transaction = _transaction
+            };
             sqliteCommand.Parameters.AddRange(command.Parameters.Cast<SqliteParameter>());
 
             return sqliteCommand.ExecuteReader();

@@ -63,13 +63,7 @@ namespace ObjectStore.Identity
         }
 
         static PropertyInfo GetPropertyInfo<T, TResult>(Expression<Func<T, TResult>> propertyAccessExpression)
-        {
-            PropertyInfo propertyInfo = (propertyAccessExpression.Body as MemberExpression)?.Member as PropertyInfo;
-
-            if (propertyInfo == null)
+            => ((propertyAccessExpression.Body as MemberExpression)?.Member is PropertyInfo propertyInfo) ? propertyInfo : 
                 throw new ArgumentException("Expression must be a property access expression", "expression");
-
-            return propertyInfo;
-        }
     }
 }
