@@ -54,7 +54,7 @@ namespace ObjectStore.Test.Identity.Fixtures
                 })
                 .Configure(app =>
                 {
-                    app.UseIdentity().Use(d => c => _function == null ? d(c) : _function(c));
+                    app.UseAuthentication().Use(d => c => _function == null ? d(c) : _function(c));
                     RelationalObjectStore objectStore = app.ApplicationServices.GetService(typeof(IObjectProvider)) as RelationalObjectStore;
                     objectStore.Register<E.User>().Register<E.Role>().Register<E.UserInRole>();
 
