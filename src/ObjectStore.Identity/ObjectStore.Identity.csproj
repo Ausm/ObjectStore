@@ -10,7 +10,15 @@
     <PackageTags>ORMapper;SQL;SQLite;ASP.NET;Identity</PackageTags>
     <PackageProjectUrl>https://github.com/Ausm/ObjectStore</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/Ausm/ObjectStore/blob/master/LICENSE</PackageLicenseUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\ObjectStore\ObjectStore.csproj" />
