@@ -60,6 +60,7 @@ namespace ObjectStore.Test.Sqlite
             relationalObjectProvider.Register<Entities.DifferentTypes>();
             relationalObjectProvider.Register<Entities.DifferentWritabilityLevels>();
             relationalObjectProvider.Register<Entities.ForeignObjectKey>();
+            relationalObjectProvider.Register<Entities.ForeignObjectKeyChain>();
             relationalObjectProvider.Register<Entities.NonInitializedKey>();
             relationalObjectProvider.Register<Entities.SubTest>();
             relationalObjectProvider.Register<Entities.Test>();

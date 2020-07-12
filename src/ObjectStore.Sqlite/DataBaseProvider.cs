@@ -210,6 +210,9 @@ namespace ObjectStore.Sqlite
                     List<string> fieldStatements = addTableStatement.FieldStatements.Select(x => ParseFieldStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                     fieldStatements.AddRange(addTableStatement.FieldStatements.Where(x => x.HasForeignKey).Select(x => ParseConstraintStatement(x)).Where(x => !string.IsNullOrWhiteSpace(x)));
 
+                    if (addTableStatement.FieldStatements.Where(x => x.IsPrimaryKey).Count() > 1)
+                        fieldStatements.Add($"PRIMARY KEY({string.Join(",", addTableStatement.FieldStatements.Where(x => x.IsPrimaryKey).Select(x => x.Fieldname))})");
+
                     StringBuilder stringBuilder = new StringBuilder($"CREATE TABLE {addTableStatement.Tablename} (").Append(string.Join(",", fieldStatements)).AppendLine(")");
                     return stringBuilder.ToString();
                 }
@@ -234,9 +237,18 @@ namespace ObjectStore.Sqlite
                 StringBuilder stringBuilder = new StringBuilder(addFieldStatement.Fieldname).Append(" ").Append(GetDbTypeString(addFieldStatement.Type));
                 if (addFieldStatement.IsPrimaryKey)
                 {
-                    stringBuilder.Append(" PRIMARY KEY");
-                    if (addFieldStatement.IsAutoincrement)
-                        stringBuilder.Append(" AUTOINCREMENT");
+                    if (addFieldStatement.Statement is IAddTableStatement addTableStatement &&
+                        addTableStatement.FieldStatements.Where(x => x.IsPrimaryKey).Count() > 1)
+                    {
+                        if(addFieldStatement.IsAutoincrement)
+                            throw new NotSupportedException($"Autoincremtent is not supported for table {addTableStatement.Tablename} because it has more then one primary key columns.");
+                    }
+                    else
+                    {
+                        stringBuilder.Append(" PRIMARY KEY");
+                        if (addFieldStatement.IsAutoincrement)
+                            stringBuilder.Append(" AUTOINCREMENT");
+                    }
                 }
 
                 return stringBuilder.ToString();

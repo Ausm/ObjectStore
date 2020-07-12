@@ -498,6 +498,25 @@ namespace ObjectStore.Test.Tests
         }
 
         [Fact]
+        public void TestInsertForeignObjectKeyChainEntity()
+        {
+            E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id == 1).First();
+            E.SubTest subTestKey = _subQueryable.Where(x => x.Test == testKey).ToList().FirstOrDefault();
+            E.ForeignObjectKey foreignObjectKey = Assert.ScriptCalled(_databaseFixture, Query.SelectForeignObjectKeyEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKey>().Where(x => x.Test == testKey).ForceLoad().ToList()).First();
+            string text = FirstRandomText;
+
+            _databaseFixture.SetResult(Query.InsertForeignObjectKeyChainEntity, new[] { new object[] { foreignObjectKey.Test.Id, subTestKey.Id, text } });
+
+            E.ForeignObjectKeyChain entity = _databaseFixture.ObjectProvider.CreateObject<E.ForeignObjectKeyChain>();
+            Assert.NotNull(entity);
+            entity.ForeignObjectKey = foreignObjectKey;
+            entity.SubTest = subTestKey;
+            entity.Value = text;
+
+            Assert.ScriptCalled(_databaseFixture, Query.InsertForeignObjectKeyChainEntity, () => _databaseFixture.ObjectProvider.GetQueryable<E.ForeignObjectKeyChain>().Where(x => x == entity).Save());
+        }
+
+        [Fact]
         public void TestUpdateForeignObjectKeyEntities()
         {
             E.Test testKey = Assert.ScriptCalled(_databaseFixture, Query.Select, () => _databaseFixture.ObjectProvider.GetQueryable<E.Test>().ForceLoad().ToList()).Where(x => x.Id == 1).First();
@@ -582,6 +601,7 @@ namespace ObjectStore.Test.Tests
                 case Query.SelectSubTake10:
                     return GetSubEntitys(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                 case Query.SelectForeignObjectKeyEntity:
+                case Query.SelectForeignObjectKeyChainEntity:
                     return new[] { new object[] { 1, "Testentry" } };
                 case Query.OrderBy:
                     return GetSubEntitys(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
@@ -632,6 +652,9 @@ namespace ObjectStore.Test.Tests
                 case Query.InsertForeignObjectKeyEntity:
                 case Query.UpdateForeignObjectKeyEntity:
                     return new string[] { "Id", "Value" };
+                case Query.SelectForeignObjectKeyChainEntity:
+                case Query.InsertForeignObjectKeyChainEntity:
+                    return new string[] { "Id", "SubTest", "Value" };
                 case Query.SelectDifferentTypesEntity:
                 case Query.InsertDifferentTypesEntity:
                 case Query.UpdateDifferentTypesEntity:

@@ -51,6 +51,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*INSERT\s+INTO\s+""dbo\.DifferentWritabilityLevels""\s*\(((Writeable|Insertable)(,\s|\s*(?=\)))){2}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){2}\);\s*SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+""dbo.DifferentWritabilityLevels""\s+WHERE\s+Id\s*=\s*\(SELECT\s+seq\s+FROM\s+sqlite_sequence\s+WHERE\s+name\s*=\s*""dbo\.DifferentWritabilityLevels""\)\s*$";
                 case Query.InsertForeignObjectKeyEntity:
                     return @"^\s*INSERT\s+INTO\s+""dbo\.ForeignObjectKeyTable""\s*\(((Id|Value)(,\s|\s*(?=\)))){2}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){2}\);\s*SELECT\s+((Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+""dbo.ForeignObjectKeyTable""\s+WHERE\s+@param\d+\s*=\s*Id\s*$";
+                case Query.InsertForeignObjectKeyChainEntity:
+                    return @"^\s*INSERT\s+INTO\s+""dbo\.ForeignObjectKeyChainTable""\s*\(((Id|Value|SubTest)(,\s|\s*(?=\)))){3}\)\s*VALUES\s*\((@param\d+(,\s*|\s*(?=\)))){3}\);\s*SELECT\s+((Id|Value|SubTest)(,\s*|\s+(?=FROM))){3}FROM\s+""dbo.ForeignObjectKeyChainTable""\s+WHERE\s+@param\d+\s*=\s*Id\s+AND\s+@param\d+\s*=\s*SubTest\s*$";
                 case Query.Update:
                     return @"^\s*UPDATE\s+""dbo\.TestTable""\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s*;\s*SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+""dbo\.TestTable""\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.UpdateDifferentTypesEntity:
@@ -79,6 +81,8 @@ namespace ObjectStore.Test.Sqlite
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>(Id|Writeable|Updateable|Insertable|Readonly))\s+\k<C>\s*(,\s*|\s+(?=FROM))){5}FROM\s+""dbo\.DifferentWritabilityLevels""\s+\k<T>\s*$";
                 case Query.SelectForeignObjectKeyEntity:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>(Id|Value))\s+\k<C>\s*(,\s*|\s+(?=FROM))){2}FROM\s+""dbo\.ForeignObjectKeyTable""\s+\k<T>\s+WHERE\s+\k<T>\.Id\s*=\s*@param\d+\s*$";
+                case Query.SelectForeignObjectKeyChainEntity:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(?<C>(Id|Value))\s+\k<C>\s*(,\s*|\s+(?=FROM))){2}FROM\s+""dbo\.ForeignObjectKeyChainTable""\s+\k<T>\s+WHERE\s+\k<T>\.Id\s*=\s*@param\d+\s*$";
                 case Query.OrderBy:
                     return GetSimpleExpressionPattern(@"\k<T>\.Test\s*=\s*@param\d+\s+ORDER\s+BY\s+\k<T>\.\[Second]\s*");
                 case Query.OrderByDescending:
@@ -116,7 +120,7 @@ namespace ObjectStore.Test.Sqlite
                 case Query.ForeignObjectPropertyEqualTo:
                     return GetForeignObjectExpressionPattern(@"LEFT\s+(OUTER\s+)?JOIN\s+""dbo\.TestTable""\s(?<T2>T\d+)\s+ON\s+\k<T2>\.Id\s*=\s*\k<T>\.Test\s+WHERE\s+\k<T2>\.\[Name]\s*=\s*@param\d+");
                 default:
-                    throw new NotSupportedException("This querry is not supported");
+                    throw new NotSupportedException("This query is not supported");
             }
         }
         string GetSimpleExpressionPattern(string wherePattern)
