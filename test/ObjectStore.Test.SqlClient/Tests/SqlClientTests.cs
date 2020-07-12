@@ -47,6 +47,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*INSERT\s+dbo\.DifferentWritabilityLevels\s*\(((Writeable|Insertable)(,\s*|\s*(?=\)))){0,2}\)\s*VALUES\s*\(@param\d+,\s*@param\d+\s*\)\s*SET\s+(?<P>@param\d+)\s*=\s*ISNULL\(SCOPE_IDENTITY\(\),\s*@@IDENTITY\)\s*SELECT\s+((Id|Writeable|Updateable|Insertable|Readonly)(,\s*|\s+(?=FROM))){5}FROM\s+dbo\.DifferentWritabilityLevels\s+WHERE\s+\k<P>\s*=\s*Id$";
                 case Query.InsertForeignObjectKeyEntity:
                     return @"^\s*INSERT\s+dbo\.ForeignObjectKeyTable\s*\(\s*Id\s*,\s*Value\s*\)\s*VALUES\s*\(\s*(?<P>@param\d+)\s*,\s*@param\d+\s*\)\s*SELECT\s+((Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyTable\s+WHERE\s+\k<P>\s*=\s*Id\s*$";
+                case Query.InsertForeignObjectKeyChainEntity:
+                    return @"^\s*INSERT\s+dbo\.ForeignObjectKeyChainTable\s*\(\s*Id\s*,\s*SubTest\s*\,\s*Value\s*\)\s*VALUES\s*\(\s*(?<P>@param\d+)\s*,\s*(?<P1>@param\d+)\s*,\s*@param\d+\s*\)\s*SELECT\s+((Id|Value|SubTest)(,\s*|\s+(?=FROM))){3}FROM\s+dbo\.ForeignObjectKeyChainTable\s+WHERE\s+\k<P>\s*=\s*Id\s+AND\s+\k<P1>\s*=\s*SubTest\s*$";
                 case Query.Update:
                     return @"^\s*UPDATE\s+dbo\.TestTable\s+SET\s+\[Description]\s*=\s*@param\d+\s+WHERE\s+Id\s*=\s*@param\d+\s+SELECT\s+Id,\s*\[Name],\s*\[Description]\s+FROM\s+dbo\.TestTable\s+WHERE\s+Id\s*=\s*@param\d+\s*$";
                 case Query.UpdateDifferentTypesEntity:
@@ -67,6 +69,8 @@ namespace ObjectStore.Test.SqlClient
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s*$";
                 case Query.SelectForeignObjectKeyEntity:
                     return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyTable\s+\k<T>\s+WHERE\s+\k<T>\.Id\s*=\s*@param\d+\s*$";
+                case Query.SelectForeignObjectKeyChainEntity:
+                    return @"^\s*SELECT\s+(?=(?<T>T\d+))(\k<T>\.(Id|Value)(,\s*|\s+(?=FROM))){2}FROM\s+dbo\.ForeignObjectKeyChain\s+\k<T>\s+WHERE\s+\k<T>\.Id\s*=\s*@param\d+\s*$";
                 case Query.SelectSubTake10:
                     return @"^\s*SELECT\s+TOP\s+10\s+(?=(?<T>T\d+))(\k<T>\.(Id|Test|\[Name]|\[First]|\[Second]|\[Nullable])(,\s*|\s+(?=FROM))){6}FROM\s+dbo\.SubTestTable\s+\k<T>\s+ORDER\s+BY\s+\k<T>\.Id\s*$";
                 case Query.SelectNonInitializedKeyEntitiy:

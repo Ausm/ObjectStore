@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ObjectStore.Test.Entities
+﻿namespace ObjectStore.Test.Entities
 {
     [Table("dbo.ForeignObjectKeyTable")]
     public abstract class ForeignObjectKey
